@@ -1,67 +1,162 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/world/UpgradePickup.tscn" id="2_upgrade"]
+[ext_resource type="Script" path="res://scripts/world/upgrade_pickup.gd" id="3_yjaxb"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/background.png" id="4_4qe1g"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-02.png" id="5_gs50a"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-01.png" id="6_ybvx7"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/trees.png" id="7_y47vd"]
+[ext_resource type="TileSet" path="res://resources/tilesets/swamp_tileset.tres" id="8_e1ygj"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/props.png" id="9_hjvdy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(960, 48)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
 size = Vector2(960, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
-
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_plinth"]
 size = Vector2(96, 48)
 
-[node name="RoomUpgrade" type="Node2D"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_upgrade"]
+radius = 12.0
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_upgrade"]
+size = Vector2(16, 16)
+
+[node name="RoomUpgrade" type="Node2D" unique_id=1715071857]
 script = ExtResource("1_room")
 room_id = "RoomUpgrade"
-next_rooms = {"left": "RoomCheckpoint", "right": "RoomShortcut"}
+next_rooms = {
+"left": "RoomCheckpoint",
+"right": "RoomShortcut"
+}
 
-[node name="Ground" type="StaticBody2D" parent="."]
+[node name="Ground" type="StaticBody2D" parent="." unique_id=454985790]
 position = Vector2(480, 520)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=466602530]
 shape = SubResource("RectangleShape2D_ground")
 
-[node name="Sprite2D" type="Sprite2D" parent="Ground"]
-texture = SubResource("PlaceholderTexture2D_ground")
+[node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=584970899]
+visible = false
 modulate = Color(0.35, 0.41, 0.37, 1)
+texture = SubResource("PlaceholderTexture2D_ground")
 
-[node name="UpgradePlinth" type="StaticBody2D" parent="."]
+[node name="UpgradePlinth" type="StaticBody2D" parent="." unique_id=916559929]
 position = Vector2(500, 468)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="UpgradePlinth"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="UpgradePlinth" unique_id=196777131]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="Sprite2D" type="Sprite2D" parent="UpgradePlinth"]
-texture = SubResource("PlaceholderTexture2D_plinth")
+[node name="Sprite2D" type="Sprite2D" parent="UpgradePlinth" unique_id=874152383]
+visible = false
 modulate = Color(0.44, 0.45, 0.5, 1)
+texture = SubResource("PlaceholderTexture2D_plinth")
 
-[node name="Entrances" type="Node2D" parent="."]
+[node name="Entrances" type="Node2D" parent="." unique_id=190645696]
 
-[node name="LeftEntrance" type="Area2D" parent="Entrances"]
+[node name="LeftEntrance" type="Area2D" parent="Entrances" unique_id=345627646]
 position = Vector2(24, 448)
 metadata/next_room = "RoomCheckpoint"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance" unique_id=1328168132]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="RightEntrance" type="Area2D" parent="Entrances"]
+[node name="RightEntrance" type="Area2D" parent="Entrances" unique_id=69720427]
 position = Vector2(936, 448)
 metadata/next_room = "RoomShortcut"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance" unique_id=257259000]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="EnemySpawns" type="Node2D" parent="."]
+[node name="EnemySpawns" type="Node2D" parent="." unique_id=1878590911]
 
-[node name="Pickups" type="Node2D" parent="."]
+[node name="Pickups" type="Node2D" parent="." unique_id=964405224]
 
-[node name="FirstTraversalTool" parent="Pickups" instance=ExtResource("2_upgrade")]
+[node name="FirstTraversalTool" type="Area2D" parent="Pickups" unique_id=1627486938 instance=ExtResource("2_upgrade")]
 position = Vector2(500, 420)
+script = ExtResource("3_yjaxb")
 pickup_id = "swamp_first_upgrade"
 upgrade_id = "first_traversal_tool"
-upgrade_type = "traversal"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pickups/FirstTraversalTool" unique_id=1287530280]
+shape = SubResource("CircleShape2D_upgrade")
+
+[node name="Sprite2D" type="Sprite2D" parent="Pickups/FirstTraversalTool" unique_id=1200116486]
+visible = false
+texture = SubResource("PlaceholderTexture2D_upgrade")
+
+[node name="SwampBackdrop" type="Node2D" parent="." unique_id=1666999583]
+z_index = -100
+
+[node name="Background" type="Sprite2D" parent="SwampBackdrop" unique_id=1344691234]
+z_index = -120
+position = Vector2(480, 270)
+scale = Vector2(10, 2.2)
+texture = ExtResource("4_4qe1g")
+
+[node name="MidLayer02" type="Sprite2D" parent="SwampBackdrop" unique_id=135495853]
+z_index = -110
+position = Vector2(500, 285)
+scale = Vector2(5, 2.1)
+texture = ExtResource("5_gs50a")
+
+[node name="MidLayer01" type="Sprite2D" parent="SwampBackdrop" unique_id=1437313828]
+z_index = -105
+position = Vector2(470, 300)
+scale = Vector2(5.1, 2.1)
+texture = ExtResource("6_ybvx7")
+
+[node name="Trees" type="Sprite2D" parent="SwampBackdrop" unique_id=729556325]
+z_index = -95
+position = Vector2(480, 382)
+scale = Vector2(2.8, 2.8)
+texture = ExtResource("7_y47vd")
+
+[node name="SwampTileLayer" type="TileMapLayer" parent="." unique_id=240610825]
+z_index = -10
+tile_map_data = PackedByteArray("AAAAAB8AAAAAAAAAAAAAACAAAAABAAEAAAAAACEAAAABAAIAAAABAB8AAAABAAAAAAABACAAAAACAAEAAAABACEAAAACAAIAAAACAB8AAAACAAAAAAACACAAAAADAAEAAAACACEAAAADAAIAAAADAB8AAAADAAAAAAADACAAAAAEAAEAAAADACEAAAAEAAIAAAAEAB8AAAAEAAAAAAAEACAAAAAFAAEAAAAEACEAAAAFAAIAAAAFAB8AAAAFAAAAAAAFACAAAAABAAEAAAAFACEAAAABAAIAAAAGAB8AAAAGAAAAAAAGACAAAAACAAEAAAAGACEAAAACAAIAAAAHAB8AAAAAAAAAAAAHACAAAAADAAEAAAAHACEAAAADAAIAAAAIAB8AAAABAAAAAAAIACAAAAAEAAEAAAAIACEAAAAEAAIAAAAJAB8AAAACAAAAAAAJACAAAAAFAAEAAAAJACEAAAAFAAIAAAAKAB8AAAADAAAAAAAKACAAAAABAAEAAAAKACEAAAABAAIAAAALAB8AAAAEAAAAAAALACAAAAACAAEAAAALACEAAAACAAIAAAAMAB8AAAAFAAAAAAAMACAAAAADAAEAAAAMACEAAAADAAIAAAANAB8AAAAGAAAAAAANACAAAAAEAAEAAAANACEAAAAEAAIAAAAOAB8AAAAAAAAAAAAOACAAAAAFAAEAAAAOACEAAAAFAAIAAAAPAB8AAAABAAAAAAAPACAAAAABAAEAAAAPACEAAAABAAIAAAAQAB8AAAACAAAAAAAQACAAAAACAAEAAAAQACEAAAACAAIAAAARAB8AAAADAAAAAAARACAAAAADAAEAAAARACEAAAADAAIAAAASAB8AAAAEAAAAAAASACAAAAAEAAEAAAASACEAAAAEAAIAAAATAB8AAAAFAAAAAAATACAAAAAFAAEAAAATACEAAAAFAAIAAAAUAB8AAAAGAAAAAAAUACAAAAABAAEAAAAUACEAAAABAAIAAAAVAB8AAAAAAAAAAAAVACAAAAACAAEAAAAVACEAAAACAAIAAAAWAB8AAAABAAAAAAAWACAAAAADAAEAAAAWACEAAAADAAIAAAAXAB8AAAACAAAAAAAXACAAAAAEAAEAAAAXACEAAAAEAAIAAAAYAB8AAAADAAAAAAAYACAAAAAFAAEAAAAYACEAAAAFAAIAAAAZAB8AAAAEAAAAAAAZACAAAAABAAEAAAAZACEAAAABAAIAAAAaAB8AAAAFAAAAAAAaACAAAAACAAEAAAAaACEAAAACAAIAAAAbAB8AAAAGAAAAAAAbACAAAAADAAEAAAAbACEAAAADAAIAAAAcAB8AAAAAAAAAAAAcACAAAAAEAAEAAAAcACEAAAAEAAIAAAAdAB8AAAABAAAAAAAdACAAAAAFAAEAAAAdACEAAAAFAAIAAAAeAB8AAAACAAAAAAAeACAAAAABAAEAAAAeACEAAAABAAIAAAAfAB8AAAADAAAAAAAfACAAAAACAAEAAAAfACEAAAACAAIAAAAgAB8AAAAEAAAAAAAgACAAAAADAAEAAAAgACEAAAADAAIAAAAhAB8AAAAFAAAAAAAhACAAAAAEAAEAAAAhACEAAAAEAAIAAAAiAB8AAAAGAAAAAAAiACAAAAAFAAEAAAAiACEAAAAFAAIAAAAjAB8AAAAAAAAAAAAjACAAAAABAAEAAAAjACEAAAABAAIAAAAkAB8AAAABAAAAAAAkACAAAAACAAEAAAAkACEAAAACAAIAAAAlAB8AAAACAAAAAAAlACAAAAADAAEAAAAlACEAAAADAAIAAAAmAB8AAAADAAAAAAAmACAAAAAEAAEAAAAmACEAAAAEAAIAAAAnAB8AAAAEAAAAAAAnACAAAAAFAAEAAAAnACEAAAAFAAIAAAAoAB8AAAAFAAAAAAAoACAAAAABAAEAAAAoACEAAAABAAIAAAApAB8AAAAGAAAAAAApACAAAAACAAEAAAApACEAAAACAAIAAAAqAB8AAAAAAAAAAAAqACAAAAADAAEAAAAqACEAAAADAAIAAAArAB8AAAABAAAAAAArACAAAAAEAAEAAAArACEAAAAEAAIAAAAsAB8AAAACAAAAAAAsACAAAAAFAAEAAAAsACEAAAAFAAIAAAAtAB8AAAADAAAAAAAtACAAAAABAAEAAAAtACEAAAABAAIAAAAuAB8AAAAEAAAAAAAuACAAAAACAAEAAAAuACEAAAACAAIAAAAvAB8AAAAFAAAAAAAvACAAAAADAAEAAAAvACEAAAADAAIAAAAwAB8AAAAGAAAAAAAwACAAAAAEAAEAAAAwACEAAAAEAAIAAAAxAB8AAAAAAAAAAAAxACAAAAAFAAEAAAAxACEAAAAFAAIAAAAyAB8AAAABAAAAAAAyACAAAAABAAEAAAAyACEAAAABAAIAAAAzAB8AAAACAAAAAAAzACAAAAACAAEAAAAzACEAAAACAAIAAAA0AB8AAAADAAAAAAA0ACAAAAADAAEAAAA0ACEAAAADAAIAAAA1AB8AAAAEAAAAAAA1ACAAAAAEAAEAAAA1ACEAAAAEAAIAAAA2AB8AAAAFAAAAAAA2ACAAAAAFAAEAAAA2ACEAAAAFAAIAAAA3AB8AAAAGAAAAAAA3ACAAAAABAAEAAAA3ACEAAAABAAIAAAA4AB8AAAAAAAAAAAA4ACAAAAACAAEAAAA4ACEAAAACAAIAAAA5AB8AAAABAAAAAAA5ACAAAAADAAEAAAA5ACEAAAADAAIAAAA6AB8AAAACAAAAAAA6ACAAAAAEAAEAAAA6ACEAAAAEAAIAAAA7AB8AAAADAAAAAAA7ACAAAAAFAAEAAAA7ACEAAAAFAAIAAAAYABUAAAAAAAAAAAAYABYAAAABAAEAAAAZABUAAAABAAAAAAAZABYAAAACAAEAAAAaABUAAAACAAAAAAAaABYAAAADAAEAAAAbABUAAAADAAAAAAAbABYAAAAEAAEAAAAcABUAAAAEAAAAAAAcABYAAAAFAAEAAAAdABUAAAAFAAAAAAAdABYAAAABAAEAAAAeABUAAAAGAAAAAAAeABYAAAACAAEAAAAfABUAAAAAAAAAAAAfABYAAAADAAEAAAAgABUAAAABAAAAAAAgABYAAAAEAAEAAAAhABUAAAACAAAAAAAhABYAAAAFAAEAAAAiABUAAAADAAAAAAAiABYAAAABAAEAAAAjABUAAAAEAAAAAAAjABYAAAACAAEAAAA=")
+tile_set = ExtResource("8_e1ygj")
+
+[node name="SwampDecor" type="Node2D" parent="." unique_id=1993907002]
+z_index = -5
+
+[node name="Prop1" type="Sprite2D" parent="SwampDecor" unique_id=413176620]
+position = Vector2(128, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("9_hjvdy")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop2" type="Sprite2D" parent="SwampDecor" unique_id=1887306209]
+position = Vector2(298, 478)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("9_hjvdy")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop3" type="Sprite2D" parent="SwampDecor" unique_id=1070368744]
+position = Vector2(468, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("9_hjvdy")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop4" type="Sprite2D" parent="SwampDecor" unique_id=1438113585]
+position = Vector2(638, 478)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("9_hjvdy")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop5" type="Sprite2D" parent="SwampDecor" unique_id=1937281715]
+position = Vector2(808, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("9_hjvdy")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)

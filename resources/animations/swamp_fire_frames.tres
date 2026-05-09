@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Fire/fire/fire1.png" id="1_cmkfo"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Fire/fire/fire2.png" id="2_i47mb"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_cmkfo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_i47mb")
+}],
+"loop": true,
+"name": &"burn",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]

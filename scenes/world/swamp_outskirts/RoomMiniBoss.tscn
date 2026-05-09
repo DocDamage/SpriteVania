@@ -1,69 +1,168 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/SwampMiniBoss.tscn" id="2_miniboss"]
+[ext_resource type="Script" path="res://scripts/enemies/swamp_miniboss.gd" id="3_mk18x"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/swamp_thing_frames.tres" id="4_ulilk"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/background.png" id="5_xxble"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-02.png" id="6_jwcru"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-01.png" id="7_iat2u"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/trees.png" id="8_kqpro"]
+[ext_resource type="TileSet" path="res://resources/tilesets/swamp_tileset.tres" id="9_2vrwp"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/props.png" id="10_rxw4f"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(960, 48)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
 size = Vector2(960, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
-
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_exit"]
 size = Vector2(72, 112)
 
-[node name="RoomMiniBoss" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_miniboss"]
+size = Vector2(34, 42)
+
+[node name="RoomMiniBoss" type="Node2D" unique_id=1355183905]
 script = ExtResource("1_room")
 room_id = "RoomMiniBoss"
-next_rooms = {"left": "RoomShortcut", "right": "swamp_outskirts_complete"}
-enemy_spawn_ids = ["swamp_miniboss"]
+next_rooms = {
+"left": "RoomShortcut",
+"right": "swamp_outskirts_complete"
+}
+enemy_spawn_ids = Array[String](["swamp_miniboss"])
 
-[node name="Ground" type="StaticBody2D" parent="."]
+[node name="Ground" type="StaticBody2D" parent="." unique_id=853478525]
 position = Vector2(480, 520)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=452824745]
 shape = SubResource("RectangleShape2D_ground")
 
-[node name="Sprite2D" type="Sprite2D" parent="Ground"]
-texture = SubResource("PlaceholderTexture2D_ground")
+[node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=134635676]
+visible = false
 modulate = Color(0.32, 0.36, 0.35, 1)
+texture = SubResource("PlaceholderTexture2D_ground")
 
-[node name="BossExitPlaceholder" type="Area2D" parent="."]
+[node name="BossExitPlaceholder" type="Area2D" parent="." unique_id=133567614]
 position = Vector2(900, 448)
 metadata/next_room = "swamp_outskirts_complete"
 metadata/requires_defeat = "swamp_miniboss"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BossExitPlaceholder"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BossExitPlaceholder" unique_id=1944682607]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="Sprite2D" type="Sprite2D" parent="BossExitPlaceholder"]
-texture = SubResource("PlaceholderTexture2D_exit")
+[node name="Sprite2D" type="Sprite2D" parent="BossExitPlaceholder" unique_id=1348382058]
+visible = false
 modulate = Color(0.54, 0.47, 0.2, 0.55)
+texture = SubResource("PlaceholderTexture2D_exit")
 
-[node name="Entrances" type="Node2D" parent="."]
+[node name="Entrances" type="Node2D" parent="." unique_id=79019645]
 
-[node name="LeftEntrance" type="Area2D" parent="Entrances"]
+[node name="LeftEntrance" type="Area2D" parent="Entrances" unique_id=1897763892]
 position = Vector2(24, 448)
 metadata/next_room = "RoomShortcut"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance" unique_id=290799318]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="RightEntrance" type="Area2D" parent="Entrances"]
+[node name="RightEntrance" type="Area2D" parent="Entrances" unique_id=520366731]
 position = Vector2(936, 448)
 metadata/next_room = "swamp_outskirts_complete"
 metadata/requires_defeat = "swamp_miniboss"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance" unique_id=1381513426]
 shape = SubResource("RectangleShape2D_entrance")
 
-[node name="EnemySpawns" type="Node2D" parent="."]
+[node name="EnemySpawns" type="Node2D" parent="." unique_id=2063144704]
 
-[node name="SwampMiniBoss" parent="EnemySpawns" instance=ExtResource("2_miniboss")]
+[node name="SwampMiniBoss" type="CharacterBody2D" parent="EnemySpawns" unique_id=86696602 instance=ExtResource("2_miniboss")]
 position = Vector2(520, 472)
+script = ExtResource("3_mk18x")
 enemy_id = "swamp_miniboss"
+max_health = 180
+damage = 18
+xp_reward = 150
 
-[node name="Pickups" type="Node2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemySpawns/SwampMiniBoss" unique_id=1522306097]
+shape = SubResource("RectangleShape2D_swamp_miniboss")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="EnemySpawns/SwampMiniBoss" unique_id=801261234]
+position = Vector2(0, -8)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("4_ulilk")
+animation = &"walk"
+
+[node name="Pickups" type="Node2D" parent="." unique_id=1616409386]
+
+[node name="SwampBackdrop" type="Node2D" parent="." unique_id=551555075]
+z_index = -100
+
+[node name="Background" type="Sprite2D" parent="SwampBackdrop" unique_id=1480866063]
+z_index = -120
+position = Vector2(480, 270)
+scale = Vector2(10, 2.2)
+texture = ExtResource("5_xxble")
+
+[node name="MidLayer02" type="Sprite2D" parent="SwampBackdrop" unique_id=1666193713]
+z_index = -110
+position = Vector2(500, 285)
+scale = Vector2(5, 2.1)
+texture = ExtResource("6_jwcru")
+
+[node name="MidLayer01" type="Sprite2D" parent="SwampBackdrop" unique_id=1767941465]
+z_index = -105
+position = Vector2(470, 300)
+scale = Vector2(5.1, 2.1)
+texture = ExtResource("7_iat2u")
+
+[node name="Trees" type="Sprite2D" parent="SwampBackdrop" unique_id=648110656]
+z_index = -95
+position = Vector2(480, 382)
+scale = Vector2(2.8, 2.8)
+texture = ExtResource("8_kqpro")
+
+[node name="SwampTileLayer" type="TileMapLayer" parent="." unique_id=1881816074]
+z_index = -10
+tile_map_data = PackedByteArray("AAAAAB8AAAAAAAAAAAAAACAAAAABAAEAAAAAACEAAAABAAIAAAABAB8AAAABAAAAAAABACAAAAACAAEAAAABACEAAAACAAIAAAACAB8AAAACAAAAAAACACAAAAADAAEAAAACACEAAAADAAIAAAADAB8AAAADAAAAAAADACAAAAAEAAEAAAADACEAAAAEAAIAAAAEAB8AAAAEAAAAAAAEACAAAAAFAAEAAAAEACEAAAAFAAIAAAAFAB8AAAAFAAAAAAAFACAAAAABAAEAAAAFACEAAAABAAIAAAAGAB8AAAAGAAAAAAAGACAAAAACAAEAAAAGACEAAAACAAIAAAAHAB8AAAAAAAAAAAAHACAAAAADAAEAAAAHACEAAAADAAIAAAAIAB8AAAABAAAAAAAIACAAAAAEAAEAAAAIACEAAAAEAAIAAAAJAB8AAAACAAAAAAAJACAAAAAFAAEAAAAJACEAAAAFAAIAAAAKAB8AAAADAAAAAAAKACAAAAABAAEAAAAKACEAAAABAAIAAAALAB8AAAAEAAAAAAALACAAAAACAAEAAAALACEAAAACAAIAAAAMAB8AAAAFAAAAAAAMACAAAAADAAEAAAAMACEAAAADAAIAAAANAB8AAAAGAAAAAAANACAAAAAEAAEAAAANACEAAAAEAAIAAAAOAB8AAAAAAAAAAAAOACAAAAAFAAEAAAAOACEAAAAFAAIAAAAPAB8AAAABAAAAAAAPACAAAAABAAEAAAAPACEAAAABAAIAAAAQAB8AAAACAAAAAAAQACAAAAACAAEAAAAQACEAAAACAAIAAAARAB8AAAADAAAAAAARACAAAAADAAEAAAARACEAAAADAAIAAAASAB8AAAAEAAAAAAASACAAAAAEAAEAAAASACEAAAAEAAIAAAATAB8AAAAFAAAAAAATACAAAAAFAAEAAAATACEAAAAFAAIAAAAUAB8AAAAGAAAAAAAUACAAAAABAAEAAAAUACEAAAABAAIAAAAVAB8AAAAAAAAAAAAVACAAAAACAAEAAAAVACEAAAACAAIAAAAWAB8AAAABAAAAAAAWACAAAAADAAEAAAAWACEAAAADAAIAAAAXAB8AAAACAAAAAAAXACAAAAAEAAEAAAAXACEAAAAEAAIAAAAYAB8AAAADAAAAAAAYACAAAAAFAAEAAAAYACEAAAAFAAIAAAAZAB8AAAAEAAAAAAAZACAAAAABAAEAAAAZACEAAAABAAIAAAAaAB8AAAAFAAAAAAAaACAAAAACAAEAAAAaACEAAAACAAIAAAAbAB8AAAAGAAAAAAAbACAAAAADAAEAAAAbACEAAAADAAIAAAAcAB8AAAAAAAAAAAAcACAAAAAEAAEAAAAcACEAAAAEAAIAAAAdAB8AAAABAAAAAAAdACAAAAAFAAEAAAAdACEAAAAFAAIAAAAeAB8AAAACAAAAAAAeACAAAAABAAEAAAAeACEAAAABAAIAAAAfAB8AAAADAAAAAAAfACAAAAACAAEAAAAfACEAAAACAAIAAAAgAB8AAAAEAAAAAAAgACAAAAADAAEAAAAgACEAAAADAAIAAAAhAB8AAAAFAAAAAAAhACAAAAAEAAEAAAAhACEAAAAEAAIAAAAiAB8AAAAGAAAAAAAiACAAAAAFAAEAAAAiACEAAAAFAAIAAAAjAB8AAAAAAAAAAAAjACAAAAABAAEAAAAjACEAAAABAAIAAAAkAB8AAAABAAAAAAAkACAAAAACAAEAAAAkACEAAAACAAIAAAAlAB8AAAACAAAAAAAlACAAAAADAAEAAAAlACEAAAADAAIAAAAmAB8AAAADAAAAAAAmACAAAAAEAAEAAAAmACEAAAAEAAIAAAAnAB8AAAAEAAAAAAAnACAAAAAFAAEAAAAnACEAAAAFAAIAAAAoAB8AAAAFAAAAAAAoACAAAAABAAEAAAAoACEAAAABAAIAAAApAB8AAAAGAAAAAAApACAAAAACAAEAAAApACEAAAACAAIAAAAqAB8AAAAAAAAAAAAqACAAAAADAAEAAAAqACEAAAADAAIAAAArAB8AAAABAAAAAAArACAAAAAEAAEAAAArACEAAAAEAAIAAAAsAB8AAAACAAAAAAAsACAAAAAFAAEAAAAsACEAAAAFAAIAAAAtAB8AAAADAAAAAAAtACAAAAABAAEAAAAtACEAAAABAAIAAAAuAB8AAAAEAAAAAAAuACAAAAACAAEAAAAuACEAAAACAAIAAAAvAB8AAAAFAAAAAAAvACAAAAADAAEAAAAvACEAAAADAAIAAAAwAB8AAAAGAAAAAAAwACAAAAAEAAEAAAAwACEAAAAEAAIAAAAxAB8AAAAAAAAAAAAxACAAAAAFAAEAAAAxACEAAAAFAAIAAAAyAB8AAAABAAAAAAAyACAAAAABAAEAAAAyACEAAAABAAIAAAAzAB8AAAACAAAAAAAzACAAAAACAAEAAAAzACEAAAACAAIAAAA0AB8AAAADAAAAAAA0ACAAAAADAAEAAAA0ACEAAAADAAIAAAA1AB8AAAAEAAAAAAA1ACAAAAAEAAEAAAA1ACEAAAAEAAIAAAA2AB8AAAAFAAAAAAA2ACAAAAAFAAEAAAA2ACEAAAAFAAIAAAA3AB8AAAAGAAAAAAA3ACAAAAABAAEAAAA3ACEAAAABAAIAAAA4AB8AAAAAAAAAAAA4ACAAAAACAAEAAAA4ACEAAAACAAIAAAA5AB8AAAABAAAAAAA5ACAAAAADAAEAAAA5ACEAAAADAAIAAAA6AB8AAAACAAAAAAA6ACAAAAAEAAEAAAA6ACEAAAAEAAIAAAA7AB8AAAADAAAAAAA7ACAAAAAFAAEAAAA7ACEAAAAFAAIAAAAIABkAAAAAAAAAAAAIABoAAAABAAEAAAAJABkAAAABAAAAAAAJABoAAAACAAEAAAAKABkAAAACAAAAAAAKABoAAAADAAEAAAALABkAAAADAAAAAAALABoAAAAEAAEAAAAMABkAAAAEAAAAAAAMABoAAAAFAAEAAAANABkAAAAFAAAAAAANABoAAAABAAEAAAAOABkAAAAGAAAAAAAOABoAAAACAAEAAAAPABkAAAAAAAAAAAAPABoAAAADAAEAAAAtABkAAAAAAAAAAAAtABoAAAABAAEAAAAuABkAAAABAAAAAAAuABoAAAACAAEAAAAvABkAAAACAAAAAAAvABoAAAADAAEAAAAwABkAAAADAAAAAAAwABoAAAAEAAEAAAAxABkAAAAEAAAAAAAxABoAAAAFAAEAAAAyABkAAAAFAAAAAAAyABoAAAABAAEAAAAzABkAAAAGAAAAAAAzABoAAAACAAEAAAA0ABkAAAAAAAAAAAA0ABoAAAADAAEAAAA=")
+tile_set = ExtResource("9_2vrwp")
+
+[node name="SwampDecor" type="Node2D" parent="." unique_id=1118066836]
+z_index = -5
+
+[node name="Prop1" type="Sprite2D" parent="SwampDecor" unique_id=1248932711]
+position = Vector2(128, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("10_rxw4f")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop2" type="Sprite2D" parent="SwampDecor" unique_id=2096066038]
+position = Vector2(298, 478)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("10_rxw4f")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop3" type="Sprite2D" parent="SwampDecor" unique_id=1356862681]
+position = Vector2(468, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("10_rxw4f")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop4" type="Sprite2D" parent="SwampDecor" unique_id=1551168570]
+position = Vector2(638, 478)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("10_rxw4f")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)
+
+[node name="Prop5" type="Sprite2D" parent="SwampDecor" unique_id=1399492200]
+position = Vector2(808, 470)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("10_rxw4f")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 48)

@@ -1,0 +1,31 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Spider/walk/spider1.png" id="1_ne3t8"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Spider/walk/spider2.png" id="2_w7h5f"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Spider/walk/spider3.png" id="3_2mnc7"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Spider/walk/spider4.png" id="4_3icta"]
+
+[resource]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ne3t8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_w7h5f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_2mnc7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_3icta")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}]

@@ -1,0 +1,156 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/fall/fall1.png" id="1_kduug"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/fall/fall2.png" id="2_ott8r"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/hurt/Hurt1.png" id="3_rvddc"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/hurt/Hurt2.png" id="4_sk11g"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle1.png" id="5_ayj2m"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle2.png" id="6_18vgg"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle3.png" id="7_3q1xc"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle4.png" id="8_lvvus"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle5.png" id="9_nllu4"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/idle/idle6.png" id="10_4fyrw"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/jump/jump1.png" id="11_ih4oh"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/jump/jump2.png" id="12_xsknw"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run1.png" id="13_7l4n1"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run2.png" id="14_u73ny"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run3.png" id="15_tcxve"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run4.png" id="16_4esp1"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run5.png" id="17_tqc4f"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run6.png" id="18_blbi6"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run7.png" id="19_g08yj"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run8.png" id="20_3l6kj"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run9.png" id="21_4i1xt"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run10.png" id="22_x4qr0"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run11.png" id="23_8i5cc"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run12.png" id="24_qkilt"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run13.png" id="25_s01w1"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/run/run14.png" id="26_s8utp"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/shoot/shoot1.png" id="27_ddqbh"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/shoot/shoot2.png" id="28_vx8et"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/Sprites/shoot/shoot3.png" id="29_7a30s"]
+
+[resource]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_kduug")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_ott8r")
+}],
+"loop": true,
+"name": &"fall",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_rvddc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_sk11g")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_ayj2m")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_18vgg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_3q1xc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_lvvus")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_nllu4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_4fyrw")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_ih4oh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_xsknw")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_7l4n1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_u73ny")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_tcxve")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_4esp1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_tqc4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_blbi6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_g08yj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_3l6kj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_4i1xt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_x4qr0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_8i5cc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_qkilt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_s01w1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_s8utp")
+}],
+"loop": true,
+"name": &"run",
+"speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("27_ddqbh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_vx8et")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_7a30s")
+}],
+"loop": false,
+"name": &"shoot",
+"speed": 10.0
+}]

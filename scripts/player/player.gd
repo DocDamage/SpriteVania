@@ -10,7 +10,8 @@ const XPCurve := preload("res://scripts/core/xp_curve.gd")
 const DEFAULT_MOVE_SPEED := 160.0
 const DEFAULT_JUMP_VELOCITY := -360.0
 
-@onready var sprite: Sprite2D = %Sprite2D
+@onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
+@onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
 
 var class_data: ClassData
 var class_controller: Node
@@ -44,6 +45,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = _jump_velocity()
 
 	move_and_slide()
+	_update_animation()
 
 	if class_controller == null:
 		return
@@ -134,6 +136,25 @@ func _sprite_node() -> Sprite2D:
 	if sprite != null:
 		return sprite
 	return get_node_or_null("%Sprite2D") as Sprite2D
+
+func _update_animation() -> void:
+	if animated_sprite == null:
+		return
+
+	animated_sprite.flip_h = facing_direction < 0.0
+	var next_animation := "idle"
+	if not is_on_floor():
+		if velocity.y < 0.0:
+			next_animation = "jump"
+		else:
+			next_animation = "fall"
+	elif absf(velocity.x) > 1.0:
+		next_animation = "run"
+
+	if animated_sprite.animation != next_animation:
+		animated_sprite.play(next_animation)
+	elif not animated_sprite.is_playing():
+		animated_sprite.play()
 
 func _move_speed() -> float:
 	if class_data == null:

@@ -1,22 +1,20 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/swamp_crawler.gd" id="1_swamp_crawler"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/swamp_spider_frames.tres" id="2_3pq4r"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_crawler"]
 size = Vector2(18, 12)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_swamp_crawler"]
-size = Vector2(18, 12)
-
-[node name="SwampCrawler" type="CharacterBody2D"]
+[node name="SwampCrawler" type="CharacterBody2D" unique_id=1960697197]
 script = ExtResource("1_swamp_crawler")
 enemy_id = "swamp_crawler"
-max_health = 30
-damage = 10
-xp_reward = 25
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=379089512]
 shape = SubResource("RectangleShape2D_swamp_crawler")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = SubResource("PlaceholderTexture2D_swamp_crawler")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=377222618]
+position = Vector2(0, -3)
+scale = Vector2(1.5, 1.5)
+sprite_frames = ExtResource("2_3pq4r")
+animation = &"walk"
