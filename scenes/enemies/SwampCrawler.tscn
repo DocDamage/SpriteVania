@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/swamp_crawler.gd" id="1_swamp_crawler"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_crawler"]
+size = Vector2(18, 12)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_swamp_crawler"]
+size = Vector2(18, 12)
+
+[node name="SwampCrawler" type="CharacterBody2D"]
+script = ExtResource("1_swamp_crawler")
+enemy_id = "swamp_crawler"
+max_health = 30
+damage = 10
+xp_reward = 25
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_swamp_crawler")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_swamp_crawler")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/class_data.gd" id="1_class_data"]
+[ext_resource type="Script" path="res://scripts/player/hexbinder_controller.gd" id="2_hexbinder_controller"]
+
+[resource]
+script = ExtResource("1_class_data")
+class_id = "hexbinder"
+display_name = "Hexbinder"
+description = "Fragile spellcaster who survives through blink movement, curses, control magic, and careful resource use."
+max_health = 85
+max_resource = 100
+base_attack = 12
+base_defense = 1
+move_speed = 155.0
+jump_velocity = -350.0
+controller_script = ExtResource("2_hexbinder_controller")
+sprite_options = Array[String](["res://SpriteVania Assets/player/magic_cliffs_player/Sprites/idle/idle1.png"])
+traversal_unlocks = Array[String](["blink", "float_fall", "phase_barrier"])
+attack_skills = Array[String](["curse_bolt", "binding_sigil", "hex_mine", "void_lance"])
+xp_curve = Array[int]([0, 100, 250, 450, 700])

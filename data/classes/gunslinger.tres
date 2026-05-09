@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/class_data.gd" id="1_class_data"]
+[ext_resource type="Script" path="res://scripts/player/gunslinger_controller.gd" id="2_gunslinger_controller"]
+
+[resource]
+script = ExtResource("1_class_data")
+class_id = "gunslinger"
+display_name = "Gunslinger"
+description = "Fast ranged fighter who controls spacing with shots, slides, grapples, and trick attacks."
+max_health = 100
+max_resource = 60
+base_attack = 11
+base_defense = 2
+move_speed = 175.0
+jump_velocity = -370.0
+controller_script = ExtResource("2_gunslinger_controller")
+sprite_options = Array[String](["res://SpriteVania Assets/player/Boy/Boy_Adventure A.png", "res://SpriteVania Assets/player/Boy/Boy_Adventure B.png"])
+traversal_unlocks = Array[String](["hookshot", "combat_slide", "recoil_jump"])
+attack_skills = Array[String](["piercing_shot", "ricochet_shot", "fan_fire", "explosive_round"])
+xp_curve = Array[int]([0, 100, 250, 450, 700])
