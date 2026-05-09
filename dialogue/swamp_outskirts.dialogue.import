@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://cw2xxc7rurlky"
+path="res://.godot/imported/swamp_outskirts.dialogue-439a6f453d9356067912e8fc7f2c3acb.tres"
+
+[deps]
+
+source_file="res://dialogue/swamp_outskirts.dialogue"
+dest_files=["res://.godot/imported/swamp_outskirts.dialogue-439a6f453d9356067912e8fc7f2c3acb.tres"]
+
+[params]
+
+defaults=true

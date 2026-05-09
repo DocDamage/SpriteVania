@@ -7,8 +7,15 @@ signal leveled_up(new_level: int)
 const GRAVITY := 980.0
 const ClassData := preload("res://scripts/data/class_data.gd")
 const XPCurve := preload("res://scripts/core/xp_curve.gd")
+const PlayerProjectile := preload("res://scripts/player/player_projectile.gd")
 const DEFAULT_MOVE_SPEED := 160.0
 const DEFAULT_JUMP_VELOCITY := -360.0
+const MELEE_RANGE := Vector2(46, 34)
+const MELEE_OFFSET := Vector2(30, -8)
+const PROJECTILE_OFFSET := Vector2(22, -12)
+const PROJECTILE_LIFETIME := 1.15
+const PROJECTILE_SPEED := 430.0
+const PIERCING_PROJECTILE_SPEED := 520.0
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
@@ -75,8 +82,12 @@ func take_damage(amount: int) -> void:
 	if current_health <= 0:
 		died.emit()
 
-func perform_melee_attack(_damage: int) -> void:
-	pass
+func perform_melee_attack(damage: int) -> void:
+	if damage <= 0:
+		return
+	_play_action_animation("shoot")
+	for target: Node in _query_attack_targets(MELEE_RANGE, MELEE_OFFSET):
+		target.call("take_damage", damage)
 
 func perform_guard_counter() -> void:
 	pass
@@ -84,20 +95,21 @@ func perform_guard_counter() -> void:
 func start_blocking() -> void:
 	pass
 
-func fire_projectile(_damage: int) -> void:
-	pass
+func fire_projectile(damage: int) -> void:
+	_spawn_projectile(damage, PROJECTILE_SPEED, PROJECTILE_LIFETIME, Color(0.9, 0.82, 0.35, 1.0))
 
-func fire_piercing_shot(_damage: int) -> void:
-	pass
+func fire_piercing_shot(damage: int) -> void:
+	_spawn_projectile(damage, PIERCING_PROJECTILE_SPEED, PROJECTILE_LIFETIME * 1.25, Color(0.95, 0.55, 0.22, 1.0), true)
 
 func perform_slide() -> void:
 	pass
 
-func fire_spell(_damage: int) -> void:
-	pass
+func fire_spell(damage: int) -> void:
+	_spawn_projectile(damage, PROJECTILE_SPEED * 0.85, PROJECTILE_LIFETIME, Color(0.55, 0.35, 0.95, 1.0))
 
 func cast_binding_sigil() -> void:
-	pass
+	for target: Node in _query_attack_targets(Vector2(78, 48), Vector2(40, -8)):
+		target.call("take_damage", 4)
 
 func perform_blink() -> void:
 	global_position.x += 48.0 * facing_direction
@@ -155,6 +167,60 @@ func _update_animation() -> void:
 		animated_sprite.play(next_animation)
 	elif not animated_sprite.is_playing():
 		animated_sprite.play()
+
+func _play_action_animation(animation_name: String) -> void:
+	if animated_sprite == null:
+		return
+	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(animation_name):
+		animated_sprite.play(animation_name)
+
+func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
+	var shape := RectangleShape2D.new()
+	shape.size = size
+	var parameters := PhysicsShapeQueryParameters2D.new()
+	parameters.shape = shape
+	parameters.transform = Transform2D(0.0, global_position + Vector2(offset.x * facing_direction, offset.y))
+	parameters.exclude = [get_rid()]
+	parameters.collide_with_areas = false
+	parameters.collide_with_bodies = true
+
+	var targets: Array[Node] = []
+	for hit: Dictionary in get_world_2d().direct_space_state.intersect_shape(parameters, 16):
+		var collider := hit.get("collider") as Node
+		if collider == null or collider == self or not collider.has_method("take_damage"):
+			continue
+		if targets.has(collider):
+			continue
+		targets.append(collider)
+	return targets
+
+func _spawn_projectile(damage: int, speed: float, lifetime: float, color: Color, piercing := false) -> void:
+	if damage <= 0:
+		return
+	_play_action_animation("shoot")
+	var projectile := PlayerProjectile.new()
+	projectile.damage = damage
+	projectile.speed = speed
+	projectile.lifetime = lifetime
+	projectile.direction = Vector2(facing_direction, 0.0)
+	projectile.global_position = global_position + Vector2(PROJECTILE_OFFSET.x * facing_direction, PROJECTILE_OFFSET.y)
+
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 5.0 if not piercing else 4.0
+	shape.shape = circle
+	projectile.add_child(shape)
+
+	var sprite := ColorRect.new()
+	sprite.color = color
+	sprite.size = Vector2(12, 5) if not piercing else Vector2(18, 4)
+	sprite.position = -sprite.size * 0.5
+	projectile.add_child(sprite)
+
+	var projectile_parent := get_tree().current_scene
+	if projectile_parent == null:
+		projectile_parent = get_parent()
+	projectile_parent.add_child(projectile)
 
 func _move_speed() -> float:
 	if class_data == null:
