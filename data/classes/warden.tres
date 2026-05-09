@@ -6,6 +6,7 @@
 script = ExtResource("1_class_data")
 class_id = "warden"
 display_name = "Warden"
+description = "Durable melee guardian with shield techniques, armored movement, and deliberate heavy strikes."
 max_health = 140
 max_resource = 40
 base_attack = 14

@@ -6,6 +6,7 @@
 script = ExtResource("1_class_data")
 class_id = "hexbinder"
 display_name = "Hexbinder"
+description = "Fragile spellcaster who survives through blink movement, curses, control magic, and careful resource use."
 max_health = 85
 max_resource = 100
 base_attack = 12

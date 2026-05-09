@@ -6,6 +6,7 @@
 script = ExtResource("1_class_data")
 class_id = "gunslinger"
 display_name = "Gunslinger"
+description = "Fast ranged fighter who controls spacing with shots, slides, grapples, and trick attacks."
 max_health = 100
 max_resource = 60
 base_attack = 11
