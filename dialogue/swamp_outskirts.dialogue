@@ -1,0 +1,8 @@
+~ start
+Swamp Marker: The bog keeps what it drowns.
+Swamp Marker: Three paths split past this shrine: movement, violence, and memory.
+- Mark this place.
+	Swamp Marker: Rest at shrines to bind your progress. Return with new movement and the old paths will change shape.
+- Leave.
+	=> END
+=> END

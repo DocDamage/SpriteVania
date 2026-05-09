@@ -13,6 +13,7 @@ func _init() -> void:
 	_assert_sprite_frames("res://resources/animations/swamp_spider_frames.tres", {"walk": 4})
 	_assert_sprite_frames("res://resources/animations/swamp_thing_frames.tres", {"walk": 4})
 	_assert_player_animated_collision()
+	_assert_dialogue_resource()
 	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomStart.tscn")
 	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomEnemy.tscn")
 	print("PASS: asset integration")
@@ -55,6 +56,20 @@ func _assert_player_animated_collision() -> void:
 		quit(1)
 	player.free()
 
+func _assert_dialogue_resource() -> void:
+	var dialogue := load("res://dialogue/swamp_outskirts.dialogue")
+	if dialogue == null:
+		push_error("Swamp dialogue resource did not load")
+		quit(1)
+	var cues: Dictionary = dialogue.get("cues")
+	if not cues.has("start"):
+		push_error("Swamp dialogue should define a start cue")
+		quit(1)
+	var lines: Dictionary = dialogue.get("lines")
+	if lines.size() < 2:
+		push_error("Swamp dialogue should compile to multiple dialogue lines")
+		quit(1)
+
 func _assert_room_tiles(path: String) -> void:
 	var scene := load(path) as PackedScene
 	if scene == null:
@@ -72,6 +87,10 @@ func _assert_room_tiles(path: String) -> void:
 		quit(1)
 	if room.get_node_or_null("SwampBackdrop") == null:
 		push_error(path + " is missing SwampBackdrop")
+		room.free()
+		quit(1)
+	if path.ends_with("RoomStart.tscn") and room.get_node_or_null("LoreTablet") == null:
+		push_error(path + " is missing LoreTablet")
 		room.free()
 		quit(1)
 	room.free()
