@@ -1,0 +1,70 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/SwampCrawler.tscn" id="2_crawler"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(960, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
+size = Vector2(48, 144)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
+size = Vector2(960, 48)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_pillar"]
+size = Vector2(96, 96)
+
+[node name="RoomEnemy" type="Node2D"]
+script = ExtResource("1_room")
+room_id = "RoomEnemy"
+next_rooms = {"left": "RoomMovement", "right": "RoomHazard"}
+enemy_spawn_ids = ["swamp_crawler_a", "swamp_crawler_b"]
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(480, 520)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Sprite2D" type="Sprite2D" parent="Ground"]
+texture = SubResource("PlaceholderTexture2D_ground")
+modulate = Color(0.33, 0.39, 0.35, 1)
+
+[node name="CoverBlock" type="StaticBody2D" parent="."]
+position = Vector2(480, 452)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoverBlock"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="Sprite2D" type="Sprite2D" parent="CoverBlock"]
+texture = SubResource("PlaceholderTexture2D_pillar")
+modulate = Color(0.4, 0.43, 0.42, 1)
+
+[node name="Entrances" type="Node2D" parent="."]
+
+[node name="LeftEntrance" type="Area2D" parent="Entrances"]
+position = Vector2(24, 448)
+metadata/next_room = "RoomMovement"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="RightEntrance" type="Area2D" parent="Entrances"]
+position = Vector2(936, 448)
+metadata/next_room = "RoomHazard"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="EnemySpawns" type="Node2D" parent="."]
+
+[node name="SwampCrawlerA" parent="EnemySpawns" instance=ExtResource("2_crawler")]
+position = Vector2(320, 480)
+enemy_id = "swamp_crawler_a"
+
+[node name="SwampCrawlerB" parent="EnemySpawns" instance=ExtResource("2_crawler")]
+position = Vector2(660, 480)
+enemy_id = "swamp_crawler_b"
+
+[node name="Pickups" type="Node2D" parent="."]

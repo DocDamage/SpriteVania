@@ -10,6 +10,16 @@ const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
 const DEFAULT_ROOM_ID := "RoomStart"
+const ROOM_SCENES := {
+	"RoomStart": preload("res://scenes/world/swamp_outskirts/RoomStart.tscn"),
+	"RoomMovement": preload("res://scenes/world/swamp_outskirts/RoomMovement.tscn"),
+	"RoomEnemy": preload("res://scenes/world/swamp_outskirts/RoomEnemy.tscn"),
+	"RoomHazard": preload("res://scenes/world/swamp_outskirts/RoomHazard.tscn"),
+	"RoomCheckpoint": preload("res://scenes/world/swamp_outskirts/RoomCheckpoint.tscn"),
+	"RoomUpgrade": preload("res://scenes/world/swamp_outskirts/RoomUpgrade.tscn"),
+	"RoomShortcut": preload("res://scenes/world/swamp_outskirts/RoomShortcut.tscn"),
+	"RoomMiniBoss": preload("res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn"),
+}
 const CLASS_DATA := {
 	"warden": preload("res://data/classes/warden.tres"),
 	"gunslinger": preload("res://data/classes/gunslinger.tres"),
@@ -18,6 +28,7 @@ const CLASS_DATA := {
 
 var state: GameStateScript
 var player: CharacterBody2D
+var current_room: Node2D
 
 func _ready() -> void:
 	register_checkpoints_in(self)
@@ -30,7 +41,7 @@ func start_new_game(class_id: String, sprite_id: String) -> void:
 	state.selected_sprite = _valid_sprite_id(state.selected_class, sprite_id)
 	state.current_area = DEFAULT_AREA_ID
 	state.current_room = DEFAULT_ROOM_ID
-	register_upgrade_pickups_in(self)
+	load_room(state.current_room)
 	_spawn_player(DEFAULT_SPAWN_POSITION)
 
 func continue_game() -> void:
@@ -43,8 +54,40 @@ func continue_game() -> void:
 	var spawn_position := state.checkpoint_position
 	if spawn_position == Vector2.ZERO:
 		spawn_position = DEFAULT_SPAWN_POSITION
-	register_upgrade_pickups_in(self)
+	load_room(state.current_room)
 	_spawn_player(spawn_position)
+
+func load_room(room_id: String) -> Node2D:
+	var resolved_room_id := room_id
+	if resolved_room_id.is_empty() or not ROOM_SCENES.has(resolved_room_id):
+		resolved_room_id = DEFAULT_ROOM_ID
+
+	var rooms := _get_rooms_container()
+	for child: Node in rooms.get_children():
+		rooms.remove_child(child)
+		child.queue_free()
+
+	current_room = ROOM_SCENES[resolved_room_id].instantiate() as Node2D
+	rooms.add_child(current_room)
+	if current_room.has_method("enter_room"):
+		current_room.call("enter_room")
+
+	if state == null:
+		state = GameStateScript.new()
+	state.current_area = DEFAULT_AREA_ID
+	state.current_room = resolved_room_id
+
+	register_checkpoints_in(current_room)
+	register_enemies_in(current_room)
+	register_upgrade_pickups_in(current_room)
+	return current_room
+
+func get_current_room_id() -> String:
+	if state == null:
+		return DEFAULT_ROOM_ID
+	if state.current_room.is_empty() or not ROOM_SCENES.has(state.current_room):
+		return DEFAULT_ROOM_ID
+	return state.current_room
 
 func register_checkpoint(checkpoint: Area2D) -> void:
 	if checkpoint == null or checkpoint.get_script() != CHECKPOINT_SHRINE_SCRIPT:
@@ -82,7 +125,7 @@ func register_enemies_in(root: Node) -> void:
 	for child: Node in root.get_children():
 		register_enemies_in(child)
 
-func register_upgrade_pickup(pickup: UpgradePickup) -> void:
+func register_upgrade_pickup(pickup: Area2D) -> void:
 	if pickup == null or pickup.get_script() != UPGRADE_PICKUP_SCRIPT:
 		return
 	if state != null and state.collected_pickups.has(pickup.pickup_id):
@@ -170,8 +213,16 @@ func _ensure_valid_world_position() -> void:
 		return
 	if state.current_area.is_empty():
 		state.current_area = DEFAULT_AREA_ID
-	if state.current_room.is_empty():
+	if state.current_room.is_empty() or not ROOM_SCENES.has(state.current_room):
 		state.current_room = DEFAULT_ROOM_ID
+
+func _get_rooms_container() -> Node2D:
+	var rooms := get_node_or_null("Rooms") as Node2D
+	if rooms == null:
+		rooms = Node2D.new()
+		rooms.name = "Rooms"
+		add_child(rooms)
+	return rooms
 
 func _valid_class_id(class_id: String) -> String:
 	if CLASS_DATA.has(class_id):
