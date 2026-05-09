@@ -6,6 +6,7 @@ const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine
 const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
+const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
@@ -29,8 +30,10 @@ const CLASS_DATA := {
 var state: GameStateScript
 var player: CharacterBody2D
 var current_room: Node2D
+var hud: CanvasLayer
 
 func _ready() -> void:
+	_ensure_hud()
 	register_checkpoints_in(self)
 	register_enemies_in(self)
 	register_upgrade_pickups_in(self)
@@ -178,6 +181,9 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	player.set("xp", max(0, state.xp))
 	if player.has_signal("died"):
 		player.connect("died", _on_player_died)
+	_bind_hud_to_player()
+	if player.has_method("emit_stats_changed"):
+		player.call("emit_stats_changed")
 
 func _on_player_died() -> void:
 	var respawn_position := state.checkpoint_position if state != null else Vector2.ZERO
@@ -224,6 +230,17 @@ func _get_rooms_container() -> Node2D:
 		rooms.name = "Rooms"
 		add_child(rooms)
 	return rooms
+
+func _ensure_hud() -> void:
+	if hud != null:
+		return
+	hud = HUD_SCENE.instantiate() as CanvasLayer
+	add_child(hud)
+
+func _bind_hud_to_player() -> void:
+	_ensure_hud()
+	if hud != null and player is Player:
+		hud.call("bind_player", player)
 
 func _valid_class_id(class_id: String) -> String:
 	if CLASS_DATA.has(class_id):

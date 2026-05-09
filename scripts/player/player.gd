@@ -3,6 +3,7 @@ class_name Player
 
 signal died
 signal leveled_up(new_level: int)
+signal stats_changed(stats: Dictionary)
 
 const GRAVITY := 980.0
 const ClassData := preload("res://scripts/data/class_data.gd")
@@ -39,6 +40,7 @@ func setup(data: ClassData, sprite_path: String) -> void:
 	current_resource = class_data.max_resource
 	_load_sprite(sprite_path)
 	_setup_class_controller(class_data)
+	emit_stats_changed()
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
@@ -73,14 +75,35 @@ func gain_xp(amount: int) -> void:
 		level = next_level
 		current_health = _max_health()
 		leveled_up.emit(level)
+	emit_stats_changed()
 
 func take_damage(amount: int) -> void:
 	if amount <= 0:
 		return
 
 	current_health -= max(1, amount - _base_defense())
+	emit_stats_changed()
 	if current_health <= 0:
 		died.emit()
+
+func get_stats() -> Dictionary:
+	var max_health := _max_health()
+	var max_resource := _max_resource()
+	var xp_for_current_level := _xp_for_level(level)
+	var xp_for_next_level := _xp_for_level(level + 1)
+	return {
+		"health": clampi(current_health, 0, max_health),
+		"max_health": max_health,
+		"resource": clampi(current_resource, 0, max_resource),
+		"max_resource": max_resource,
+		"level": level,
+		"xp": xp,
+		"xp_progress": max(0, xp - xp_for_current_level),
+		"xp_required": max(1, xp_for_next_level - xp_for_current_level),
+	}
+
+func emit_stats_changed() -> void:
+	stats_changed.emit(get_stats())
 
 func perform_melee_attack(damage: int) -> void:
 	if damage <= 0:
@@ -236,6 +259,18 @@ func _max_health() -> int:
 	if class_data == null:
 		return current_health
 	return class_data.max_health + ((level - 1) * 10)
+
+func _max_resource() -> int:
+	if class_data == null:
+		return current_resource
+	return class_data.max_resource
+
+func _xp_for_level(target_level: int) -> int:
+	if target_level <= 1 or xp_curve.thresholds.is_empty():
+		return 0
+	if target_level > xp_curve.thresholds.size():
+		return xp_curve.thresholds[xp_curve.thresholds.size() - 1]
+	return xp_curve.thresholds[target_level - 1]
 
 func _base_defense() -> int:
 	if class_data == null:
