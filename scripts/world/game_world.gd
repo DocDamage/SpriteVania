@@ -3,6 +3,7 @@ class_name GameWorld
 
 const GameStateScript := preload("res://scripts/core/game_state.gd")
 const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine.gd")
+const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
@@ -21,6 +22,7 @@ var player: CharacterBody2D
 func _ready() -> void:
 	register_checkpoints_in(self)
 	register_enemies_in(self)
+	register_upgrade_pickups_in(self)
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -28,6 +30,7 @@ func start_new_game(class_id: String, sprite_id: String) -> void:
 	state.selected_sprite = _valid_sprite_id(state.selected_class, sprite_id)
 	state.current_area = DEFAULT_AREA_ID
 	state.current_room = DEFAULT_ROOM_ID
+	register_upgrade_pickups_in(self)
 	_spawn_player(DEFAULT_SPAWN_POSITION)
 
 func continue_game() -> void:
@@ -40,6 +43,7 @@ func continue_game() -> void:
 	var spawn_position := state.checkpoint_position
 	if spawn_position == Vector2.ZERO:
 		spawn_position = DEFAULT_SPAWN_POSITION
+	register_upgrade_pickups_in(self)
 	_spawn_player(spawn_position)
 
 func register_checkpoint(checkpoint: Area2D) -> void:
@@ -77,6 +81,25 @@ func register_enemies_in(root: Node) -> void:
 		register_enemy(root)
 	for child: Node in root.get_children():
 		register_enemies_in(child)
+
+func register_upgrade_pickup(pickup: UpgradePickup) -> void:
+	if pickup == null or pickup.get_script() != UPGRADE_PICKUP_SCRIPT:
+		return
+	if state != null and state.collected_pickups.has(pickup.pickup_id):
+		pickup.queue_free()
+		return
+
+	var callback := Callable(self, "_on_upgrade_collected")
+	if not pickup.is_connected("upgrade_collected", callback):
+		pickup.connect("upgrade_collected", callback)
+
+func register_upgrade_pickups_in(root: Node) -> void:
+	if root == null:
+		return
+	if root is Area2D and root.get_script() == UPGRADE_PICKUP_SCRIPT:
+		register_upgrade_pickup(root)
+	for child: Node in root.get_children():
+		register_upgrade_pickups_in(child)
 
 func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) -> void:
 	if state == null:
@@ -121,6 +144,20 @@ func _on_player_died() -> void:
 func _on_enemy_died(_enemy_id: String, xp_reward: int) -> void:
 	if player != null:
 		player.call("gain_xp", xp_reward)
+
+func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: String) -> void:
+	if state == null:
+		state = GameStateScript.new()
+		_ensure_valid_selected_class()
+		_ensure_valid_world_position()
+
+	if not pickup_id.is_empty() and not state.collected_pickups.has(pickup_id):
+		state.collected_pickups.append(pickup_id)
+	if upgrade_type == "traversal" and not upgrade_id.is_empty() and not state.traversal_unlocks.has(upgrade_id):
+		state.traversal_unlocks.append(upgrade_id)
+	if upgrade_type == "attack_skill" and not upgrade_id.is_empty() and not state.learned_attack_skills.has(upgrade_id):
+		state.learned_attack_skills.append(upgrade_id)
+	SaveManager.save_game(state)
 
 func _ensure_valid_selected_class() -> void:
 	if state == null:
