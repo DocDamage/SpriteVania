@@ -34,6 +34,18 @@ func _init() -> void:
 		push_error("Loaded state does not match saved state")
 		quit(1)
 		return
+	if loaded.current_room != "RoomCheckpoint":
+		push_error("Current room did not persist")
+		quit(1)
+		return
+	if loaded.checkpoint_id != "swamp_shrine_01":
+		push_error("Checkpoint id did not persist")
+		quit(1)
+		return
+	if not loaded.learned_attack_skills.has("guard_counter"):
+		push_error("Learned attack skill did not persist")
+		quit(1)
+		return
 	if not loaded.opened_shortcuts.has("swamp_shortcut_01"):
 		push_error("Opened shortcut did not persist")
 		quit(1)

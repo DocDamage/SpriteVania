@@ -152,6 +152,7 @@ func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) ->
 
 	state.checkpoint_id = checkpoint_id
 	state.checkpoint_position = checkpoint_position
+	state.current_room = get_current_room_id()
 	if player != null:
 		state.current_health = int(player.get("current_health"))
 		state.current_resource = int(player.get("current_resource"))
