@@ -16,6 +16,10 @@
 MCP_SETUP.md
 MCP_CLIENT_SETUP.md
 addons/
+!addons/
+addons/*
+!addons/goutte.animated_shape_2d/
+!addons/goutte.animated_shape_2d/**
 project.godot.bak
 icon.svg
 icon.svg.import

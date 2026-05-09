@@ -1,0 +1,227 @@
+[gd_resource type="Resource" script_class="ShapeFrames2D" format=3]
+
+[ext_resource type="Script" path="res://addons/goutte.animated_shape_2d/shape_frame_2d.gd" id="1_vb3bi"]
+[ext_resource type="Script" path="res://addons/goutte.animated_shape_2d/shape_frames_2d.gd" id="2_ykull"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mo6ga"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_r70lv"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_mo6ga")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sxpxq"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_qh5h8"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_sxpxq")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lem8x"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_f17m8"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_lem8x")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b7k6h"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_m8hn8"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_b7k6h")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ce31r"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_gsdoc"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_ce31r")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c5vs6"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_accg3"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_c5vs6")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f4rrc"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_ij644"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_f4rrc")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g7tcv"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_xdpwu"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_g7tcv")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q56mv"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_m8qh6"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_q56mv")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_56dyh"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_skaoq"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_56dyh")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o6qte"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_22d0n"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_o6qte")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n1s67"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_qev4t"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_n1s67")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vkay2"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_ht0iq"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_vkay2")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1f7yw"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_ignr3"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_1f7yw")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_472ye"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_ajqll"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_472ye")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t6ivc"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_raynb"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_t6ivc")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5tu7y"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_oc1uq"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_5tu7y")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ny4mm"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_nd6n5"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_ny4mm")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vk2j4"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_wv27t"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_vk2j4")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1w7rg"]
+size = Vector2(18, 32)
+
+[sub_resource type="Resource" id="Resource_86m2x"]
+script = ExtResource("1_vb3bi")
+shape = SubResource("RectangleShape2D_1w7rg")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v0ml2"]
+size = Vector2(16, 34)
+
+[sub_resource type="Resource" id="Resource_a1xci"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_v0ml2")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mv3yg"]
+size = Vector2(16, 34)
+
+[sub_resource type="Resource" id="Resource_m6lco"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_mv3yg")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_navql"]
+size = Vector2(16, 34)
+
+[sub_resource type="Resource" id="Resource_jdwgn"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_navql")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fbiey"]
+size = Vector2(16, 34)
+
+[sub_resource type="Resource" id="Resource_uxk3a"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_fbiey")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eswwc"]
+size = Vector2(20, 32)
+
+[sub_resource type="Resource" id="Resource_j2q8h"]
+script = ExtResource("1_vb3bi")
+position = Vector2(1, 0)
+shape = SubResource("RectangleShape2D_eswwc")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q3y7f"]
+size = Vector2(20, 32)
+
+[sub_resource type="Resource" id="Resource_y5w2s"]
+script = ExtResource("1_vb3bi")
+position = Vector2(1, 0)
+shape = SubResource("RectangleShape2D_q3y7f")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ixi0o"]
+size = Vector2(20, 32)
+
+[sub_resource type="Resource" id="Resource_1rill"]
+script = ExtResource("1_vb3bi")
+position = Vector2(1, 0)
+shape = SubResource("RectangleShape2D_ixi0o")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s0n3y"]
+size = Vector2(20, 28)
+
+[sub_resource type="Resource" id="Resource_vno0e"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_s0n3y")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rkk7i"]
+size = Vector2(20, 28)
+
+[sub_resource type="Resource" id="Resource_ckkrs"]
+script = ExtResource("1_vb3bi")
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_rkk7i")
+
+[resource]
+script = ExtResource("2_ykull")
+data = {
+&"fall": [SubResource("Resource_jdwgn"), SubResource("Resource_uxk3a")],
+&"hurt": [SubResource("Resource_vno0e"), SubResource("Resource_ckkrs")],
+&"idle": [SubResource("Resource_r70lv"), SubResource("Resource_qh5h8"), SubResource("Resource_f17m8"), SubResource("Resource_m8hn8"), SubResource("Resource_gsdoc"), SubResource("Resource_accg3")],
+&"jump": [SubResource("Resource_a1xci"), SubResource("Resource_m6lco")],
+&"run": [SubResource("Resource_ij644"), SubResource("Resource_xdpwu"), SubResource("Resource_m8qh6"), SubResource("Resource_skaoq"), SubResource("Resource_22d0n"), SubResource("Resource_qev4t"), SubResource("Resource_ht0iq"), SubResource("Resource_ignr3"), SubResource("Resource_ajqll"), SubResource("Resource_raynb"), SubResource("Resource_oc1uq"), SubResource("Resource_nd6n5"), SubResource("Resource_wv27t"), SubResource("Resource_86m2x")],
+&"shoot": [SubResource("Resource_j2q8h"), SubResource("Resource_y5w2s"), SubResource("Resource_1rill")]
+}

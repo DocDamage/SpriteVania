@@ -14,6 +14,10 @@ const PLAYER_FRAMES_PATH := "res://resources/animations/player_swamp_frames.tres
 const SPIDER_FRAMES_PATH := "res://resources/animations/swamp_spider_frames.tres"
 const THING_FRAMES_PATH := "res://resources/animations/swamp_thing_frames.tres"
 const FIRE_FRAMES_PATH := "res://resources/animations/swamp_fire_frames.tres"
+const PLAYER_COLLISION_FRAMES_PATH := "res://resources/shape_frames/player_collision_frames.tres"
+const ANIMATED_SHAPE_SCRIPT_PATH := "res://addons/goutte.animated_shape_2d/animated_shape_2d.gd"
+const SHAPE_FRAMES_SCRIPT_PATH := "res://addons/goutte.animated_shape_2d/shape_frames_2d.gd"
+const SHAPE_FRAME_SCRIPT_PATH := "res://addons/goutte.animated_shape_2d/shape_frame_2d.gd"
 
 const ROOM_PATHS := [
 	"res://scenes/world/swamp_outskirts/RoomStart.tscn",
@@ -40,8 +44,11 @@ const ROOM_PLATFORMS := {
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://resources/tilesets"))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://resources/animations"))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://resources/shape_frames"))
+	_enable_game_plugins()
 	_create_swamp_tileset()
 	_create_animation_resources()
+	_create_player_collision_frames()
 	_update_player_scene()
 	_update_enemy_scene("res://scenes/enemies/SwampCrawler.tscn", SPIDER_FRAMES_PATH, "walk", Vector2(0, -3), Vector2(1.5, 1.5))
 	_update_enemy_scene("res://scenes/enemies/SwampMiniBoss.tscn", THING_FRAMES_PATH, "walk", Vector2(0, -8), Vector2(2.0, 2.0))
@@ -49,6 +56,14 @@ func _initialize() -> void:
 		_update_room_scene(room_path)
 	print("Generated swamp tiles, animated sprites, and tiled room scenes.")
 	quit()
+
+func _enable_game_plugins() -> void:
+	var enabled_plugins := ProjectSettings.get_setting("editor_plugins/enabled", PackedStringArray()) as PackedStringArray
+	var plugin_path := "res://addons/goutte.animated_shape_2d/plugin.cfg"
+	if not enabled_plugins.has(plugin_path):
+		enabled_plugins.append(plugin_path)
+		ProjectSettings.set_setting("editor_plugins/enabled", enabled_plugins)
+		ProjectSettings.save()
 
 func _create_swamp_tileset() -> void:
 	var texture := load(TILESET_PATH) as Texture2D
@@ -87,6 +102,22 @@ func _create_animation_resources() -> void:
 	_add_animation(fire_frames, "burn", "res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Fire/fire", "fire", 2, 8.0, true)
 	ResourceSaver.save(fire_frames, FIRE_FRAMES_PATH)
 
+func _create_player_collision_frames() -> void:
+	var shape_frames: Resource = load(SHAPE_FRAMES_SCRIPT_PATH).new()
+	_add_collision_animation(shape_frames, "idle", 6, Vector2(18, 32), Vector2(0, 0))
+	_add_collision_animation(shape_frames, "run", 14, Vector2(18, 32), Vector2(0, 0))
+	_add_collision_animation(shape_frames, "jump", 2, Vector2(16, 34), Vector2(0, -1))
+	_add_collision_animation(shape_frames, "fall", 2, Vector2(16, 34), Vector2(0, -1))
+	_add_collision_animation(shape_frames, "shoot", 3, Vector2(20, 32), Vector2(1, 0))
+	_add_collision_animation(shape_frames, "hurt", 2, Vector2(20, 28), Vector2(0, 2))
+	ResourceSaver.save(shape_frames, PLAYER_COLLISION_FRAMES_PATH)
+
+func _add_collision_animation(shape_frames: Resource, animation: String, count: int, size: Vector2, position: Vector2) -> void:
+	var shape_frame_script: Script = load(SHAPE_FRAME_SCRIPT_PATH)
+	for index in range(count):
+		var shape_frame: Resource = shape_frame_script.make_rectangle(size, position, false)
+		shape_frames.set_shape_frame(animation, index, shape_frame)
+
 func _add_animation(frames: SpriteFrames, animation: String, folder: String, prefix: String, count: int, speed: float, loop: bool) -> void:
 	if not frames.has_animation(animation):
 		frames.add_animation(animation)
@@ -115,6 +146,18 @@ func _update_player_scene() -> void:
 	animated.play()
 	animated.position = Vector2(0, -12)
 	animated.scale = Vector2(1.15, 1.15)
+	var body_shape := root.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	var shape_animator := root.get_node_or_null("PlayerBodyShapeAnimator")
+	if shape_animator == null:
+		shape_animator = load(ANIMATED_SHAPE_SCRIPT_PATH).new()
+		shape_animator.name = "PlayerBodyShapeAnimator"
+		root.add_child(shape_animator)
+		shape_animator.owner = root
+	shape_animator.set("animated_sprite", animated)
+	shape_animator.set("collision_shape", body_shape)
+	shape_animator.set("shape_frames", load(PLAYER_COLLISION_FRAMES_PATH))
+	shape_animator.set("use_initial_as_fallback", true)
+	shape_animator.set("use_previous_as_fallback", true)
 	_set_scene_owner(root, root)
 	_save_scene(root, "res://scenes/player/Player.tscn")
 

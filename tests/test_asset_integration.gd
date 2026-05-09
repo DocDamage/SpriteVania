@@ -12,6 +12,7 @@ func _init() -> void:
 	})
 	_assert_sprite_frames("res://resources/animations/swamp_spider_frames.tres", {"walk": 4})
 	_assert_sprite_frames("res://resources/animations/swamp_thing_frames.tres", {"walk": 4})
+	_assert_player_animated_collision()
 	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomStart.tscn")
 	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomEnemy.tscn")
 	print("PASS: asset integration")
@@ -35,6 +36,24 @@ func _assert_sprite_frames(path: String, expected_counts: Dictionary) -> void:
 		if frames.get_frame_count(animation) != expected_counts[animation]:
 			push_error("%s animation %s expected %d frames, got %d" % [path, animation, expected_counts[animation], frames.get_frame_count(animation)])
 			quit(1)
+
+func _assert_player_animated_collision() -> void:
+	_assert_resource("res://resources/shape_frames/player_collision_frames.tres", Resource)
+	var scene := load("res://scenes/player/Player.tscn") as PackedScene
+	if scene == null:
+		push_error("Player scene did not load")
+		quit(1)
+	var player := scene.instantiate()
+	var animator := player.get_node_or_null("PlayerBodyShapeAnimator")
+	if animator == null:
+		push_error("Player scene is missing AnimatedShape2D body animator")
+		player.free()
+		quit(1)
+	if animator.get("shape_frames") == null:
+		push_error("Player AnimatedShape2D has no ShapeFrames2D resource")
+		player.free()
+		quit(1)
+	player.free()
 
 func _assert_room_tiles(path: String) -> void:
 	var scene := load(path) as PackedScene
