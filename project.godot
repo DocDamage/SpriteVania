@@ -14,6 +14,10 @@ config/name="SprtieVania"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 run/main_scene="res://scenes/Main.tscn"
 
+[autoload]
+
+SaveManager="*res://scripts/core/save_manager.gd"
+
 [dotnet]
 
 project/assembly_name="SprtieVania"
