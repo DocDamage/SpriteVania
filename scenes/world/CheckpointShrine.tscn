@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/checkpoint_shrine.gd" id="1_checkpoint_shrine"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_checkpoint"]
+radius = 16.0
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_checkpoint"]
+size = Vector2(16, 24)
+
+[node name="CheckpointShrine" type="Area2D"]
+script = ExtResource("1_checkpoint_shrine")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_checkpoint")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_checkpoint")
