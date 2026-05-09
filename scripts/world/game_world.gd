@@ -20,6 +20,7 @@ var player: CharacterBody2D
 
 func _ready() -> void:
 	register_checkpoints_in(self)
+	register_enemies_in(self)
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -58,6 +59,24 @@ func register_checkpoints_in(root: Node) -> void:
 		register_checkpoint(root)
 	for child: Node in root.get_children():
 		register_checkpoints_in(child)
+
+func register_enemy(enemy: Node) -> void:
+	if enemy == null:
+		return
+	if not enemy.has_signal("died"):
+		return
+
+	var callback := Callable(self, "_on_enemy_died")
+	if not enemy.is_connected("died", callback):
+		enemy.connect("died", callback)
+
+func register_enemies_in(root: Node) -> void:
+	if root == null:
+		return
+	if root.has_method("take_damage") and root.has_signal("died"):
+		register_enemy(root)
+	for child: Node in root.get_children():
+		register_enemies_in(child)
 
 func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) -> void:
 	if state == null:
@@ -98,6 +117,10 @@ func _on_player_died() -> void:
 	if respawn_position == Vector2.ZERO:
 		respawn_position = DEFAULT_SPAWN_POSITION
 	_spawn_player(respawn_position)
+
+func _on_enemy_died(_enemy_id: String, xp_reward: int) -> void:
+	if player != null:
+		player.call("gain_xp", xp_reward)
 
 func _ensure_valid_selected_class() -> void:
 	if state == null:

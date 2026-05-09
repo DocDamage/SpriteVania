@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/swamp_miniboss.gd" id="1_swamp_miniboss"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_miniboss"]
+size = Vector2(34, 42)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_swamp_miniboss"]
+size = Vector2(34, 42)
+
+[node name="SwampMiniBoss" type="CharacterBody2D"]
+script = ExtResource("1_swamp_miniboss")
+enemy_id = "swamp_miniboss"
+max_health = 180
+damage = 18
+xp_reward = 150
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_swamp_miniboss")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_swamp_miniboss")
