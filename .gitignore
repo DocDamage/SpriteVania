@@ -3,7 +3,19 @@
 /android/
 
 # Summer Engine local-only state
-.summer/local/
+.summer/
 
 # Superpowers brainstorming companion scratch files
 .superpowers/
+
+# Local assistant/editor setup
+.codex/
+.cursor/
+.vscode/
+.mcp.json
+MCP_SETUP.md
+MCP_CLIENT_SETUP.md
+addons/
+project.godot.bak
+icon.svg
+icon.svg.import
