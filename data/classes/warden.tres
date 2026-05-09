@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/class_data.gd" id="1_class_data"]
+
+[resource]
+script = ExtResource("1_class_data")
+class_id = "warden"
+display_name = "Warden"
+max_health = 140
+max_resource = 40
+base_attack = 14
+base_defense = 6
+move_speed = 135.0
+jump_velocity = -335.0
+sprite_options = Array[String](["res://SpriteVania Assets/player/Knight/Knight_A.png", "res://SpriteVania Assets/player/Knight/Knight_B.png"])
+traversal_unlocks = Array[String](["armored_dash", "shield_bash", "wall_brace"])
+attack_skills = Array[String](["guard_counter", "ground_slam", "shield_throw", "charged_cleave"])
+xp_curve = Array[int]([0, 100, 250, 450, 700])
