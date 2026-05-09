@@ -20,6 +20,14 @@ addons/
 addons/*
 !addons/goutte.animated_shape_2d/
 !addons/goutte.animated_shape_2d/**
+!addons/better-terrain/
+!addons/better-terrain/**
+!addons/AsepriteWizard/
+!addons/AsepriteWizard/**
+!addons/dialogue_manager/
+!addons/dialogue_manager/**
+!addons/gdUnit4/
+!addons/gdUnit4/**
 project.godot.bak
 icon.svg
 icon.svg.import
