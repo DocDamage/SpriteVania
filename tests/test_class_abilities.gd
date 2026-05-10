@@ -36,6 +36,13 @@ func _assert_player_has_baseline_double_jump_and_dash() -> void:
 	player.global_position = Vector2(100, 100)
 	player.facing_direction = 1.0
 	player.velocity = Vector2(0, -80)
+	var dash_trail := player.get_node_or_null("%DashTrail") as Line2D
+	if dash_trail == null:
+		_fail("Player scene should include a DashTrail visual so dash reads as motion.")
+		return
+	if dash_trail.visible:
+		_fail("DashTrail should stay hidden until a dash starts.")
+		return
 	player.perform_dash()
 	if player.global_position.x != 100.0:
 		_fail("Dash should begin as a velocity-driven burst, not an instant teleport.")
@@ -46,9 +53,17 @@ func _assert_player_has_baseline_double_jump_and_dash() -> void:
 	if not bool(player.get("is_dashing")):
 		_fail("Player should expose an active dash state while the burst is in progress.")
 		return
+	if not dash_trail.visible:
+		_fail("DashTrail should become visible during the active dash burst.")
+		return
 	player._physics_process(1.0 / 60.0)
 	if player.global_position.x <= 100.0:
 		_fail("Player should move forward during the active dash frames.")
+		return
+	for _i in range(12):
+		player._physics_process(1.0 / 60.0)
+	if bool(player.get("is_dashing")) or dash_trail.visible:
+		_fail("DashTrail should hide again when the dash burst finishes.")
 		return
 	player.free()
 

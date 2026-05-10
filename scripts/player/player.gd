@@ -64,6 +64,7 @@ const SKILL_COOLDOWNS := {
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
+@onready var dash_trail: Line2D = get_node_or_null("%DashTrail") as Line2D
 
 var class_data: ClassData
 var class_controller: Node
@@ -129,6 +130,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = 0.0
 		if _dash_time_remaining <= 0.0:
 			is_dashing = false
+			_update_dash_trail()
 			velocity.x = direction * _move_speed()
 	elif not is_wall_hanging:
 		velocity.x = direction * _move_speed()
@@ -470,6 +472,7 @@ func _start_dash(distance: float, cooldown: float) -> void:
 	velocity.x = _dash_direction * _dash_speed
 	velocity.y = 0.0
 	_dash_cooldown_remaining = cooldown
+	_update_dash_trail()
 
 func _combo_damage(base_damage: int) -> int:
 	var multiplier_index := mini(_combo_step, COMBO_MULTIPLIERS.size() - 1)
@@ -483,6 +486,17 @@ func _should_dive_bomb() -> bool:
 	if is_on_floor() or not InputMap.has_action("move_down"):
 		return false
 	return Input.is_action_pressed("move_down")
+
+func _update_dash_trail() -> void:
+	if dash_trail == null:
+		return
+	dash_trail.visible = is_dashing
+	if not is_dashing:
+		return
+	dash_trail.points = PackedVector2Array([
+		Vector2(-46.0 * _dash_direction, 0.0),
+		Vector2(12.0 * _dash_direction, 0.0),
+	])
 
 func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
 	var shape := RectangleShape2D.new()

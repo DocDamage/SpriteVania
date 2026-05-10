@@ -34,7 +34,7 @@ func _run() -> void:
 	_assert_equal("0 / 100 XP", hud.get_node("%XPValueLabel").text, "HUD should display XP progress to the next level.")
 	if _failed:
 		return
-	_assert_equal("Attack J / X  Special K / Y  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should make the attack and dash controls visible during play.")
+	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should make attack, combo, dive, and dash controls visible during play.")
 	if _failed:
 		return
 	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")

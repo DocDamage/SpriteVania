@@ -136,7 +136,7 @@ text = "0 / 100 XP"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "Attack J / X  Special K / Y  Dash Shift / B"
+text = "Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B"
 horizontal_alignment = 1
 
 [node name="UpgradeToast" type="PanelContainer" parent="Root"]
