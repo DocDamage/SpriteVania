@@ -15,6 +15,9 @@ func _run() -> void:
 	await _assert_enemy_xp_also_trains_familiar()
 	if _failed:
 		return
+	await _assert_enemy_defeat_restores_player_resource_without_skipping_xp()
+	if _failed:
+		return
 	print("PASS: familiar world persistence")
 	quit(0)
 
@@ -65,6 +68,32 @@ func _assert_enemy_xp_also_trains_familiar() -> void:
 	world.call("_on_enemy_died", "test_crawler", 25)
 	if int(familiar.get("xp")) <= 0:
 		_fail("Enemy XP should also train the active familiar.")
+		return
+
+	await _free_world(world)
+
+func _assert_enemy_defeat_restores_player_resource_without_skipping_xp() -> void:
+	var world := GAME_WORLD_SCENE.instantiate()
+	root.add_child(world)
+	world.call("start_new_game", "warden", "")
+	await process_frame
+
+	var player := world.get("player") as Player
+	var familiar := player.get_node("Familiar") as Node
+	var max_resource := int(player.get_stats().get("max_resource", 0))
+	player.current_resource = max_resource - 1
+	var starting_player_xp := int(player.get("xp"))
+	var starting_familiar_xp := int(familiar.get("xp"))
+
+	world.call("_on_enemy_died", "test_crawler", 25)
+	if int(player.get("current_resource")) != max_resource:
+		_fail("Enemy defeats should restore player resource without exceeding max resource.")
+		return
+	if int(player.get("xp")) <= starting_player_xp:
+		_fail("Enemy defeats should still grant player XP when restoring resource.")
+		return
+	if int(familiar.get("xp")) <= starting_familiar_xp:
+		_fail("Enemy defeats should still grant familiar XP when restoring resource.")
 		return
 
 	await _free_world(world)

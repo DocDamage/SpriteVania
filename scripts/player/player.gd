@@ -165,6 +165,15 @@ func take_damage(amount: int) -> void:
 		_is_dead = true
 		died.emit()
 
+func restore_resource(amount: int) -> void:
+	if amount <= 0:
+		return
+	var restored_resource := clampi(current_resource + amount, 0, _max_resource())
+	if restored_resource == current_resource:
+		return
+	current_resource = restored_resource
+	emit_stats_changed()
+
 func restore_vitals_to_max() -> void:
 	current_health = _max_health()
 	current_resource = _max_resource()

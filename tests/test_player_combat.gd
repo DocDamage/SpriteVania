@@ -13,6 +13,7 @@ func _run() -> void:
 	await _assert_melee_attack_has_playable_reach()
 	await _assert_projectile_attack_damages_enemy()
 	await _assert_enemy_death_signal_grants_xp()
+	await _assert_restore_resource_caps_at_max_and_emits_stats()
 	print("PASS: player combat")
 	quit(0)
 
@@ -91,5 +92,28 @@ func _assert_enemy_death_signal_grants_xp() -> void:
 	await physics_frame
 	if player.xp <= 0:
 		push_error("Enemy death signal should grant XP through the connected game-world path")
+		quit(1)
+	player.free()
+
+func _assert_restore_resource_caps_at_max_and_emits_stats() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	root.add_child(player)
+	player.setup(WARDEN_DATA, "")
+	var max_resource := int(player.get_stats().get("max_resource", 0))
+	player.current_resource = max_resource - 2
+	var stats_events := {"count": 0}
+	player.stats_changed.connect(func(_stats: Dictionary) -> void:
+		stats_events["count"] = int(stats_events["count"]) + 1
+	)
+	if not player.has_method("restore_resource"):
+		push_error("Player should expose restore_resource for enemy defeat rewards.")
+		quit(1)
+		return
+	player.restore_resource(10)
+	if player.current_resource != max_resource:
+		push_error("restore_resource should restore resource without exceeding max resource.")
+		quit(1)
+	if int(stats_events["count"]) <= 0:
+		push_error("restore_resource should emit stats_changed so HUD resource bars update.")
 		quit(1)
 	player.free()

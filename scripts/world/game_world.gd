@@ -15,6 +15,7 @@ const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const PAUSE_MENU_SCENE := preload("res://scenes/ui/PauseMenu.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
 const EXIT_SPAWN_OFFSET := 72.0
+const ENEMY_DEFEAT_RESOURCE_RESTORE := 6
 const HAZARD_DAMAGE := {
 	"swamp_water": 8,
 	"spikes": 14,
@@ -324,6 +325,8 @@ func _on_player_died() -> void:
 func _on_enemy_died(enemy_id: String, xp_reward: int) -> void:
 	if player != null:
 		player.call("gain_xp", xp_reward)
+		if player.has_method("restore_resource"):
+			player.call("restore_resource", ENEMY_DEFEAT_RESOURCE_RESTORE)
 	var familiar := _get_active_familiar()
 	if familiar != null:
 		familiar.call("gain_xp", xp_reward)
