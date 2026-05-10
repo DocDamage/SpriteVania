@@ -11,14 +11,26 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(960, 48)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
+[sub_resource type="Gradient" id="Gradient_swamp_ground"]
+offsets = PackedFloat32Array(0.0, 0.55, 1.0)
+colors = PackedColorArray(0.45, 0.53, 0.42, 1.0, 0.21, 0.32, 0.28, 1.0, 0.07, 0.12, 0.1, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_swamp_ground"]
+gradient = SubResource("Gradient_swamp_ground")
+width = 960
+height = 48
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
 size = Vector2(56, 128)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_gate"]
-size = Vector2(56, 128)
+[sub_resource type="Gradient" id="Gradient_shortcut_gate"]
+offsets = PackedFloat32Array(0.0, 0.45, 1.0)
+colors = PackedColorArray(0.42, 0.47, 0.45, 1.0, 0.19, 0.23, 0.24, 1.0, 0.04, 0.06, 0.07, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_shortcut_gate"]
+gradient = SubResource("Gradient_shortcut_gate")
+width = 56
+height = 128
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
@@ -39,7 +51,7 @@ shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1861529904]
 modulate = Color(0.34, 0.4, 0.36, 1)
-texture = SubResource("PlaceholderTexture2D_ground")
+texture = SubResource("Texture_swamp_ground")
 
 [node name="OneWayShortcutGate" type="StaticBody2D" parent="." unique_id=1883615278]
 position = Vector2(290, 432)
@@ -51,7 +63,7 @@ shape = SubResource("RectangleShape2D_gate")
 
 [node name="Sprite2D" type="Sprite2D" parent="OneWayShortcutGate" unique_id=1712187053]
 modulate = Color(0.23, 0.25, 0.27, 0.85)
-texture = SubResource("PlaceholderTexture2D_gate")
+texture = SubResource("Texture_shortcut_gate")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=1882840942]
 

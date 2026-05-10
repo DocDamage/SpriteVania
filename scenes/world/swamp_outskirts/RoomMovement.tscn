@@ -11,20 +11,38 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(960, 48)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
+[sub_resource type="Gradient" id="Gradient_swamp_ground"]
+offsets = PackedFloat32Array(0.0, 0.55, 1.0)
+colors = PackedColorArray(0.46, 0.55, 0.43, 1.0, 0.22, 0.33, 0.29, 1.0, 0.08, 0.12, 0.1, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_swamp_ground"]
+gradient = SubResource("Gradient_swamp_ground")
+width = 960
+height = 48
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
 size = Vector2(176, 28)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_platform"]
-size = Vector2(176, 28)
+[sub_resource type="Gradient" id="Gradient_moss_platform"]
+offsets = PackedFloat32Array(0.0, 0.45, 1.0)
+colors = PackedColorArray(0.54, 0.6, 0.48, 1.0, 0.29, 0.39, 0.33, 1.0, 0.11, 0.17, 0.14, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_moss_platform"]
+gradient = SubResource("Gradient_moss_platform")
+width = 176
+height = 28
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(32, 220)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_wall"]
-size = Vector2(32, 220)
+[sub_resource type="Gradient" id="Gradient_vine_wall"]
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+colors = PackedColorArray(0.42, 0.57, 0.46, 1.0, 0.2, 0.35, 0.3, 1.0, 0.06, 0.14, 0.12, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_vine_wall"]
+gradient = SubResource("Gradient_vine_wall")
+width = 32
+height = 220
 
 [node name="RoomMovement" type="Node2D" unique_id=202613911]
 script = ExtResource("1_room")
@@ -42,7 +60,7 @@ shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1904306381]
 modulate = Color(0.34, 0.4, 0.36, 1)
-texture = SubResource("PlaceholderTexture2D_ground")
+texture = SubResource("Texture_swamp_ground")
 
 [node name="Platforms" type="Node2D" parent="." unique_id=456924922]
 
@@ -54,7 +72,7 @@ shape = SubResource("RectangleShape2D_platform")
 
 [node name="Sprite2D" type="Sprite2D" parent="Platforms/LowStep" unique_id=129437068]
 modulate = Color(0.46, 0.49, 0.44, 1)
-texture = SubResource("PlaceholderTexture2D_platform")
+texture = SubResource("Texture_moss_platform")
 
 [node name="MidStep" type="StaticBody2D" parent="Platforms" unique_id=1429793426]
 position = Vector2(520, 368)
@@ -64,7 +82,7 @@ shape = SubResource("RectangleShape2D_platform")
 
 [node name="Sprite2D" type="Sprite2D" parent="Platforms/MidStep" unique_id=593969882]
 modulate = Color(0.46, 0.49, 0.44, 1)
-texture = SubResource("PlaceholderTexture2D_platform")
+texture = SubResource("Texture_moss_platform")
 
 [node name="HighStep" type="StaticBody2D" parent="Platforms" unique_id=516739058]
 position = Vector2(760, 292)
@@ -74,7 +92,7 @@ shape = SubResource("RectangleShape2D_platform")
 
 [node name="Sprite2D" type="Sprite2D" parent="Platforms/HighStep" unique_id=444835935]
 modulate = Color(0.46, 0.49, 0.44, 1)
-texture = SubResource("PlaceholderTexture2D_platform")
+texture = SubResource("Texture_moss_platform")
 
 [node name="WallJumpShaft" type="Node2D" parent="." unique_id=563005861]
 
@@ -86,7 +104,7 @@ shape = SubResource("RectangleShape2D_wall")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallJumpShaft/LeftWall" unique_id=1551200068]
 modulate = Color(0.38, 0.46, 0.42, 1)
-texture = SubResource("PlaceholderTexture2D_wall")
+texture = SubResource("Texture_vine_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="WallJumpShaft" unique_id=238672472]
 position = Vector2(472, 292)
@@ -96,7 +114,7 @@ shape = SubResource("RectangleShape2D_wall")
 
 [node name="Sprite2D" type="Sprite2D" parent="WallJumpShaft/RightWall" unique_id=151482575]
 modulate = Color(0.38, 0.46, 0.42, 1)
-texture = SubResource("PlaceholderTexture2D_wall")
+texture = SubResource("Texture_vine_wall")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=1733734445]
 

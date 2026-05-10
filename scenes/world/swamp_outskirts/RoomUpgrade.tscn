@@ -12,14 +12,26 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(960, 48)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
+[sub_resource type="Gradient" id="Gradient_swamp_ground"]
+offsets = PackedFloat32Array(0.0, 0.55, 1.0)
+colors = PackedColorArray(0.47, 0.55, 0.44, 1.0, 0.22, 0.33, 0.29, 1.0, 0.07, 0.12, 0.1, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_swamp_ground"]
+gradient = SubResource("Gradient_swamp_ground")
+width = 960
+height = 48
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_plinth"]
-size = Vector2(96, 48)
+[sub_resource type="Gradient" id="Gradient_upgrade_plinth"]
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+colors = PackedColorArray(0.55, 0.6, 0.62, 1.0, 0.3, 0.38, 0.43, 1.0, 0.12, 0.16, 0.2, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_upgrade_plinth"]
+gradient = SubResource("Gradient_upgrade_plinth")
+width = 96
+height = 48
 
 [node name="RoomUpgrade" type="Node2D" unique_id=1715071857]
 script = ExtResource("1_room")
@@ -37,7 +49,7 @@ shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=584970899]
 modulate = Color(0.35, 0.41, 0.37, 1)
-texture = SubResource("PlaceholderTexture2D_ground")
+texture = SubResource("Texture_swamp_ground")
 
 [node name="UpgradePlinth" type="StaticBody2D" parent="." unique_id=916559929]
 position = Vector2(500, 468)
@@ -47,7 +59,7 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="UpgradePlinth" unique_id=874152383]
 modulate = Color(0.44, 0.45, 0.5, 1)
-texture = SubResource("PlaceholderTexture2D_plinth")
+texture = SubResource("Texture_upgrade_plinth")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=190645696]
 

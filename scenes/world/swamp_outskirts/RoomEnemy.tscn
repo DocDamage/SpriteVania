@@ -12,14 +12,27 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(960, 48)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
+[sub_resource type="Gradient" id="Gradient_swamp_ground"]
+offsets = PackedFloat32Array(0.0, 0.55, 1.0)
+colors = PackedColorArray(0.45, 0.53, 0.42, 1.0, 0.2, 0.31, 0.27, 1.0, 0.07, 0.11, 0.1, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_swamp_ground"]
+gradient = SubResource("Gradient_swamp_ground")
+width = 960
+height = 48
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_pillar"]
-size = Vector2(96, 96)
+[sub_resource type="Gradient" id="Gradient_bog_pillar"]
+offsets = PackedFloat32Array(0.0, 0.38, 1.0)
+colors = PackedColorArray(0.48, 0.52, 0.47, 1.0, 0.24, 0.29, 0.28, 1.0, 0.08, 0.12, 0.12, 0.85)
+
+[sub_resource type="GradientTexture2D" id="Texture_bog_pillar"]
+gradient = SubResource("Gradient_bog_pillar")
+width = 96
+height = 96
+fill = 1
 
 [node name="RoomEnemy" type="Node2D" unique_id=2091854227]
 script = ExtResource("1_room")
@@ -38,7 +51,7 @@ shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1445618928]
 modulate = Color(0.33, 0.39, 0.35, 1)
-texture = SubResource("PlaceholderTexture2D_ground")
+texture = SubResource("Texture_swamp_ground")
 
 [node name="CoverBlock" type="StaticBody2D" parent="." unique_id=181263980]
 position = Vector2(480, 452)
@@ -51,7 +64,7 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="CoverBlock" unique_id=2107590131]
 modulate = Color(0.4, 0.43, 0.42, 1)
-texture = SubResource("PlaceholderTexture2D_pillar")
+texture = SubResource("Texture_bog_pillar")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=252409605]
 

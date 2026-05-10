@@ -11,6 +11,21 @@ const SWAMP_ROOM_SCENES := [
 	"res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn",
 ]
 
+const POLISHED_PRESENTATION_SCENES := [
+	"res://scenes/world/UpgradePickup.tscn",
+	"res://scenes/world/CheckpointShrine.tscn",
+	"res://scenes/player/PlayerFamiliar.tscn",
+	"res://scenes/player/FamiliarBolt.tscn",
+	"res://scenes/world/swamp_outskirts/RoomStart.tscn",
+	"res://scenes/world/swamp_outskirts/RoomMovement.tscn",
+	"res://scenes/world/swamp_outskirts/RoomEnemy.tscn",
+	"res://scenes/world/swamp_outskirts/RoomHazard.tscn",
+	"res://scenes/world/swamp_outskirts/RoomUpgrade.tscn",
+	"res://scenes/world/swamp_outskirts/RoomCheckpoint.tscn",
+	"res://scenes/world/swamp_outskirts/RoomShortcut.tscn",
+	"res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn",
+]
+
 func _init() -> void:
 	_assert_resource("res://resources/tilesets/swamp_tileset.tres", TileSet)
 	_assert_sprite_frames("res://resources/animations/player_swamp_frames.tres", {
@@ -28,6 +43,10 @@ func _init() -> void:
 	_assert_dialogue_resource()
 	for scene_path: String in SWAMP_ROOM_SCENES:
 		_assert_swamp_room(scene_path)
+	for scene_path: String in POLISHED_PRESENTATION_SCENES:
+		if not _has_no_placeholder_texture(scene_path):
+			quit(1)
+			return
 	print("PASS: asset integration")
 	quit(0)
 
@@ -118,6 +137,13 @@ func _assert_swamp_room(path: String) -> void:
 		_assert_wall_jump_practice_shaft(room, path)
 	_assert_no_hidden_collision_body(room, path)
 	room.free()
+
+func _has_no_placeholder_texture(path: String) -> bool:
+	var source := FileAccess.get_file_as_string(path)
+	if source.contains("PlaceholderTexture2D"):
+		push_error(path + " still contains PlaceholderTexture2D")
+		return false
+	return true
 
 func _assert_wall_jump_practice_shaft(room: Node, path: String) -> void:
 	var shaft := room.get_node_or_null("WallJumpShaft")

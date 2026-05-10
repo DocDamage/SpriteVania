@@ -1,12 +1,19 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/checkpoint_shrine.gd" id="1_checkpoint_shrine"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_checkpoint"]
 radius = 16.0
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_checkpoint"]
-size = Vector2(16, 24)
+[sub_resource type="Gradient" id="Gradient_checkpoint_stone"]
+offsets = PackedFloat32Array(0.0, 0.65, 1.0)
+colors = PackedColorArray(0.5, 0.68, 0.65, 1.0, 0.18, 0.31, 0.34, 1.0, 0.06, 0.09, 0.1, 0.65)
+
+[sub_resource type="GradientTexture2D" id="Texture_checkpoint_stone"]
+gradient = SubResource("Gradient_checkpoint_stone")
+width = 32
+height = 48
+fill = 1
 
 [node name="CheckpointShrine" type="Area2D"]
 script = ExtResource("1_checkpoint_shrine")
@@ -15,4 +22,10 @@ script = ExtResource("1_checkpoint_shrine")
 shape = SubResource("CircleShape2D_checkpoint")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = SubResource("PlaceholderTexture2D_checkpoint")
+texture = SubResource("Texture_checkpoint_stone")
+
+[node name="RuneGlow" type="Sprite2D" parent="."]
+position = Vector2(0, -5)
+scale = Vector2(0.45, 0.45)
+modulate = Color(0.38, 0.95, 0.78, 0.75)
+texture = SubResource("Texture_checkpoint_stone")

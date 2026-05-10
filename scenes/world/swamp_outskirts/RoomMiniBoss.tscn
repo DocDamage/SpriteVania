@@ -12,14 +12,27 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(960, 48)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ground"]
-size = Vector2(960, 48)
+[sub_resource type="Gradient" id="Gradient_arena_ground"]
+offsets = PackedFloat32Array(0.0, 0.55, 1.0)
+colors = PackedColorArray(0.42, 0.48, 0.42, 1.0, 0.19, 0.27, 0.25, 1.0, 0.06, 0.09, 0.09, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_arena_ground"]
+gradient = SubResource("Gradient_arena_ground")
+width = 960
+height = 48
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_exit"]
-size = Vector2(72, 112)
+[sub_resource type="Gradient" id="Gradient_boss_exit"]
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+colors = PackedColorArray(0.74, 0.65, 0.28, 0.2, 0.46, 0.36, 0.13, 0.62, 0.1, 0.08, 0.03, 0.82)
+
+[sub_resource type="GradientTexture2D" id="Texture_boss_exit"]
+gradient = SubResource("Gradient_boss_exit")
+width = 72
+height = 112
+fill = 1
 
 [node name="RoomMiniBoss" type="Node2D" unique_id=1355183905]
 script = ExtResource("1_room")
@@ -38,7 +51,7 @@ shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=134635676]
 modulate = Color(0.32, 0.36, 0.35, 1)
-texture = SubResource("PlaceholderTexture2D_ground")
+texture = SubResource("Texture_arena_ground")
 
 [node name="BossExitPlaceholder" type="Area2D" parent="." unique_id=133567614]
 position = Vector2(900, 448)
@@ -50,7 +63,7 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="BossExitPlaceholder" unique_id=1348382058]
 modulate = Color(0.54, 0.47, 0.2, 0.55)
-texture = SubResource("PlaceholderTexture2D_exit")
+texture = SubResource("Texture_boss_exit")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=79019645]
 
