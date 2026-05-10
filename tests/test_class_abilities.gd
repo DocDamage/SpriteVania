@@ -37,11 +37,18 @@ func _assert_player_has_baseline_double_jump_and_dash() -> void:
 	player.facing_direction = 1.0
 	player.velocity = Vector2(0, -80)
 	player.perform_dash()
-	if player.global_position.x <= 100.0:
-		_fail("Player should be able to dash forward in the air.")
+	if player.global_position.x != 100.0:
+		_fail("Dash should begin as a velocity-driven burst, not an instant teleport.")
 		return
 	if player.velocity.y != 0.0:
 		_fail("Dash should flatten vertical velocity for readable ground and air movement.")
+		return
+	if not bool(player.get("is_dashing")):
+		_fail("Player should expose an active dash state while the burst is in progress.")
+		return
+	player._physics_process(1.0 / 60.0)
+	if player.global_position.x <= 100.0:
+		_fail("Player should move forward during the active dash frames.")
 		return
 	player.free()
 

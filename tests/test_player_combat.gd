@@ -11,6 +11,8 @@ func _initialize() -> void:
 func _run() -> void:
 	await _assert_melee_attack_damages_enemy()
 	await _assert_melee_attack_has_playable_reach()
+	await _assert_melee_combo_steps_increase_damage()
+	await _assert_dive_bomb_damages_enemy_and_bounces()
 	await _assert_projectile_attack_damages_enemy()
 	await _assert_enemy_death_signal_grants_xp()
 	await _assert_restore_resource_caps_at_max_and_emits_stats()
@@ -51,6 +53,56 @@ func _assert_melee_attack_has_playable_reach() -> void:
 	await physics_frame
 	if enemy.current_health >= starting_health:
 		push_error("Melee attack should reach a monster at normal play spacing.")
+		quit(1)
+	player.free()
+	enemy.free()
+
+func _assert_melee_combo_steps_increase_damage() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(player)
+	root.add_child(enemy)
+	player.setup(WARDEN_DATA, "")
+	player.global_position = Vector2(100, 100)
+	enemy.global_position = Vector2(126, 100)
+	await process_frame
+	await physics_frame
+	var starting_health := enemy.current_health
+	player.perform_melee_attack(8)
+	await physics_frame
+	var first_hit_damage := starting_health - enemy.current_health
+	player.perform_melee_attack(8)
+	await physics_frame
+	var second_hit_damage := starting_health - first_hit_damage - enemy.current_health
+	if second_hit_damage <= first_hit_damage:
+		push_error("Melee combo should make follow-up hits stronger than the opener.")
+		quit(1)
+	player.free()
+	enemy.free()
+
+func _assert_dive_bomb_damages_enemy_and_bounces() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(player)
+	root.add_child(enemy)
+	player.setup(WARDEN_DATA, "")
+	player.global_position = Vector2(100, 70)
+	enemy.global_position = Vector2(100, 118)
+	player.velocity = Vector2(0, 260)
+	await process_frame
+	await physics_frame
+	var starting_health := enemy.current_health
+	if not player.has_method("perform_dive_bomb"):
+		push_error("Player should expose perform_dive_bomb for down+attack in the air.")
+		quit(1)
+		return
+	player.perform_dive_bomb(10)
+	await physics_frame
+	if enemy.current_health >= starting_health:
+		push_error("Dive bomb should damage an enemy below the player.")
+		quit(1)
+	if player.velocity.y >= 0.0:
+		push_error("Dive bomb should bounce the player upward after hitting an enemy.")
 		quit(1)
 	player.free()
 	enemy.free()

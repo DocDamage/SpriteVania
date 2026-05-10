@@ -134,6 +134,9 @@ func _assert_swamp_room(path: String) -> void:
 		push_error(path + " is missing LoreTablet")
 		room.free()
 		quit(1)
+	if path.ends_with("RoomStart.tscn"):
+		_assert_first_room_left_boundary(room, path)
+		_assert_first_room_tree_depth(room, path)
 	if path.ends_with("RoomMovement.tscn"):
 		_assert_wall_jump_practice_shaft(room, path)
 	_assert_no_hidden_collision_body(room, path)
@@ -159,6 +162,37 @@ func _assert_wall_jump_practice_shaft(room: Node, path: String) -> void:
 		if not _has_enabled_collision_shape(wall):
 			push_error(path + " wall jump surface has no enabled collision: " + wall_name)
 			quit(1)
+
+func _assert_first_room_left_boundary(room: Node, path: String) -> void:
+	var boundary := room.get_node_or_null("LeftBoundary") as StaticBody2D
+	if boundary == null:
+		push_error(path + " is missing visible LeftBoundary to keep players on the first screen.")
+		quit(1)
+		return
+	if not _has_enabled_collision_shape(boundary):
+		push_error(path + " LeftBoundary has no enabled collision shape.")
+		quit(1)
+		return
+	if _has_hidden_or_missing_sprite(boundary):
+		push_error(path + " LeftBoundary must be visible so it does not feel like an invisible wall.")
+		quit(1)
+		return
+
+func _assert_first_room_tree_depth(room: Node, path: String) -> void:
+	var backdrop := room.get_node_or_null("SwampBackdrop")
+	if backdrop == null:
+		push_error(path + " is missing SwampBackdrop.")
+		quit(1)
+	for tree_layer: String in ["Trees", "ForegroundTrees", "TreeCanopy"]:
+		var sprite := backdrop.get_node_or_null(tree_layer) as Sprite2D
+		if sprite == null:
+			push_error(path + " is missing tree depth layer: " + tree_layer)
+			quit(1)
+			return
+		if sprite.texture == null or not sprite.visible:
+			push_error(path + " tree layer is not visibly finished: " + tree_layer)
+			quit(1)
+			return
 
 func _assert_no_hidden_collision_body(root: Node, path: String) -> void:
 	if root is CollisionObject2D:

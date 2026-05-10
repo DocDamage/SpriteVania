@@ -25,6 +25,9 @@ height = 48
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
 size = Vector2(48, 144)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_left_boundary"]
+size = Vector2(32, 176)
+
 [sub_resource type="Gradient" id="Gradient_reed_gate"]
 offsets = PackedFloat32Array(0.0, 0.5, 1.0)
 colors = PackedColorArray(0.4, 0.82, 0.68, 0.35, 0.16, 0.46, 0.36, 0.72, 0.03, 0.12, 0.1, 0.85)
@@ -53,6 +56,17 @@ shape = SubResource("RectangleShape2D_ground")
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=422582488]
 modulate = Color(0.36, 0.42, 0.39, 1)
 texture = SubResource("Texture_swamp_ground")
+
+[node name="LeftBoundary" type="StaticBody2D" parent="."]
+position = Vector2(-8, 438)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
+shape = SubResource("RectangleShape2D_left_boundary")
+
+[node name="Sprite2D" type="Sprite2D" parent="LeftBoundary"]
+modulate = Color(0.15, 0.34, 0.28, 0.9)
+scale = Vector2(1.35, 1.85)
+texture = SubResource("Texture_reed_gate")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=1586542948]
 
@@ -130,6 +144,20 @@ texture = ExtResource("4_1pr34")
 z_index = -95
 position = Vector2(480, 382)
 scale = Vector2(2.8, 2.8)
+texture = ExtResource("5_vbm0w")
+
+[node name="ForegroundTrees" type="Sprite2D" parent="SwampBackdrop"]
+z_index = -92
+modulate = Color(0.6, 0.82, 0.66, 0.72)
+position = Vector2(318, 405)
+scale = Vector2(2.35, 2.5)
+texture = ExtResource("5_vbm0w")
+
+[node name="TreeCanopy" type="Sprite2D" parent="SwampBackdrop"]
+z_index = -90
+modulate = Color(0.28, 0.44, 0.34, 0.78)
+position = Vector2(654, 356)
+scale = Vector2(2.2, 2.2)
 texture = ExtResource("5_vbm0w")
 
 [node name="SwampTileLayer" type="TileMapLayer" parent="." unique_id=946355457]

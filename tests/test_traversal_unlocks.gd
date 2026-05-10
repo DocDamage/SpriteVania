@@ -28,8 +28,15 @@ func _assert_warden_dash_unlock() -> void:
 
 	player.set_traversal_unlocks(["armored_dash"])
 	player.class_controller.call("handle_class_action")
+	if player.global_position.x != start_x:
+		_fail("Warden armored dash should begin as a moving burst instead of a teleport.")
+		return
+	if not bool(player.get("is_dashing")):
+		_fail("Warden armored dash should enter the active dash state after unlock.")
+		return
+	player._physics_process(1.0 / 60.0)
 	if player.global_position.x <= start_x:
-		_fail("Warden armored dash should move forward after unlock.")
+		_fail("Warden armored dash should move forward during active dash frames.")
 	player.free()
 
 func _assert_gunslinger_hookshot_unlock() -> void:

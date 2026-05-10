@@ -12,8 +12,10 @@ func _init() -> void:
 	_assert_action_has_joypad_button("pause", JOY_BUTTON_START)
 	_assert_action_has_joypad_motion("move_left", JOY_AXIS_LEFT_X, -1.0)
 	_assert_action_has_joypad_motion("move_right", JOY_AXIS_LEFT_X, 1.0)
+	_assert_action_has_joypad_motion("move_down", JOY_AXIS_LEFT_Y, 1.0)
 	_assert_action_has_joypad_button("move_left", JOY_BUTTON_DPAD_LEFT)
 	_assert_action_has_joypad_button("move_right", JOY_BUTTON_DPAD_RIGHT)
+	_assert_action_has_joypad_button("move_down", JOY_BUTTON_DPAD_DOWN)
 	if _failed:
 		quit(1)
 		return

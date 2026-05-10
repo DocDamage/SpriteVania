@@ -19,12 +19,18 @@ const PROJECTILE_SPEED := 430.0
 const PIERCING_PROJECTILE_SPEED := 520.0
 const BASE_DASH_DISTANCE := 92.0
 const ARMORED_DASH_DISTANCE := 86.0
+const DASH_DURATION := 0.14
 const WALL_JUMP_HORIZONTAL_SPEED := 210.0
 const WALL_HANG_FALL_SPEED := 28.0
 const SLIDE_ATTACK_RANGE := Vector2(190, 34)
 const SLIDE_ATTACK_OFFSET := Vector2(-43, -4)
+const DIVE_BOMB_RANGE := Vector2(54, 76)
+const DIVE_BOMB_OFFSET := Vector2(0, 36)
+const DIVE_BOMB_BOUNCE_VELOCITY := -320.0
 const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
+const COMBO_WINDOW := 0.55
+const COMBO_MULTIPLIERS := [1.0, 1.35, 1.75]
 const SKILL_COSTS := {
 	"armored_dash": 8,
 	"combat_slide": 6,
@@ -72,12 +78,18 @@ var learned_attack_skills: Array[String] = []
 var is_invulnerable := false
 var is_hit_flashing := false
 var is_wall_hanging := false
+var is_dashing := false
 
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
 var _dash_cooldown_remaining := 0.0
+var _dash_time_remaining := 0.0
+var _dash_direction := 1.0
+var _dash_speed := 0.0
+var _combo_step := 0
+var _combo_time_remaining := 0.0
 var _wall_direction := 0.0
 var _is_dead := false
 
@@ -102,24 +114,34 @@ func _process(delta: float) -> void:
 	_tick_damage_feedback(delta)
 	_tick_skill_cooldowns(delta)
 	_dash_cooldown_remaining = maxf(0.0, _dash_cooldown_remaining - delta)
+	_combo_time_remaining = maxf(0.0, _combo_time_remaining - delta)
+	if _combo_time_remaining <= 0.0:
+		_combo_step = 0
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
 	if direction != 0.0:
 		facing_direction = signf(direction)
 
-	if not is_wall_hanging:
+	if is_dashing:
+		_dash_time_remaining = maxf(0.0, _dash_time_remaining - delta)
+		velocity.x = _dash_direction * _dash_speed
+		velocity.y = 0.0
+		if _dash_time_remaining <= 0.0:
+			is_dashing = false
+			velocity.x = direction * _move_speed()
+	elif not is_wall_hanging:
 		velocity.x = direction * _move_speed()
 	if is_on_floor():
 		_air_jumps_remaining = max_air_jumps
 		_stop_wall_hang()
-	elif _should_wall_hang(direction):
+	elif not is_dashing and _should_wall_hang(direction):
 		start_wall_hang(signf(direction))
 
 	if is_wall_hanging:
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y, WALL_HANG_FALL_SPEED)
-	elif not is_on_floor():
+	elif not is_on_floor() and not is_dashing:
 		velocity.y += GRAVITY * delta
 	if Input.is_action_just_pressed("jump"):
 		perform_jump()
@@ -132,7 +154,10 @@ func _physics_process(delta: float) -> void:
 	if class_controller == null:
 		return
 	if Input.is_action_just_pressed("attack"):
-		class_controller.call("handle_attack")
+		if _should_dive_bomb():
+			perform_dive_bomb(class_data.base_attack if class_data != null else 10)
+		else:
+			class_controller.call("handle_attack")
 	if Input.is_action_just_pressed("special_attack"):
 		class_controller.call("handle_special_attack")
 	if Input.is_action_just_pressed("class_action"):
@@ -202,10 +227,7 @@ func perform_jump() -> void:
 func perform_dash() -> void:
 	if _dash_cooldown_remaining > 0.0:
 		return
-	global_position.x += BASE_DASH_DISTANCE * facing_direction
-	velocity.x = 0.0
-	velocity.y = 0.0
-	_dash_cooldown_remaining = dash_cooldown
+	_start_dash(BASE_DASH_DISTANCE, dash_cooldown)
 
 func set_traversal_unlocks(unlocks: Array[String]) -> void:
 	traversal_unlocks = unlocks.duplicate()
@@ -242,8 +264,10 @@ func perform_melee_attack(damage: int) -> void:
 	if damage <= 0:
 		return
 	_play_action_animation("shoot")
+	var combo_damage := _combo_damage(damage)
+	_advance_combo()
 	for target: Node in _query_attack_targets(MELEE_RANGE, MELEE_OFFSET):
-		target.call("take_damage", damage)
+		target.call("take_damage", combo_damage)
 
 func perform_guard_counter() -> void:
 	if not _try_use_attack_skill("guard_counter"):
@@ -269,8 +293,7 @@ func perform_armored_dash() -> void:
 		return
 	if not _try_use_unlocked_skill("armored_dash"):
 		return
-	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
-	velocity.x = 0.0
+	_start_dash(ARMORED_DASH_DISTANCE, float(SKILL_COOLDOWNS.get("armored_dash", dash_cooldown)))
 
 func fire_projectile(damage: int) -> void:
 	_spawn_projectile(damage, PROJECTILE_SPEED, PROJECTILE_LIFETIME, Color(0.9, 0.82, 0.35, 1.0))
@@ -291,6 +314,20 @@ func perform_slide() -> void:
 	var damage := class_data.base_attack if class_data != null else 10
 	for target: Node in _query_attack_targets(SLIDE_ATTACK_RANGE, SLIDE_ATTACK_OFFSET):
 		target.call("take_damage", damage)
+
+func perform_dive_bomb(damage: int) -> void:
+	if damage <= 0:
+		return
+	_play_action_animation("shoot")
+	velocity.y = maxf(velocity.y, 520.0)
+	var hit_targets := _query_attack_targets(DIVE_BOMB_RANGE, DIVE_BOMB_OFFSET)
+	if hit_targets.is_empty():
+		return
+	var dive_damage := int(roundi(float(damage) * 1.5))
+	for target: Node in hit_targets:
+		target.call("take_damage", dive_damage)
+	velocity.y = DIVE_BOMB_BOUNCE_VELOCITY
+	_air_jumps_remaining = max_air_jumps
 
 func start_wall_hang(wall_direction: float) -> void:
 	if is_zero_approx(wall_direction):
@@ -421,6 +458,31 @@ func _play_action_animation(animation_name: String) -> void:
 		return
 	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(animation_name):
 		animated_sprite.play(animation_name)
+
+func _start_dash(distance: float, cooldown: float) -> void:
+	_dash_direction = signf(facing_direction)
+	if is_zero_approx(_dash_direction):
+		_dash_direction = 1.0
+	_dash_speed = distance / DASH_DURATION
+	_dash_time_remaining = DASH_DURATION
+	is_dashing = true
+	is_wall_hanging = false
+	velocity.x = _dash_direction * _dash_speed
+	velocity.y = 0.0
+	_dash_cooldown_remaining = cooldown
+
+func _combo_damage(base_damage: int) -> int:
+	var multiplier_index := mini(_combo_step, COMBO_MULTIPLIERS.size() - 1)
+	return max(1, int(round(float(base_damage) * float(COMBO_MULTIPLIERS[multiplier_index]))))
+
+func _advance_combo() -> void:
+	_combo_step = (_combo_step + 1) % COMBO_MULTIPLIERS.size()
+	_combo_time_remaining = COMBO_WINDOW
+
+func _should_dive_bomb() -> bool:
+	if is_on_floor() or not InputMap.has_action("move_down"):
+		return false
+	return Input.is_action_pressed("move_down")
 
 func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
 	var shape := RectangleShape2D.new()
