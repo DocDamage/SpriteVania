@@ -98,7 +98,18 @@ func _assert_slide_attack_damages_enemy() -> void:
 	await physics_frame
 
 	var starting_health := enemy.current_health
+	var start_x := player.global_position.x
 	player.perform_slide()
+	if player.global_position.x != start_x:
+		_fail("Slide attack should start as a low moving burst, not an instant teleport.")
+		return
+	if not bool(player.get("is_sliding")):
+		_fail("Slide attack should expose an active slide state while it is moving.")
+		return
+	player._physics_process(1.0 / 60.0)
+	if player.global_position.x <= start_x:
+		_fail("Slide attack should move forward during active slide frames.")
+		return
 	await physics_frame
 	if enemy.current_health >= starting_health:
 		_fail("Slide attack should damage an enemy in the slide path.")

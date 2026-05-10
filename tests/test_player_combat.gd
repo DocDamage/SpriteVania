@@ -29,11 +29,23 @@ func _assert_melee_attack_damages_enemy() -> void:
 	enemy.global_position = Vector2(126, 100)
 	await process_frame
 	await physics_frame
+	var attack_flash := player.get_node_or_null("%AttackFlash") as Line2D
+	if attack_flash == null:
+		push_error("Player scene should include AttackFlash so melee and dive hits are visible.")
+		quit(1)
+		return
 	var starting_health := enemy.current_health
 	player.perform_melee_attack(10)
 	await physics_frame
 	if enemy.current_health >= starting_health:
 		push_error("Melee attack should damage an enemy inside the attack box")
+		quit(1)
+	if not attack_flash.visible:
+		push_error("Melee attack should briefly show AttackFlash after a hit.")
+		quit(1)
+	player._process(0.2)
+	if attack_flash.visible:
+		push_error("AttackFlash should hide after its short feedback window.")
 		quit(1)
 	player.free()
 	enemy.free()
@@ -96,6 +108,7 @@ func _assert_dive_bomb_damages_enemy_and_bounces() -> void:
 		push_error("Player should expose perform_dive_bomb for down+attack in the air.")
 		quit(1)
 		return
+	var attack_flash := player.get_node_or_null("%AttackFlash") as Line2D
 	player.perform_dive_bomb(10)
 	await physics_frame
 	if enemy.current_health >= starting_health:
@@ -103,6 +116,9 @@ func _assert_dive_bomb_damages_enemy_and_bounces() -> void:
 		quit(1)
 	if player.velocity.y >= 0.0:
 		push_error("Dive bomb should bounce the player upward after hitting an enemy.")
+		quit(1)
+	if attack_flash == null or not attack_flash.visible:
+		push_error("Dive bomb should briefly show AttackFlash after a hit.")
 		quit(1)
 	player.free()
 	enemy.free()

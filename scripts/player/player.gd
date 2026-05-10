@@ -20,6 +20,7 @@ const PIERCING_PROJECTILE_SPEED := 520.0
 const BASE_DASH_DISTANCE := 92.0
 const ARMORED_DASH_DISTANCE := 86.0
 const DASH_DURATION := 0.14
+const SLIDE_DURATION := 0.18
 const WALL_JUMP_HORIZONTAL_SPEED := 210.0
 const WALL_HANG_FALL_SPEED := 28.0
 const SLIDE_ATTACK_RANGE := Vector2(190, 34)
@@ -31,6 +32,7 @@ const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
 const COMBO_WINDOW := 0.55
 const COMBO_MULTIPLIERS := [1.0, 1.35, 1.75]
+const ATTACK_FLASH_DURATION := 0.12
 const SKILL_COSTS := {
 	"armored_dash": 8,
 	"combat_slide": 6,
@@ -65,6 +67,7 @@ const SKILL_COOLDOWNS := {
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
 @onready var dash_trail: Line2D = get_node_or_null("%DashTrail") as Line2D
+@onready var attack_flash: Line2D = get_node_or_null("%AttackFlash") as Line2D
 
 var class_data: ClassData
 var class_controller: Node
@@ -80,15 +83,20 @@ var is_invulnerable := false
 var is_hit_flashing := false
 var is_wall_hanging := false
 var is_dashing := false
+var is_sliding := false
 
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
+var _attack_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
 var _dash_cooldown_remaining := 0.0
 var _dash_time_remaining := 0.0
 var _dash_direction := 1.0
 var _dash_speed := 0.0
+var _slide_time_remaining := 0.0
+var _slide_direction := 1.0
+var _slide_speed := 0.0
 var _combo_step := 0
 var _combo_time_remaining := 0.0
 var _wall_direction := 0.0
@@ -113,6 +121,7 @@ func setup(data: ClassData, sprite_path: String) -> void:
 
 func _process(delta: float) -> void:
 	_tick_damage_feedback(delta)
+	_tick_attack_flash(delta)
 	_tick_skill_cooldowns(delta)
 	_dash_cooldown_remaining = maxf(0.0, _dash_cooldown_remaining - delta)
 	_combo_time_remaining = maxf(0.0, _combo_time_remaining - delta)
@@ -132,18 +141,25 @@ func _physics_process(delta: float) -> void:
 			is_dashing = false
 			_update_dash_trail()
 			velocity.x = direction * _move_speed()
+	elif is_sliding:
+		_slide_time_remaining = maxf(0.0, _slide_time_remaining - delta)
+		velocity.x = _slide_direction * _slide_speed
+		velocity.y = 0.0
+		if _slide_time_remaining <= 0.0:
+			is_sliding = false
+			velocity.x = direction * _move_speed()
 	elif not is_wall_hanging:
 		velocity.x = direction * _move_speed()
 	if is_on_floor():
 		_air_jumps_remaining = max_air_jumps
 		_stop_wall_hang()
-	elif not is_dashing and _should_wall_hang(direction):
+	elif not is_dashing and not is_sliding and _should_wall_hang(direction):
 		start_wall_hang(signf(direction))
 
 	if is_wall_hanging:
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y, WALL_HANG_FALL_SPEED)
-	elif not is_on_floor() and not is_dashing:
+	elif not is_on_floor() and not is_dashing and not is_sliding:
 		velocity.y += GRAVITY * delta
 	if Input.is_action_just_pressed("jump"):
 		perform_jump()
@@ -268,7 +284,10 @@ func perform_melee_attack(damage: int) -> void:
 	_play_action_animation("shoot")
 	var combo_damage := _combo_damage(damage)
 	_advance_combo()
-	for target: Node in _query_attack_targets(MELEE_RANGE, MELEE_OFFSET):
+	var targets := _query_attack_targets(MELEE_RANGE, MELEE_OFFSET)
+	if not targets.is_empty():
+		_show_attack_flash(MELEE_OFFSET.x, MELEE_RANGE.y)
+	for target: Node in targets:
 		target.call("take_damage", combo_damage)
 
 func perform_guard_counter() -> void:
@@ -310,11 +329,13 @@ func perform_slide() -> void:
 		return
 	if not _try_use_unlocked_skill("combat_slide"):
 		return
-	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
-	velocity.x = 0.0
+	_start_slide(ARMORED_DASH_DISTANCE)
 	_play_action_animation("run")
 	var damage := class_data.base_attack if class_data != null else 10
-	for target: Node in _query_attack_targets(SLIDE_ATTACK_RANGE, SLIDE_ATTACK_OFFSET):
+	var targets := _query_attack_targets(SLIDE_ATTACK_RANGE, SLIDE_ATTACK_OFFSET)
+	if not targets.is_empty():
+		_show_attack_flash(68.0, SLIDE_ATTACK_RANGE.y)
+	for target: Node in targets:
 		target.call("take_damage", damage)
 
 func perform_dive_bomb(damage: int) -> void:
@@ -326,6 +347,7 @@ func perform_dive_bomb(damage: int) -> void:
 	if hit_targets.is_empty():
 		return
 	var dive_damage := int(roundi(float(damage) * 1.5))
+	_show_attack_flash(18.0, DIVE_BOMB_RANGE.y)
 	for target: Node in hit_targets:
 		target.call("take_damage", dive_damage)
 	velocity.y = DIVE_BOMB_BOUNCE_VELOCITY
@@ -497,6 +519,37 @@ func _update_dash_trail() -> void:
 		Vector2(-46.0 * _dash_direction, 0.0),
 		Vector2(12.0 * _dash_direction, 0.0),
 	])
+
+func _start_slide(distance: float) -> void:
+	_slide_direction = signf(facing_direction)
+	if is_zero_approx(_slide_direction):
+		_slide_direction = 1.0
+	_slide_speed = distance / SLIDE_DURATION
+	_slide_time_remaining = SLIDE_DURATION
+	is_sliding = true
+	is_wall_hanging = false
+	velocity.x = _slide_direction * _slide_speed
+	velocity.y = 0.0
+
+func _show_attack_flash(forward_offset: float, height: float) -> void:
+	if attack_flash == null:
+		return
+	attack_flash.visible = true
+	attack_flash.position = Vector2(forward_offset * facing_direction, -10.0)
+	attack_flash.scale.x = facing_direction
+	attack_flash.points = PackedVector2Array([
+		Vector2(-18.0, -height * 0.25),
+		Vector2(20.0, 0.0),
+		Vector2(-18.0, height * 0.25),
+	])
+	_attack_flash_time_remaining = ATTACK_FLASH_DURATION
+
+func _tick_attack_flash(delta: float) -> void:
+	if _attack_flash_time_remaining <= 0.0:
+		return
+	_attack_flash_time_remaining = maxf(0.0, _attack_flash_time_remaining - delta)
+	if _attack_flash_time_remaining <= 0.0 and attack_flash != null:
+		attack_flash.visible = false
 
 func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
 	var shape := RectangleShape2D.new()
