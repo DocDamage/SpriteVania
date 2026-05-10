@@ -22,6 +22,7 @@ func _init() -> void:
 	state.defeated_bosses = ["swamp_miniboss"]
 	state.opened_shortcuts = ["swamp_shortcut_01"]
 	state.completed_areas = ["swamp_outskirts_complete"]
+	state.discovered_rooms = ["RoomStart", "RoomCheckpoint"]
 	state.settings = {
 		"master_volume": 0.4,
 		"fullscreen": false,
@@ -71,6 +72,10 @@ func _init() -> void:
 		return
 	if not loaded.completed_areas.has("swamp_outskirts_complete"):
 		push_error("Completed area did not persist")
+		quit(1)
+		return
+	if not loaded.discovered_rooms.has("RoomStart") or not loaded.discovered_rooms.has("RoomCheckpoint"):
+		push_error("Discovered rooms did not persist")
 		quit(1)
 		return
 	if loaded.settings.get("master_volume", -1.0) != 0.4:

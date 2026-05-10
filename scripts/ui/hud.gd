@@ -1,11 +1,15 @@
 extends CanvasLayer
 class_name HUD
 
+const MapRegistry := preload("res://scripts/world/map_registry.gd")
+
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_value_label: Label = %HealthValueLabel
 @onready var resource_bar: ProgressBar = %ResourceBar
 @onready var resource_value_label: Label = %ResourceValueLabel
 @onready var level_label: Label = %LevelLabel
+@onready var room_label: Label = %RoomLabel
+@onready var discovery_label: Label = %DiscoveryLabel
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var xp_value_label: Label = %XPValueLabel
 @onready var upgrade_toast: PanelContainer = %UpgradeToast
@@ -57,6 +61,13 @@ func show_upgrade_feedback(title: String, detail: String) -> void:
 	upgrade_detail_label.text = detail
 	upgrade_toast.visible = true
 	upgrade_toast_timer.start()
+
+func set_map_context(area_id: String, room_id: String, discovered_rooms: Array[String]) -> void:
+	var area_label := MapRegistry.get_area_label(area_id)
+	var current_room_label := MapRegistry.get_room_label(area_id, room_id)
+	var room_count := MapRegistry.get_room_count(area_id)
+	room_label.text = "%s - %s" % [area_label, current_room_label]
+	discovery_label.text = "Map %d / %d" % [discovered_rooms.size(), room_count]
 
 func _on_upgrade_toast_timer_timeout() -> void:
 	upgrade_toast.visible = false

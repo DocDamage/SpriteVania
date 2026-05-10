@@ -36,11 +36,24 @@ theme_override_constants/separation = 6
 
 [node name="TopRow" type="HBoxContainer" parent="Root/MarginContainer/PanelContainer/Stats"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="LevelLabel" type="Label" parent="Root/MarginContainer/PanelContainer/Stats/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Level 1"
+
+[node name="RoomLabel" type="Label" parent="Root/MarginContainer/PanelContainer/Stats/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text = "Swamp Outskirts - Mire Gate"
+
+[node name="DiscoveryLabel" type="Label" parent="Root/MarginContainer/PanelContainer/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Map 0 / 8"
 
 [node name="HealthRow" type="HBoxContainer" parent="Root/MarginContainer/PanelContainer/Stats"]
 layout_mode = 2

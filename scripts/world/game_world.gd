@@ -107,6 +107,7 @@ func load_room(room_id: String) -> Node2D:
 		state = GameStateScript.new()
 	state.current_area = DEFAULT_AREA_ID
 	state.current_room = resolved_room_id
+	state.mark_room_discovered(resolved_room_id)
 
 	register_checkpoints_in(current_room)
 	register_enemies_in(current_room)
@@ -114,6 +115,7 @@ func load_room(room_id: String) -> Node2D:
 	register_room_exits_in(current_room)
 	register_hazards_in(current_room)
 	_apply_open_shortcuts(current_room)
+	_update_hud_map_context()
 	return current_room
 
 func _process(delta: float) -> void:
@@ -426,6 +428,7 @@ func _bind_hud_to_player() -> void:
 	_ensure_hud()
 	if hud != null and player is Player:
 		hud.call("bind_player", player)
+		_update_hud_map_context()
 
 func _store_player_state() -> void:
 	if state == null or player == null:
@@ -454,6 +457,11 @@ func _show_upgrade_feedback(title: String, detail: String) -> void:
 	if hud != null and hud.has_method("show_upgrade_feedback"):
 		hud.call("show_upgrade_feedback", title, detail)
 
+func _update_hud_map_context() -> void:
+	_ensure_hud()
+	if hud == null or state == null or not hud.has_method("set_map_context"):
+		return
+	hud.call("set_map_context", state.current_area, state.current_room, state.discovered_rooms)
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
