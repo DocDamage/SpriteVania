@@ -12,7 +12,16 @@ func _run() -> void:
 	await _assert_crawler_reverses_at_patrol_bounds()
 	if _failed:
 		return
+	await _assert_crawler_attacks_nearby_player_then_returns_to_patrol()
+	if _failed:
+		return
+	await _assert_enemy_death_keeps_xp_signal_and_exposes_drop()
+	if _failed:
+		return
 	await _assert_miniboss_leap_resets_cooldown_and_velocity()
+	if _failed:
+		return
+	await _assert_miniboss_patterns_are_deterministic()
 	if _failed:
 		return
 	print("PASS: enemy behavior")
@@ -45,6 +54,65 @@ func _assert_crawler_reverses_at_patrol_bounds() -> void:
 	crawler.queue_free()
 	await process_frame
 
+func _assert_crawler_attacks_nearby_player_then_returns_to_patrol() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := Node2D.new()
+	player.name = "PlayerProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	player.global_position = Vector2(118, 100)
+	root.add_child(crawler)
+	root.add_child(player)
+	await process_frame
+
+	crawler.call("_physics_process", 0.016)
+	if str(crawler.get("behavior_state")) != "attack":
+		_fail("Crawler should enter an explicit attack window when a player is in attack range.")
+		return
+	if not bool(crawler.get("is_attack_active")):
+		_fail("Crawler attack window should be marked active.")
+		return
+
+	player.global_position = Vector2(400, 100)
+	crawler.call("_physics_process", float(crawler.get("attack_duration")) + 0.01)
+	if str(crawler.get("behavior_state")) != "patrol":
+		_fail("Crawler should return to patrol after its attack window when the player is gone.")
+		return
+	if bool(crawler.get("is_attack_active")):
+		_fail("Crawler attack window should end before returning to patrol.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_enemy_death_keeps_xp_signal_and_exposes_drop() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(crawler)
+	await process_frame
+
+	crawler.set("enemy_id", "drop_test_crawler")
+	crawler.set("drop_id", "mire_ichor")
+	crawler.set("drop_amount", 2)
+	var died_payload: Array = []
+	var drop_payload: Array = []
+	crawler.died.connect(func(enemy_id: String, xp_reward: int) -> void:
+		died_payload.append_array([enemy_id, xp_reward])
+	)
+	crawler.dropped.connect(func(enemy_id: String, drop_id: String, drop_amount: int) -> void:
+		drop_payload.append_array([enemy_id, drop_id, drop_amount])
+	)
+
+	crawler.take_damage(999)
+	await process_frame
+
+	if died_payload != ["drop_test_crawler", 25]:
+		_fail("Enemy death should keep emitting died(enemy_id, xp_reward).")
+		return
+	if drop_payload != ["drop_test_crawler", "mire_ichor", 2]:
+		_fail("Enemy death should emit optional deterministic drop data when configured.")
+		return
+
 func _assert_miniboss_leap_resets_cooldown_and_velocity() -> void:
 	var miniboss := MINIBOSS_SCENE.instantiate() as CharacterBody2D
 	root.add_child(miniboss)
@@ -63,6 +131,38 @@ func _assert_miniboss_leap_resets_cooldown_and_velocity() -> void:
 		return
 	if not is_equal_approx(miniboss.velocity.y, -260.0):
 		_fail("Miniboss leap should apply the configured upward velocity.")
+		return
+
+	miniboss.queue_free()
+	await process_frame
+
+func _assert_miniboss_patterns_are_deterministic() -> void:
+	var miniboss := MINIBOSS_SCENE.instantiate() as CharacterBody2D
+	root.add_child(miniboss)
+	await process_frame
+
+	miniboss.set("pattern_state", "idle")
+	miniboss.set("_pattern_index", 0)
+	miniboss.call("_begin_next_pattern")
+	if str(miniboss.get("pattern_state")) != "telegraph_leap":
+		_fail("Miniboss first pattern should telegraph a leap.")
+		return
+	miniboss.call("_finish_telegraph")
+	if str(miniboss.get("pattern_state")) != "leap":
+		_fail("Miniboss leap telegraph should advance into leap state.")
+		return
+
+	miniboss.call("_complete_pattern")
+	miniboss.call("_begin_next_pattern")
+	if str(miniboss.get("pattern_state")) != "telegraph_slam":
+		_fail("Miniboss second pattern should deterministically telegraph a slam.")
+		return
+	miniboss.call("_finish_telegraph")
+	if str(miniboss.get("pattern_state")) != "slam":
+		_fail("Miniboss slam telegraph should advance into slam state.")
+		return
+	if not bool(miniboss.get("is_slam_active")):
+		_fail("Miniboss slam state should expose an active slam window.")
 		return
 
 	miniboss.queue_free()

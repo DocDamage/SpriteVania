@@ -2,12 +2,15 @@ extends CharacterBody2D
 class_name Enemy
 
 signal died(enemy_id: String, xp_reward: int)
+signal dropped(enemy_id: String, drop_id: String, drop_amount: int)
 
 @export var enemy_id: String = ""
 @export var max_health: int = 30
 @export var damage: int = 10
 @export var contact_damage_cooldown := 0.8
 @export var xp_reward: int = 25
+@export var drop_id: String = ""
+@export var drop_amount: int = 0
 
 var current_health: int
 var _is_dead := false
@@ -29,8 +32,14 @@ func take_damage(amount: int) -> void:
 	current_health -= amount
 	if current_health <= 0:
 		_is_dead = true
+		_emit_drop_if_configured()
 		died.emit(enemy_id, xp_reward)
 		queue_free()
+
+func _emit_drop_if_configured() -> void:
+	if drop_id.is_empty() or drop_amount <= 0:
+		return
+	dropped.emit(enemy_id, drop_id, drop_amount)
 
 func _ensure_contact_hitbox() -> void:
 	_contact_hitbox = get_node_or_null("ContactHitbox") as Area2D
