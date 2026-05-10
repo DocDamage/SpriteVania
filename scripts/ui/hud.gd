@@ -8,6 +8,7 @@ const MapRegistry := preload("res://scripts/world/map_registry.gd")
 @onready var resource_bar: ProgressBar = %ResourceBar
 @onready var resource_value_label: Label = %ResourceValueLabel
 @onready var level_label: Label = %LevelLabel
+@onready var familiar_label: Label = %FamiliarLabel
 @onready var room_label: Label = %RoomLabel
 @onready var discovery_label: Label = %DiscoveryLabel
 @onready var xp_bar: ProgressBar = %XPBar
@@ -33,6 +34,9 @@ func bind_player(next_player: Player) -> void:
 	if not player.stats_changed.is_connected(_on_player_stats_changed):
 		player.stats_changed.connect(_on_player_stats_changed)
 	_on_player_stats_changed(player.get_stats())
+	var familiar := player.get_node_or_null("Familiar")
+	if familiar != null and familiar.has_method("get_status"):
+		set_familiar_status(familiar.call("get_status"))
 
 func _on_player_stats_changed(stats: Dictionary) -> void:
 	var health: int = int(stats.get("health", 0))
@@ -55,6 +59,11 @@ func _on_player_stats_changed(stats: Dictionary) -> void:
 	xp_bar.max_value = xp_required
 	xp_bar.value = clampi(xp_progress, 0, xp_required)
 	xp_value_label.text = "%d / %d XP" % [xp_progress, xp_required]
+
+func set_familiar_status(status: Dictionary) -> void:
+	var familiar_level := int(status.get("level", 1))
+	var evolution_stage := str(status.get("evolution_stage", "spark")).capitalize()
+	familiar_label.text = "Familiar Lv %d - %s" % [familiar_level, evolution_stage]
 
 func show_upgrade_feedback(title: String, detail: String) -> void:
 	upgrade_title_label.text = title

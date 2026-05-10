@@ -4,6 +4,8 @@ const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const WARDEN_DATA := preload("res://data/classes/warden.tres")
 
+var _failed := false
+
 func _initialize() -> void:
 	call_deferred("_run")
 
@@ -21,27 +23,63 @@ func _run() -> void:
 	hud.call("bind_player", player)
 
 	_assert_equal("Level 1", hud.get_node("%LevelLabel").text, "HUD should display the starting level.")
+	if _failed:
+		return
 	_assert_equal("140 / 140", hud.get_node("%HealthValueLabel").text, "HUD should display starting health.")
+	if _failed:
+		return
 	_assert_equal("40 / 40", hud.get_node("%ResourceValueLabel").text, "HUD should display starting resource.")
+	if _failed:
+		return
 	_assert_equal("0 / 100 XP", hud.get_node("%XPValueLabel").text, "HUD should display XP progress to the next level.")
+	if _failed:
+		return
+	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")
+	if _failed:
+		return
 
 	var discovered_rooms: Array[String] = ["RoomStart", "RoomCheckpoint"]
 	hud.call("set_map_context", "swamp_outskirts", "RoomCheckpoint", discovered_rooms)
 	_assert_equal("Swamp Outskirts - Shrine Hollow", hud.get_node("%RoomLabel").text, "HUD should display the current area and room.")
+	if _failed:
+		return
 	_assert_equal("Map 2 / 8", hud.get_node("%DiscoveryLabel").text, "HUD should display discovered room count.")
+	if _failed:
+		return
 
 	player.take_damage(20)
 	_assert_equal("126 / 140", hud.get_node("%HealthValueLabel").text, "HUD should update when the player takes damage.")
+	if _failed:
+		return
 
 	player.gain_xp(100)
 	_assert_equal("Level 2", hud.get_node("%LevelLabel").text, "HUD should update after leveling up.")
+	if _failed:
+		return
 	_assert_equal("150 / 150", hud.get_node("%HealthValueLabel").text, "HUD should reflect level-up max health restore.")
+	if _failed:
+		return
 	_assert_equal("0 / 150 XP", hud.get_node("%XPValueLabel").text, "HUD should reset XP progress inside the new level band.")
+	if _failed:
+		return
+
+	var familiar := player.get_node("Familiar") as Node
+	familiar.call("gain_xp", 120)
+	hud.call("set_familiar_status", familiar.call("get_status"))
+	_assert_equal("Familiar Lv 2 - Wisp", hud.get_node("%FamiliarLabel").text, "HUD should update familiar level and evolution.")
+	if _failed:
+		return
 
 	hud.call("show_upgrade_feedback", "Traversal unlocked", "Armored Dash")
 	_assert_equal(true, hud.get_node("%UpgradeToast").visible, "HUD should show upgrade feedback.")
+	if _failed:
+		return
 	_assert_equal("Traversal unlocked", hud.get_node("%UpgradeTitleLabel").text, "HUD should display upgrade feedback title.")
+	if _failed:
+		return
 	_assert_equal("Armored Dash", hud.get_node("%UpgradeDetailLabel").text, "HUD should display upgrade feedback detail.")
+	if _failed:
+		return
 
 	container.queue_free()
 	await process_frame
@@ -52,5 +90,6 @@ func _assert_equal(expected: Variant, actual: Variant, message: String) -> void:
 	if expected == actual:
 		return
 
+	_failed = true
 	push_error("%s Expected: %s Actual: %s" % [message, str(expected), str(actual)])
 	quit(1)

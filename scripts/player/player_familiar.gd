@@ -1,6 +1,8 @@
 extends Node2D
 class_name PlayerFamiliar
 
+signal stats_changed(status: Dictionary)
+
 @export var follow_offset := Vector2(-28, -30)
 @export var follow_speed := 8.0
 @export var bob_amplitude := 3.0
@@ -54,12 +56,19 @@ func gain_xp(amount: int) -> void:
 		level += 1
 		ability_points += 1
 	_update_evolution_stage()
+	stats_changed.emit(get_status())
 
 func upgrade_ability(ability_id: String) -> bool:
 	if ability_points <= 0 or not KNOWN_ABILITIES.has(ability_id):
 		return false
 	ability_points -= 1
-	ability_levels[ability_id] = int(ability_levels.get(ability_id, 0)) + 1
+	_grant_ability_level(ability_id)
+	return true
+
+func grant_ability_upgrade(ability_id: String) -> bool:
+	if not KNOWN_ABILITIES.has(ability_id):
+		return false
+	_grant_ability_level(ability_id)
 	return true
 
 func attack_damage() -> int:
@@ -103,6 +112,16 @@ func apply_state(data: Dictionary) -> void:
 	var loaded_abilities: Variant = data.get("ability_levels", {})
 	ability_levels = loaded_abilities.duplicate() if loaded_abilities is Dictionary else {}
 	_update_evolution_stage()
+	stats_changed.emit(get_status())
+
+func get_status() -> Dictionary:
+	return {
+		"level": level,
+		"xp": xp,
+		"evolution_stage": evolution_stage,
+		"ability_points": ability_points,
+		"ability_levels": ability_levels.duplicate(),
+	}
 
 func _oriented_offset() -> Vector2:
 	var facing := 1.0
@@ -151,3 +170,7 @@ func _update_evolution_stage() -> void:
 		evolution_stage = "sprite"
 	elif level >= 2:
 		evolution_stage = "wisp"
+
+func _grant_ability_level(ability_id: String) -> void:
+	ability_levels[ability_id] = int(ability_levels.get(ability_id, 0)) + 1
+	stats_changed.emit(get_status())

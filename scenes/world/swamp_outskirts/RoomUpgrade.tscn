@@ -81,6 +81,12 @@ pickup_id = "swamp_guard_counter"
 upgrade_id = "guard_counter"
 upgrade_type = "attack_skill"
 
+[node name="FamiliarStingUpgrade" type="Area2D" parent="Pickups" instance=ExtResource("2_upgrade")]
+position = Vector2(380, 420)
+pickup_id = "swamp_familiar_sting"
+upgrade_id = "sting"
+upgrade_type = "familiar_ability"
+
 [node name="SwampBackdrop" type="Node2D" parent="." unique_id=1666999583]
 z_index = -100
 

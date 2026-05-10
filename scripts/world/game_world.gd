@@ -351,6 +351,12 @@ func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: 
 		if player != null and player.has_method("set_learned_attack_skills"):
 			player.call("set_learned_attack_skills", state.learned_attack_skills)
 		_show_upgrade_feedback("Attack skill learned", _format_upgrade_name(upgrade_id))
+	if upgrade_type == "familiar_ability" and not upgrade_id.is_empty():
+		var familiar := _get_active_familiar()
+		if familiar != null and familiar.has_method("grant_ability_upgrade") and bool(familiar.call("grant_ability_upgrade", upgrade_id)):
+			state.familiar_state = familiar.call("to_dictionary")
+			_update_hud_familiar_status()
+			_show_upgrade_feedback("Familiar ability upgraded", _format_upgrade_name(upgrade_id))
 	_save_game_state()
 
 func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
@@ -436,6 +442,11 @@ func _bind_hud_to_player() -> void:
 	_ensure_hud()
 	if hud != null and player is Player:
 		hud.call("bind_player", player)
+		var familiar := _get_active_familiar()
+		if familiar != null and familiar.has_signal("stats_changed"):
+			var callback := Callable(self, "_on_familiar_stats_changed")
+			if not familiar.is_connected("stats_changed", callback):
+				familiar.connect("stats_changed", callback)
 		_update_hud_map_context()
 
 func _store_player_state() -> void:
@@ -468,11 +479,24 @@ func _show_upgrade_feedback(title: String, detail: String) -> void:
 	if hud != null and hud.has_method("show_upgrade_feedback"):
 		hud.call("show_upgrade_feedback", title, detail)
 
+func _on_familiar_stats_changed(status: Dictionary) -> void:
+	if state != null:
+		state.familiar_state = status.duplicate()
+	_update_hud_familiar_status()
+
 func _update_hud_map_context() -> void:
 	_ensure_hud()
 	if hud == null or state == null or not hud.has_method("set_map_context"):
 		return
 	hud.call("set_map_context", state.current_area, state.current_room, state.discovered_rooms)
+
+func _update_hud_familiar_status() -> void:
+	_ensure_hud()
+	if hud == null or not hud.has_method("set_familiar_status"):
+		return
+	var familiar := _get_active_familiar()
+	if familiar != null and familiar.has_method("get_status"):
+		hud.call("set_familiar_status", familiar.call("get_status"))
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")

@@ -7,7 +7,7 @@ const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 
 @export var pickup_id: String = ""
 @export var upgrade_id: String = ""
-@export_enum("traversal", "attack_skill", "optional") var upgrade_type: String = "traversal"
+@export_enum("traversal", "attack_skill", "familiar_ability", "optional") var upgrade_type: String = "traversal"
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
