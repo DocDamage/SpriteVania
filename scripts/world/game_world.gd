@@ -89,6 +89,7 @@ func load_room(room_id: String) -> Node2D:
 	register_enemies_in(current_room)
 	register_upgrade_pickups_in(current_room)
 	register_room_exits_in(current_room)
+	_apply_open_shortcuts(current_room)
 	return current_room
 
 func get_current_room_id() -> String:
@@ -235,8 +236,10 @@ func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: 
 			state.traversal_unlocks.append(traversal_id)
 			if player != null and player.has_method("set_traversal_unlocks"):
 				player.call("set_traversal_unlocks", state.traversal_unlocks)
+			_show_upgrade_feedback("Traversal unlocked", _format_upgrade_name(traversal_id))
 	if upgrade_type == "attack_skill" and not upgrade_id.is_empty() and not state.learned_attack_skills.has(upgrade_id):
 		state.learned_attack_skills.append(upgrade_id)
+		_show_upgrade_feedback("Attack skill learned", _format_upgrade_name(upgrade_id))
 	_save_game_state()
 
 func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
@@ -246,11 +249,14 @@ func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
 	var next_room := str(exit.get_meta("next_room", ""))
 	if next_room.is_empty() or not ROOM_SCENES.has(next_room):
 		return
+	if not _can_use_room_exit(exit):
+		return
 
 	is_transitioning_rooms = true
 	var previous_room_id := get_current_room_id()
 	_store_player_state()
 	load_room(next_room)
+	_update_shortcuts_for_room_entry(current_room, previous_room_id)
 	player.global_position = _resolve_room_spawn_position(previous_room_id, exit)
 	player.velocity = Vector2.ZERO
 	if state != null:
@@ -306,6 +312,11 @@ func _save_game_state() -> void:
 	if manager != null:
 		manager.call("save_game", state)
 
+func _show_upgrade_feedback(title: String, detail: String) -> void:
+	_ensure_hud()
+	if hud != null and hud.has_method("show_upgrade_feedback"):
+		hud.call("show_upgrade_feedback", title, detail)
+
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
 
@@ -341,6 +352,61 @@ func _entry_offset_for_exit(exit: Area2D) -> Vector2:
 	if name_lower.contains("bottom"):
 		return Vector2(0.0, -EXIT_SPAWN_OFFSET)
 	return Vector2.ZERO
+
+func _can_use_room_exit(exit: Area2D) -> bool:
+	if state == null:
+		return true
+
+	var required_traversal := str(exit.get_meta("required_traversal", ""))
+	if required_traversal.is_empty():
+		return true
+
+	return state.traversal_unlocks.has(_resolve_traversal_upgrade_id(required_traversal))
+
+func _update_shortcuts_for_room_entry(room: Node, previous_room_id: String) -> void:
+	if state == null or room == null:
+		return
+
+	for gate: Node in _find_shortcut_gates(room):
+		var shortcut_id := str(gate.get_meta("shortcut_id", ""))
+		var opens_from := str(gate.get_meta("opens_from", ""))
+		if shortcut_id.is_empty():
+			continue
+		if state.opened_shortcuts.has(shortcut_id):
+			_open_shortcut_gate(gate)
+			continue
+		if opens_from == previous_room_id:
+			state.opened_shortcuts.append(shortcut_id)
+			_open_shortcut_gate(gate)
+			_save_game_state()
+
+func _apply_open_shortcuts(room: Node) -> void:
+	if state == null or room == null:
+		return
+
+	for gate: Node in _find_shortcut_gates(room):
+		var shortcut_id := str(gate.get_meta("shortcut_id", ""))
+		if not shortcut_id.is_empty() and state.opened_shortcuts.has(shortcut_id):
+			_open_shortcut_gate(gate)
+
+func _find_shortcut_gates(root: Node) -> Array[Node]:
+	var gates: Array[Node] = []
+	if root == null:
+		return gates
+	if root.has_meta("shortcut_id"):
+		gates.append(root)
+	for child: Node in root.get_children():
+		gates.append_array(_find_shortcut_gates(child))
+	return gates
+
+func _open_shortcut_gate(gate: Node) -> void:
+	gate.queue_free()
+
+func _format_upgrade_name(upgrade_id: String) -> String:
+	var words := upgrade_id.replace("_", " ").split(" ", false)
+	for index: int in words.size():
+		words[index] = words[index].capitalize()
+	return " ".join(words)
 
 func _valid_class_id(class_id: String) -> String:
 	if CLASS_DATA.has(class_id):

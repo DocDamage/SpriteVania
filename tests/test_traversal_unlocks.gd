@@ -14,6 +14,7 @@ func _run() -> void:
 	await _assert_gunslinger_hookshot_unlock()
 	await _assert_hexbinder_blink_unlock()
 	await _assert_world_resolves_first_traversal_tool()
+	await _assert_room_exit_requires_traversal_unlock()
 	print("PASS: traversal unlocks")
 	quit(0)
 
@@ -73,7 +74,45 @@ func _assert_world_resolves_first_traversal_tool() -> void:
 		return
 	if player == null or not player.has_traversal_unlock("blink"):
 		_fail("Player should receive traversal unlocks immediately after pickup collection.")
+		return
+	var hud := world.get("hud") as CanvasLayer
+	if hud == null or hud.get_node("%UpgradeDetailLabel").text != "Blink":
+		_fail("Traversal pickup feedback should show the resolved class-specific unlock name.")
+		return
 	world.free()
+	await process_frame
+
+func _assert_room_exit_requires_traversal_unlock() -> void:
+	var world := GAME_WORLD_SCENE.instantiate()
+	root.add_child(world)
+	world.call("start_new_game", "warden", "")
+	world.call("load_room", "RoomUpgrade")
+	await process_frame
+	await physics_frame
+
+	var room := world.get("current_room") as Node2D
+	var player := world.get("player") as CharacterBody2D
+	var right_exit := room.get_node_or_null("Entrances/RightEntrance") as Area2D
+	if right_exit == null:
+		_fail("RoomUpgrade should have a right exit for traversal gating.")
+		return
+
+	right_exit.body_entered.emit(player)
+	await physics_frame
+	if world.get("current_room") != room:
+		_fail("RoomUpgrade right exit should stay locked before the traversal pickup is collected.")
+		return
+
+	world.call("_on_upgrade_collected", "test_gate_pickup", "first_traversal_tool", "traversal")
+	right_exit.body_entered.emit(player)
+	await physics_frame
+	await physics_frame
+	var next_room := world.get("current_room") as Node2D
+	if next_room == null or next_room.name != "RoomShortcut":
+		_fail("RoomUpgrade right exit should open after the first traversal unlock is learned.")
+		return
+	world.free()
+	await process_frame
 
 func _spawn_player(class_data: Resource) -> Player:
 	var player := PLAYER_SCENE.instantiate() as Player

@@ -113,3 +113,37 @@ layout_mode = 2
 custom_minimum_size = Vector2(78, 0)
 horizontal_alignment = 2
 text = "0 / 100 XP"
+
+[node name="UpgradeToast" type="PanelContainer" parent="Root"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 16.0
+offset_right = 150.0
+offset_bottom = 76.0
+grow_horizontal = 2
+
+[node name="ToastContent" type="VBoxContainer" parent="Root/UpgradeToast"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="UpgradeTitleLabel" type="Label" parent="Root/UpgradeToast/ToastContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Traversal unlocked"
+horizontal_alignment = 1
+
+[node name="UpgradeDetailLabel" type="Label" parent="Root/UpgradeToast/ToastContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Armored Dash"
+horizontal_alignment = 1
+
+[node name="UpgradeToastTimer" type="Timer" parent="Root"]
+unique_name_in_owner = true
+wait_time = 2.0
+one_shot = true

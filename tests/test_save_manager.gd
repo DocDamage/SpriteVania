@@ -46,6 +46,10 @@ func _init() -> void:
 		push_error("Learned attack skill did not persist")
 		quit(1)
 		return
+	if not loaded.traversal_unlocks.has("armored_dash"):
+		push_error("Traversal unlock did not persist")
+		quit(1)
+		return
 	if not loaded.opened_shortcuts.has("swamp_shortcut_01"):
 		push_error("Opened shortcut did not persist")
 		quit(1)

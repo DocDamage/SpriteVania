@@ -33,6 +33,11 @@ func _run() -> void:
 	_assert_equal("150 / 150", hud.get_node("%HealthValueLabel").text, "HUD should reflect level-up max health restore.")
 	_assert_equal("0 / 150 XP", hud.get_node("%XPValueLabel").text, "HUD should reset XP progress inside the new level band.")
 
+	hud.call("show_upgrade_feedback", "Traversal unlocked", "Armored Dash")
+	_assert_equal(true, hud.get_node("%UpgradeToast").visible, "HUD should show upgrade feedback.")
+	_assert_equal("Traversal unlocked", hud.get_node("%UpgradeTitleLabel").text, "HUD should display upgrade feedback title.")
+	_assert_equal("Armored Dash", hud.get_node("%UpgradeDetailLabel").text, "HUD should display upgrade feedback detail.")
+
 	container.free()
 	quit(0)
 

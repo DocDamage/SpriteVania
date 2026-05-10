@@ -8,8 +8,15 @@ class_name HUD
 @onready var level_label: Label = %LevelLabel
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var xp_value_label: Label = %XPValueLabel
+@onready var upgrade_toast: PanelContainer = %UpgradeToast
+@onready var upgrade_title_label: Label = %UpgradeTitleLabel
+@onready var upgrade_detail_label: Label = %UpgradeDetailLabel
+@onready var upgrade_toast_timer: Timer = %UpgradeToastTimer
 
 var player: Player
+
+func _ready() -> void:
+	upgrade_toast_timer.timeout.connect(_on_upgrade_toast_timer_timeout)
 
 func bind_player(next_player: Player) -> void:
 	if player != null and player.stats_changed.is_connected(_on_player_stats_changed):
@@ -44,3 +51,12 @@ func _on_player_stats_changed(stats: Dictionary) -> void:
 	xp_bar.max_value = xp_required
 	xp_bar.value = clampi(xp_progress, 0, xp_required)
 	xp_value_label.text = "%d / %d XP" % [xp_progress, xp_required]
+
+func show_upgrade_feedback(title: String, detail: String) -> void:
+	upgrade_title_label.text = title
+	upgrade_detail_label.text = detail
+	upgrade_toast.visible = true
+	upgrade_toast_timer.start()
+
+func _on_upgrade_toast_timer_timeout() -> void:
+	upgrade_toast.visible = false

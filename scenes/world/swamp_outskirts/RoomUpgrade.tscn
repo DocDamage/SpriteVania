@@ -70,6 +70,7 @@ shape = SubResource("RectangleShape2D_entrance")
 [node name="RightEntrance" type="Area2D" parent="Entrances" unique_id=69720427]
 position = Vector2(936, 448)
 metadata/next_room = "RoomShortcut"
+metadata/required_traversal = "first_traversal_tool"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance" unique_id=257259000]
 shape = SubResource("RectangleShape2D_entrance")
