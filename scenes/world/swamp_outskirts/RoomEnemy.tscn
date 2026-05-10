@@ -73,10 +73,16 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="SwampCrawlerA" type="CharacterBody2D" parent="EnemySpawns" unique_id=423787658 instance=ExtResource("2_crawler")]
 position = Vector2(320, 480)
+patrol_left = -220.0
+patrol_right = 150.0
+aggro_range = 260.0
 enemy_id = "swamp_crawler_a"
 
 [node name="SwampCrawlerB" type="CharacterBody2D" parent="EnemySpawns" unique_id=1078507093 instance=ExtResource("2_crawler")]
 position = Vector2(660, 480)
+patrol_left = -150.0
+patrol_right = 220.0
+aggro_range = 260.0
 enemy_id = "swamp_crawler_b"
 
 [node name="Pickups" type="Node2D" parent="." unique_id=1302089871]

@@ -25,7 +25,8 @@ func _run() -> void:
 	_assert_equal("40 / 40", hud.get_node("%ResourceValueLabel").text, "HUD should display starting resource.")
 	_assert_equal("0 / 100 XP", hud.get_node("%XPValueLabel").text, "HUD should display XP progress to the next level.")
 
-	hud.call("set_map_context", "swamp_outskirts", "RoomCheckpoint", ["RoomStart", "RoomCheckpoint"])
+	var discovered_rooms: Array[String] = ["RoomStart", "RoomCheckpoint"]
+	hud.call("set_map_context", "swamp_outskirts", "RoomCheckpoint", discovered_rooms)
 	_assert_equal("Swamp Outskirts - Shrine Hollow", hud.get_node("%RoomLabel").text, "HUD should display the current area and room.")
 	_assert_equal("Map 2 / 8", hud.get_node("%DiscoveryLabel").text, "HUD should display discovered room count.")
 
@@ -42,7 +43,9 @@ func _run() -> void:
 	_assert_equal("Traversal unlocked", hud.get_node("%UpgradeTitleLabel").text, "HUD should display upgrade feedback title.")
 	_assert_equal("Armored Dash", hud.get_node("%UpgradeDetailLabel").text, "HUD should display upgrade feedback detail.")
 
-	container.free()
+	container.queue_free()
+	await process_frame
+	print("PASS: hud")
 	quit(0)
 
 func _assert_equal(expected: Variant, actual: Variant, message: String) -> void:

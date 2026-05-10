@@ -12,6 +12,9 @@ func _run() -> void:
 	await _assert_crawler_reverses_at_patrol_bounds()
 	if _failed:
 		return
+	await _assert_crawler_aggro_stays_inside_patrol_route()
+	if _failed:
+		return
 	await _assert_crawler_attacks_nearby_player_then_returns_to_patrol()
 	if _failed:
 		return
@@ -55,6 +58,34 @@ func _assert_crawler_reverses_at_patrol_bounds() -> void:
 		return
 
 	crawler.queue_free()
+	await process_frame
+
+func _assert_crawler_aggro_stays_inside_patrol_route() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := Node2D.new()
+	player.name = "PlayerProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	crawler.set("patrol_left", -20.0)
+	crawler.set("patrol_right", 20.0)
+	crawler.set("aggro_range", 240.0)
+	player.global_position = Vector2(220, 100)
+	root.add_child(crawler)
+	root.add_child(player)
+	await process_frame
+
+	crawler.global_position = Vector2(121, 100)
+	crawler.set("direction", 1.0)
+	crawler.call("_physics_process", 0.016)
+	if crawler.velocity.x > 0.0:
+		_fail("Crawler should not chase beyond its right patrol route.")
+		return
+	if str(crawler.get("behavior_state")) != "patrol":
+		_fail("Crawler should return to patrol when aggro would pull it outside its route.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
 	await process_frame
 
 func _assert_crawler_attacks_nearby_player_then_returns_to_patrol() -> void:

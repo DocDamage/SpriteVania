@@ -56,10 +56,17 @@ func _update_behavior(delta: float) -> void:
 			_start_attack(_target)
 			return
 		if distance <= aggro_range:
+			var chase_direction: float = sign(_target.global_position.x - global_position.x)
+			if is_zero_approx(chase_direction):
+				chase_direction = 1.0
+			if not _can_chase_inside_patrol_route(chase_direction, delta):
+				behavior_state = "patrol"
+				direction = -chase_direction
+				_update_patrol_direction()
+				velocity.x = direction * patrol_speed
+				return
 			behavior_state = "aggro"
-			direction = sign(_target.global_position.x - global_position.x)
-			if is_zero_approx(direction):
-				direction = 1.0
+			direction = chase_direction
 			velocity.x = direction * patrol_speed
 			return
 
@@ -115,6 +122,13 @@ func _get_patrol_bounds() -> Vector2:
 	var left: float = min(patrol_left, patrol_right)
 	var right: float = max(patrol_left, patrol_right)
 	return Vector2(_patrol_origin_x + left, _patrol_origin_x + right)
+
+func _can_chase_inside_patrol_route(chase_direction: float, delta: float) -> bool:
+	var bounds := _get_patrol_bounds()
+	var projected_x := global_position.x + chase_direction * patrol_speed * delta
+	if chase_direction > 0.0:
+		return global_position.x < bounds.y and projected_x <= bounds.y
+	return global_position.x > bounds.x and projected_x >= bounds.x
 
 func _reverse_direction() -> void:
 	direction *= -1.0
