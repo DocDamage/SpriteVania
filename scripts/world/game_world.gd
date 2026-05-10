@@ -121,6 +121,10 @@ func register_enemy(enemy: Node) -> void:
 		return
 	if not enemy.has_signal("died"):
 		return
+	var enemy_id := str(enemy.get("enemy_id"))
+	if state != null and not enemy_id.is_empty() and state.defeated_bosses.has(enemy_id):
+		enemy.queue_free()
+		return
 
 	var callback := Callable(self, "_on_enemy_died")
 	if not enemy.is_connected("died", callback):
@@ -217,9 +221,15 @@ func _on_player_died() -> void:
 		respawn_position = DEFAULT_SPAWN_POSITION
 	_spawn_player(respawn_position)
 
-func _on_enemy_died(_enemy_id: String, xp_reward: int) -> void:
+func _on_enemy_died(enemy_id: String, xp_reward: int) -> void:
 	if player != null:
 		player.call("gain_xp", xp_reward)
+	if state != null and not enemy_id.is_empty() and _room_has_defeat_gate_for(current_room, enemy_id):
+		if not state.defeated_bosses.has(enemy_id):
+			state.defeated_bosses.append(enemy_id)
+		if current_room != null and current_room.has_method("mark_persistent_defeated"):
+			current_room.call("mark_persistent_defeated", enemy_id)
+		_save_game_state()
 
 func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: String) -> void:
 	if state == null:
@@ -357,10 +367,25 @@ func _can_use_room_exit(exit: Area2D) -> bool:
 		return true
 
 	var required_traversal := str(exit.get_meta("required_traversal", ""))
-	if required_traversal.is_empty():
-		return true
+	if not required_traversal.is_empty():
+		if not state.traversal_unlocks.has(_resolve_traversal_upgrade_id(required_traversal)):
+			return false
 
-	return state.traversal_unlocks.has(_resolve_traversal_upgrade_id(required_traversal))
+	var requires_defeat := str(exit.get_meta("requires_defeat", ""))
+	if not requires_defeat.is_empty() and not state.defeated_bosses.has(requires_defeat):
+		return false
+
+	return true
+
+func _room_has_defeat_gate_for(root: Node, enemy_id: String) -> bool:
+	if root == null or enemy_id.is_empty():
+		return false
+	if root.has_meta("requires_defeat") and str(root.get_meta("requires_defeat", "")) == enemy_id:
+		return true
+	for child: Node in root.get_children():
+		if _room_has_defeat_gate_for(child, enemy_id):
+			return true
+	return false
 
 func _update_shortcuts_for_room_entry(room: Node, previous_room_id: String) -> void:
 	if state == null or room == null:

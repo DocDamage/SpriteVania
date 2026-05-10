@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/SwampMiniBoss.tscn" id="2_miniboss"]
-[ext_resource type="Script" path="res://scripts/enemies/swamp_miniboss.gd" id="3_mk18x"]
-[ext_resource type="SpriteFrames" path="res://resources/animations/swamp_thing_frames.tres" id="4_ulilk"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/background.png" id="5_xxble"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-02.png" id="6_jwcru"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-01.png" id="7_iat2u"]
@@ -22,9 +20,6 @@ size = Vector2(48, 144)
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_exit"]
 size = Vector2(72, 112)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_miniboss"]
-size = Vector2(34, 42)
 
 [node name="RoomMiniBoss" type="Node2D" unique_id=1355183905]
 script = ExtResource("1_room")
@@ -80,20 +75,10 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="SwampMiniBoss" type="CharacterBody2D" parent="EnemySpawns" unique_id=86696602 instance=ExtResource("2_miniboss")]
 position = Vector2(520, 472)
-script = ExtResource("3_mk18x")
 enemy_id = "swamp_miniboss"
 max_health = 180
 damage = 18
 xp_reward = 150
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemySpawns/SwampMiniBoss" unique_id=1522306097]
-shape = SubResource("RectangleShape2D_swamp_miniboss")
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="EnemySpawns/SwampMiniBoss" unique_id=801261234]
-position = Vector2(0, -8)
-scale = Vector2(2, 2)
-sprite_frames = ExtResource("4_ulilk")
-animation = &"walk"
 
 [node name="Pickups" type="Node2D" parent="." unique_id=1616409386]
 

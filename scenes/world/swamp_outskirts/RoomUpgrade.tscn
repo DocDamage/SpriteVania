@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/world/UpgradePickup.tscn" id="2_upgrade"]
-[ext_resource type="Script" path="res://scripts/world/upgrade_pickup.gd" id="3_yjaxb"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/background.png" id="4_4qe1g"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-02.png" id="5_gs50a"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-01.png" id="6_ybvx7"]
@@ -21,12 +20,6 @@ size = Vector2(48, 144)
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_plinth"]
 size = Vector2(96, 48)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_upgrade"]
-radius = 12.0
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_upgrade"]
-size = Vector2(16, 16)
 
 [node name="RoomUpgrade" type="Node2D" unique_id=1715071857]
 script = ExtResource("1_room")
@@ -81,16 +74,8 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="FirstTraversalTool" type="Area2D" parent="Pickups" unique_id=1627486938 instance=ExtResource("2_upgrade")]
 position = Vector2(500, 420)
-script = ExtResource("3_yjaxb")
 pickup_id = "swamp_first_upgrade"
 upgrade_id = "first_traversal_tool"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Pickups/FirstTraversalTool" unique_id=1287530280]
-shape = SubResource("CircleShape2D_upgrade")
-
-[node name="Sprite2D" type="Sprite2D" parent="Pickups/FirstTraversalTool" unique_id=1200116486]
-visible = false
-texture = SubResource("PlaceholderTexture2D_upgrade")
 
 [node name="SwampBackdrop" type="Node2D" parent="." unique_id=1666999583]
 z_index = -100

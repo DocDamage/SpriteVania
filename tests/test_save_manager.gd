@@ -18,6 +18,7 @@ func _init() -> void:
 	state.xp = 260
 	state.learned_attack_skills = ["guard_counter"]
 	state.traversal_unlocks = ["armored_dash"]
+	state.defeated_bosses = ["swamp_miniboss"]
 	state.opened_shortcuts = ["swamp_shortcut_01"]
 
 	if not manager.save_game(state):
@@ -48,6 +49,10 @@ func _init() -> void:
 		return
 	if not loaded.traversal_unlocks.has("armored_dash"):
 		push_error("Traversal unlock did not persist")
+		quit(1)
+		return
+	if not loaded.defeated_bosses.has("swamp_miniboss"):
+		push_error("Defeated boss did not persist")
 		quit(1)
 		return
 	if not loaded.opened_shortcuts.has("swamp_shortcut_01"):

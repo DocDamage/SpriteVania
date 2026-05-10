@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/SwampCrawler.tscn" id="2_crawler"]
-[ext_resource type="Script" path="res://scripts/enemies/swamp_crawler.gd" id="3_5uip1"]
-[ext_resource type="SpriteFrames" path="res://resources/animations/swamp_spider_frames.tres" id="4_h5w5b"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/background.png" id="5_at87u"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-02.png" id="6_n6tie"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/mid-layer-01.png" id="7_2v54k"]
@@ -22,9 +20,6 @@ size = Vector2(48, 144)
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_pillar"]
 size = Vector2(96, 96)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_swamp_crawler"]
-size = Vector2(18, 12)
 
 [node name="RoomEnemy" type="Node2D" unique_id=2091854227]
 script = ExtResource("1_room")
@@ -77,31 +72,11 @@ shape = SubResource("RectangleShape2D_entrance")
 
 [node name="SwampCrawlerA" type="CharacterBody2D" parent="EnemySpawns" unique_id=423787658 instance=ExtResource("2_crawler")]
 position = Vector2(320, 480)
-script = ExtResource("3_5uip1")
 enemy_id = "swamp_crawler_a"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemySpawns/SwampCrawlerA" unique_id=379089512]
-shape = SubResource("RectangleShape2D_swamp_crawler")
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="EnemySpawns/SwampCrawlerA" unique_id=377222618]
-position = Vector2(0, -3)
-scale = Vector2(1.5, 1.5)
-sprite_frames = ExtResource("4_h5w5b")
-animation = &"walk"
 
 [node name="SwampCrawlerB" type="CharacterBody2D" parent="EnemySpawns" unique_id=1078507093 instance=ExtResource("2_crawler")]
 position = Vector2(660, 480)
-script = ExtResource("3_5uip1")
 enemy_id = "swamp_crawler_b"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemySpawns/SwampCrawlerB" unique_id=163675987]
-shape = SubResource("RectangleShape2D_swamp_crawler")
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="EnemySpawns/SwampCrawlerB" unique_id=1629483440]
-position = Vector2(0, -3)
-scale = Vector2(1.5, 1.5)
-sprite_frames = ExtResource("4_h5w5b")
-animation = &"walk"
 
 [node name="Pickups" type="Node2D" parent="." unique_id=1302089871]
 
