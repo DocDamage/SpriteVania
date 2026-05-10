@@ -8,6 +8,7 @@ const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
+const EXIT_SPAWN_OFFSET := 72.0
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
 const DEFAULT_ROOM_ID := "RoomStart"
@@ -31,12 +32,14 @@ var state: GameStateScript
 var player: CharacterBody2D
 var current_room: Node2D
 var hud: CanvasLayer
+var is_transitioning_rooms := false
 
 func _ready() -> void:
 	_ensure_hud()
 	register_checkpoints_in(self)
 	register_enemies_in(self)
 	register_upgrade_pickups_in(self)
+	register_room_exits_in(self)
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -48,7 +51,9 @@ func start_new_game(class_id: String, sprite_id: String) -> void:
 	_spawn_player(DEFAULT_SPAWN_POSITION)
 
 func continue_game() -> void:
-	state = SaveManager.load_game()
+	var manager := _get_save_manager()
+	if manager != null:
+		state = manager.call("load_game") as GameStateScript
 	if state == null:
 		state = GameStateScript.new()
 
@@ -83,6 +88,7 @@ func load_room(room_id: String) -> Node2D:
 	register_checkpoints_in(current_room)
 	register_enemies_in(current_room)
 	register_upgrade_pickups_in(current_room)
+	register_room_exits_in(current_room)
 	return current_room
 
 func get_current_room_id() -> String:
@@ -147,6 +153,25 @@ func register_upgrade_pickups_in(root: Node) -> void:
 	for child: Node in root.get_children():
 		register_upgrade_pickups_in(child)
 
+func register_room_exit(exit: Area2D) -> void:
+	if exit == null:
+		return
+	var next_room := str(exit.get_meta("next_room", ""))
+	if next_room.is_empty() or not ROOM_SCENES.has(next_room):
+		return
+
+	var callback := Callable(self, "_on_room_exit_body_entered").bind(exit)
+	if not exit.body_entered.is_connected(callback):
+		exit.body_entered.connect(callback)
+
+func register_room_exits_in(root: Node) -> void:
+	if root == null:
+		return
+	if root is Area2D:
+		register_room_exit(root as Area2D)
+	for child: Node in root.get_children():
+		register_room_exits_in(child)
+
 func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) -> void:
 	if state == null:
 		state = GameStateScript.new()
@@ -161,7 +186,7 @@ func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) ->
 		state.current_resource = int(player.get("current_resource"))
 		state.level = int(player.get("level"))
 		state.xp = int(player.get("xp"))
-	SaveManager.save_game(state)
+	_save_game_state()
 
 func _spawn_player(spawn_position: Vector2) -> void:
 	if player != null:
@@ -207,7 +232,26 @@ func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: 
 		state.traversal_unlocks.append(upgrade_id)
 	if upgrade_type == "attack_skill" and not upgrade_id.is_empty() and not state.learned_attack_skills.has(upgrade_id):
 		state.learned_attack_skills.append(upgrade_id)
-	SaveManager.save_game(state)
+	_save_game_state()
+
+func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
+	if is_transitioning_rooms or player == null or body != player:
+		return
+
+	var next_room := str(exit.get_meta("next_room", ""))
+	if next_room.is_empty() or not ROOM_SCENES.has(next_room):
+		return
+
+	is_transitioning_rooms = true
+	var previous_room_id := get_current_room_id()
+	_store_player_state()
+	load_room(next_room)
+	player.global_position = _resolve_room_spawn_position(previous_room_id, exit)
+	player.velocity = Vector2.ZERO
+	if state != null:
+		_save_game_state()
+	await get_tree().physics_frame
+	is_transitioning_rooms = false
 
 func _ensure_valid_selected_class() -> void:
 	if state == null:
@@ -241,6 +285,57 @@ func _bind_hud_to_player() -> void:
 	_ensure_hud()
 	if hud != null and player is Player:
 		hud.call("bind_player", player)
+
+func _store_player_state() -> void:
+	if state == null or player == null:
+		return
+	state.current_health = int(player.get("current_health"))
+	state.current_resource = int(player.get("current_resource"))
+	state.level = int(player.get("level"))
+	state.xp = int(player.get("xp"))
+
+func _save_game_state() -> void:
+	if state == null:
+		return
+	var manager := _get_save_manager()
+	if manager != null:
+		manager.call("save_game", state)
+
+func _get_save_manager() -> Node:
+	return get_tree().root.get_node_or_null("SaveManager")
+
+func _resolve_room_spawn_position(previous_room_id: String, _source_exit: Area2D) -> Vector2:
+	var matching_exit := _find_exit_to_room(current_room, previous_room_id)
+	if matching_exit != null:
+		return matching_exit.global_position + _entry_offset_for_exit(matching_exit)
+
+	var player_start := current_room.get_node_or_null("PlayerStart") as Marker2D
+	if player_start != null:
+		return player_start.global_position
+	return DEFAULT_SPAWN_POSITION
+
+func _find_exit_to_room(root: Node, room_id: String) -> Area2D:
+	if root == null:
+		return null
+	if root is Area2D and str(root.get_meta("next_room", "")) == room_id:
+		return root as Area2D
+	for child: Node in root.get_children():
+		var match := _find_exit_to_room(child, room_id)
+		if match != null:
+			return match
+	return null
+
+func _entry_offset_for_exit(exit: Area2D) -> Vector2:
+	var name_lower := exit.name.to_lower()
+	if name_lower.contains("left"):
+		return Vector2(EXIT_SPAWN_OFFSET, 0.0)
+	if name_lower.contains("right"):
+		return Vector2(-EXIT_SPAWN_OFFSET, 0.0)
+	if name_lower.contains("top"):
+		return Vector2(0.0, EXIT_SPAWN_OFFSET)
+	if name_lower.contains("bottom"):
+		return Vector2(0.0, -EXIT_SPAWN_OFFSET)
+	return Vector2.ZERO
 
 func _valid_class_id(class_id: String) -> String:
 	if CLASS_DATA.has(class_id):
