@@ -93,6 +93,11 @@ func take_damage(amount: int) -> void:
 	if current_health <= 0:
 		died.emit()
 
+func restore_vitals_to_max() -> void:
+	current_health = _max_health()
+	current_resource = _max_resource()
+	emit_stats_changed()
+
 func set_traversal_unlocks(unlocks: Array[String]) -> void:
 	traversal_unlocks = unlocks.duplicate()
 

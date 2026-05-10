@@ -79,8 +79,10 @@ func load_room(room_id: String) -> Node2D:
 	if resolved_room_id.is_empty() or not ROOM_SCENES.has(resolved_room_id):
 		resolved_room_id = DEFAULT_ROOM_ID
 
+	hazard_cooldowns.clear()
 	var rooms := _get_rooms_container()
 	for child: Node in rooms.get_children():
+		rooms.remove_child(child)
 		child.queue_free()
 
 	current_room = ROOM_SCENES[resolved_room_id].instantiate() as Node2D
@@ -216,6 +218,7 @@ func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) ->
 		_ensure_valid_world_position()
 
 	state.checkpoint_id = checkpoint_id
+	state.checkpoint_room = get_current_room_id()
 	state.checkpoint_position = checkpoint_position
 	state.current_room = get_current_room_id()
 	if player != null:
@@ -249,10 +252,21 @@ func _spawn_player(spawn_position: Vector2) -> void:
 		player.call("emit_stats_changed")
 
 func _on_player_died() -> void:
+	if state == null:
+		state = GameStateScript.new()
+		_ensure_valid_selected_class()
+		_ensure_valid_world_position()
+
+	var respawn_room_id := _respawn_room_id()
 	var respawn_position := state.checkpoint_position if state != null else Vector2.ZERO
 	if respawn_position == Vector2.ZERO:
 		respawn_position = DEFAULT_SPAWN_POSITION
+	load_room(respawn_room_id)
 	_spawn_player(respawn_position)
+	if player != null and player.has_method("restore_vitals_to_max"):
+		player.call("restore_vitals_to_max")
+	_store_player_state()
+	_save_game_state()
 
 func _on_enemy_died(enemy_id: String, xp_reward: int) -> void:
 	if player != null:
@@ -339,6 +353,8 @@ func _ensure_valid_world_position() -> void:
 		state.current_area = DEFAULT_AREA_ID
 	if state.current_room.is_empty() or not ROOM_SCENES.has(state.current_room):
 		state.current_room = DEFAULT_ROOM_ID
+	if not state.checkpoint_room.is_empty() and not ROOM_SCENES.has(state.checkpoint_room):
+		state.checkpoint_room = ""
 
 func _get_rooms_container() -> Node2D:
 	var rooms := get_node_or_null("Rooms") as Node2D
@@ -347,6 +363,13 @@ func _get_rooms_container() -> Node2D:
 		rooms.name = "Rooms"
 		add_child(rooms)
 	return rooms
+
+func _respawn_room_id() -> String:
+	if state == null:
+		return DEFAULT_ROOM_ID
+	if not state.checkpoint_room.is_empty() and ROOM_SCENES.has(state.checkpoint_room):
+		return state.checkpoint_room
+	return get_current_room_id()
 
 func _ensure_hud() -> void:
 	if hud != null:

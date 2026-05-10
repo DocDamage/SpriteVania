@@ -14,6 +14,7 @@ func _init() -> void:
 	state.current_area = "swamp_outskirts"
 	state.current_room = "RoomCheckpoint"
 	state.checkpoint_id = "swamp_shrine_01"
+	state.checkpoint_room = "RoomCheckpoint"
 	state.level = 3
 	state.xp = 260
 	state.learned_attack_skills = ["guard_counter"]
@@ -42,6 +43,10 @@ func _init() -> void:
 		return
 	if loaded.checkpoint_id != "swamp_shrine_01":
 		push_error("Checkpoint id did not persist")
+		quit(1)
+		return
+	if loaded.checkpoint_room != "RoomCheckpoint":
+		push_error("Checkpoint room did not persist")
 		quit(1)
 		return
 	if not loaded.learned_attack_skills.has("guard_counter"):

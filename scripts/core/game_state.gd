@@ -6,6 +6,7 @@ var selected_sprite: String = ""
 var current_area: String = ""
 var current_room: String = ""
 var checkpoint_id: String = ""
+var checkpoint_room: String = ""
 var checkpoint_position: Vector2 = Vector2.ZERO
 var level: int = 1
 var xp: int = 0
@@ -27,6 +28,7 @@ func to_dictionary() -> Dictionary:
 		"current_area": current_area,
 		"current_room": current_room,
 		"checkpoint_id": checkpoint_id,
+		"checkpoint_room": checkpoint_room,
 		"checkpoint_position": {
 			"x": checkpoint_position.x,
 			"y": checkpoint_position.y,
@@ -52,6 +54,7 @@ static func from_dictionary(data: Dictionary):
 	state.current_area = str(data.get("current_area", ""))
 	state.current_room = str(data.get("current_room", ""))
 	state.checkpoint_id = str(data.get("checkpoint_id", ""))
+	state.checkpoint_room = str(data.get("checkpoint_room", ""))
 	state.checkpoint_position = _vector2_from_dictionary(data.get("checkpoint_position", {}))
 	state.level = int(data.get("level", 1))
 	state.xp = int(data.get("xp", 0))
