@@ -30,6 +30,12 @@ func _run() -> void:
 	await _assert_miniboss_patterns_are_deterministic()
 	if _failed:
 		return
+	await _assert_miniboss_slam_damages_and_knocks_back_target_in_range()
+	if _failed:
+		return
+	await _assert_miniboss_slam_hits_each_target_once_per_window()
+	if _failed:
+		return
 	print("PASS: enemy behavior")
 	quit(0)
 
@@ -223,6 +229,53 @@ func _assert_miniboss_patterns_are_deterministic() -> void:
 		return
 
 	miniboss.queue_free()
+	await process_frame
+
+func _assert_miniboss_slam_damages_and_knocks_back_target_in_range() -> void:
+	var miniboss := MINIBOSS_SCENE.instantiate() as CharacterBody2D
+	var player := _DamageProbe.new()
+	player.name = "SlamDamageProbe"
+	player.add_to_group("player")
+	miniboss.global_position = Vector2(100, 100)
+	player.global_position = Vector2(132, 100)
+	root.add_child(miniboss)
+	root.add_child(player)
+	await process_frame
+
+	miniboss.call("_start_slam")
+	miniboss.call("_physics_process", 0.016)
+	if player.damage_taken <= 0:
+		_fail("Miniboss slam should damage a player in range during the active slam window.")
+		return
+	if player.knockback_source != miniboss.global_position:
+		_fail("Miniboss slam should apply knockback from the miniboss position.")
+		return
+
+	miniboss.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_miniboss_slam_hits_each_target_once_per_window() -> void:
+	var miniboss := MINIBOSS_SCENE.instantiate() as CharacterBody2D
+	var player := _DamageProbe.new()
+	player.name = "SlamOneHitProbe"
+	player.add_to_group("player")
+	miniboss.global_position = Vector2(100, 100)
+	player.global_position = Vector2(132, 100)
+	root.add_child(miniboss)
+	root.add_child(player)
+	await process_frame
+
+	miniboss.call("_start_slam")
+	miniboss.call("_physics_process", 0.016)
+	var damage_after_first_tick := player.damage_taken
+	miniboss.call("_physics_process", 0.016)
+	if player.damage_taken != damage_after_first_tick:
+		_fail("Miniboss slam should damage each target at most once per active slam window.")
+		return
+
+	miniboss.queue_free()
+	player.queue_free()
 	await process_frame
 
 func _fail(message: String) -> void:
