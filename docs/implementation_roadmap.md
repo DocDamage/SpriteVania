@@ -1,30 +1,32 @@
 # SpriteVania Implementation Roadmap
 
-## Current Prototype Spine
+## Current Vertical Slice
 
 - Title, continue, settings, and character selection flow.
-- Three distinct playable classes with regular and special attack hooks.
-- Save and continue state, including checkpoint room, position, stats, upgrades, shortcuts, boss defeats, and area completion.
+- Three distinct playable classes with class-specific traversal actions and learned attack skills.
+- Save and continue state, including checkpoint room, position, stats, upgrades, shortcuts, boss defeats, discovered rooms, settings, and area completion.
 - XP and leveling with HUD updates.
-- Room transitions, traversal gates, shortcuts, hazards, enemy contact damage, checkpoint respawn, and boss-gated exits.
-- Integrated swamp tiles, player animation frames, and starter enemy animations.
+- Room transitions, traversal gates, shortcuts, hazards, enemy contact damage, checkpoint respawn, pause saving, and boss-gated exits.
+- Swamp Outskirts route with start, movement, enemy, hazard, checkpoint, upgrade, shortcut, and miniboss rooms.
+- HUD feedback for health, resource, XP, level, upgrades, current room, and map discovery.
+- Integrated swamp tiles, player animation frames, starter enemy animations, and scene-instantiation coverage.
 
-## Next Playable-Slice Priorities
+## Remaining Full-Game Priorities
 
-1. Player hit feel: invulnerability frames, hit flash, knockback, death animation, and clean damage feedback.
-2. Enemy behavior: patrol bounds, aggro ranges, explicit attacks, drops, and boss patterns.
-3. Progression content: attack-skill pickups, resource costs, cooldowns, and level-up rewards.
-4. Map structure: more rooms, minimap/discovery, locked doors, keys, and backtracking loops.
-5. Asset pass: additional sprite sheet cuts, VFX, UI font/art, room transitions, and audio.
-6. Menu polish: persistent settings, pause menu, save slots, and input rebinding.
-7. QA hardening: scene cleanup scans, export presets, playtest checklist, and performance checks.
+1. Build more biomes: castle, cemetery, church, cold corridor, town, wasteland, horror, and sci-fi routes.
+2. Expand boss roster from the first miniboss into full biome bosses with class-readable patterns.
+3. Add deeper level-up rewards, optional upgrades, keys, locked doors, and discovery rewards.
+4. Add story/NPC content, item descriptions, lore rewards, and class-specific motivation scenes.
+5. Finish asset/audio pass: more cut sprite sheets, VFX, UI art/fonts, room transitions, music, and sound effects.
+6. Upgrade map UX from compact discovery text into a full minimap screen.
+7. Harden production: export smoke tests, controller support, performance pass, save migration, and playtest checklist.
 
 ## Vertical Slice Definition
 
-A first complete slice should include:
+The first complete slice includes:
 
 - One start route, one traversal gate, one checkpoint, one hazard room, one enemy room, one attack-skill pickup, one shortcut, and one miniboss gate.
 - At least one class-specific traversal identity and one attack-skill reward per class.
 - A complete death loop: damage feedback, respawn at checkpoint, room reset, and saved restored state.
-- HUD feedback for health, resource, XP, level, upgrades, and area completion.
+- HUD feedback for health, resource, XP, level, upgrades, discovered rooms, and area completion.
 - Clean headless tests for every system above.

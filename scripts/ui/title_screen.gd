@@ -17,7 +17,8 @@ func _ready() -> void:
 
 
 func refresh_continue_state() -> void:
-	continue_button.disabled = not SaveManager.has_save()
+	var save_manager := get_tree().root.get_node_or_null("SaveManager")
+	continue_button.disabled = save_manager == null or not save_manager.has_save()
 
 
 func _on_new_game_pressed() -> void:
