@@ -134,6 +134,9 @@ func open_pause_menu() -> void:
 	pause_menu.settings_requested.connect(_on_pause_settings_requested)
 	pause_menu.save_requested.connect(save_from_pause)
 	pause_menu.quit_to_title_requested.connect(_on_pause_quit_to_title_requested)
+	if pause_menu.has_signal("familiar_upgrade_requested"):
+		pause_menu.connect("familiar_upgrade_requested", _on_pause_familiar_upgrade_requested)
+	_update_pause_menu_familiar_status()
 	get_tree().paused = true
 
 func close_pause_menu() -> void:
@@ -474,6 +477,18 @@ func _on_pause_quit_to_title_requested() -> void:
 	close_pause_menu()
 	quit_to_title_requested.emit()
 
+func _on_pause_familiar_upgrade_requested(ability_id: String) -> void:
+	var familiar := _get_active_familiar()
+	if familiar == null or not familiar.has_method("upgrade_ability"):
+		return
+	if not bool(familiar.call("upgrade_ability", ability_id)):
+		return
+	if state != null:
+		state.familiar_state = familiar.call("to_dictionary")
+	_update_hud_familiar_status()
+	_update_pause_menu_familiar_status()
+	_save_game_state()
+
 func _show_upgrade_feedback(title: String, detail: String) -> void:
 	_ensure_hud()
 	if hud != null and hud.has_method("show_upgrade_feedback"):
@@ -497,6 +512,13 @@ func _update_hud_familiar_status() -> void:
 	var familiar := _get_active_familiar()
 	if familiar != null and familiar.has_method("get_status"):
 		hud.call("set_familiar_status", familiar.call("get_status"))
+
+func _update_pause_menu_familiar_status() -> void:
+	if pause_menu == null or not is_instance_valid(pause_menu) or not pause_menu.has_method("set_familiar_status"):
+		return
+	var familiar := _get_active_familiar()
+	if familiar != null and familiar.has_method("get_status"):
+		pause_menu.call("set_familiar_status", familiar.call("get_status"))
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")

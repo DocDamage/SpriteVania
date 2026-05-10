@@ -13,17 +13,17 @@ grow_vertical = 2
 script = ExtResource("1_pause")
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(360, 320)
+custom_minimum_size = Vector2(420, 500)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -180.0
-offset_top = -160.0
-offset_right = 180.0
-offset_bottom = 160.0
+offset_left = -210.0
+offset_top = -250.0
+offset_right = 210.0
+offset_bottom = 250.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -60,6 +60,43 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 text = "Settings"
+
+[node name="FamiliarSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="FamiliarStatusLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Familiar Lv 1 - Spark"
+horizontal_alignment = 1
+
+[node name="FamiliarPointsLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ability Points: 0"
+horizontal_alignment = 1
+
+[node name="FamiliarUpgradeGrid" type="GridContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+
+[node name="StingUpgradeButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/FamiliarUpgradeGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 36)
+layout_mode = 2
+text = "Sting Lv 0"
+
+[node name="FocusUpgradeButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/FamiliarUpgradeGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 36)
+layout_mode = 2
+text = "Focus Lv 0"
+
+[node name="GuardUpgradeButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/FamiliarUpgradeGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 36)
+layout_mode = 2
+text = "Guard Lv 0"
 
 [node name="SaveButton" type="Button" parent="Panel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
