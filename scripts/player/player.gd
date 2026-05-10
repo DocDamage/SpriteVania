@@ -79,6 +79,7 @@ var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
 var _dash_cooldown_remaining := 0.0
 var _wall_direction := 0.0
+var _is_dead := false
 
 func _ready() -> void:
 	add_to_group("player")
@@ -91,6 +92,7 @@ func setup(data: ClassData, sprite_path: String) -> void:
 	xp_curve.thresholds = class_data.xp_curve.duplicate()
 	current_health = class_data.max_health
 	current_resource = class_data.max_resource
+	_is_dead = false
 	_load_sprite(sprite_path)
 	_setup_class_controller(class_data)
 	_clear_damage_feedback()
@@ -151,6 +153,8 @@ func gain_xp(amount: int) -> void:
 func take_damage(amount: int) -> void:
 	if amount <= 0:
 		return
+	if _is_dead:
+		return
 	if is_invulnerable:
 		return
 
@@ -158,11 +162,14 @@ func take_damage(amount: int) -> void:
 	_start_damage_feedback()
 	emit_stats_changed()
 	if current_health <= 0:
+		_is_dead = true
 		died.emit()
 
 func restore_vitals_to_max() -> void:
 	current_health = _max_health()
 	current_resource = _max_resource()
+	_is_dead = false
+	_clear_damage_feedback()
 	emit_stats_changed()
 
 func perform_jump() -> void:

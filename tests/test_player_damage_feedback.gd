@@ -18,6 +18,9 @@ func _run() -> void:
 	await _assert_lethal_damage_emits_died_after_invulnerability()
 	if _failed:
 		return
+	await _assert_death_only_emits_once_until_restored()
+	if _failed:
+		return
 	print("PASS: player damage feedback")
 	quit(0)
 
@@ -116,6 +119,38 @@ func _assert_lethal_damage_emits_died_after_invulnerability() -> void:
 		return
 	if stats_changed_count[0] != 2:
 		_fail("Lethal real damage should still emit stats_changed. Expected 2, got %s." % stats_changed_count[0])
+		return
+
+	player.queue_free()
+	await process_frame
+
+func _assert_death_only_emits_once_until_restored() -> void:
+	var player := _spawn_player()
+	player.set("invulnerability_duration", 0.01)
+	var died_count := [0]
+	var stats_changed_count := [0]
+	player.died.connect(func() -> void:
+		died_count[0] += 1
+	)
+	player.stats_changed.connect(func(_stats: Dictionary) -> void:
+		stats_changed_count[0] += 1
+	)
+
+	player.take_damage(999)
+	await _tick_feedback(player, 0.02)
+	player.take_damage(999)
+	if died_count[0] != 1:
+		_fail("Player death should only emit once until restored. Expected 1, got %s." % died_count[0])
+		return
+	if stats_changed_count[0] != 1:
+		_fail("Damage after death should be ignored until restored. Expected one stats update, got %s." % stats_changed_count[0])
+		return
+
+	player.restore_vitals_to_max()
+	await _tick_feedback(player, 0.02)
+	player.take_damage(999)
+	if died_count[0] != 2:
+		_fail("Restoring vitals should allow the player to die again. Expected 2 deaths, got %s." % died_count[0])
 		return
 
 	player.queue_free()
