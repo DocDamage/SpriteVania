@@ -171,7 +171,6 @@ func _assert_crawler_shows_aggro_feedback_while_chasing() -> void:
 	player.global_position = Vector2(180, 100)
 	root.add_child(crawler)
 	root.add_child(player)
-	await process_frame
 
 	var aggro_indicator := crawler.get_node_or_null("%AggroIndicator") as ColorRect
 	if aggro_indicator == null:

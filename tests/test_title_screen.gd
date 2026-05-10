@@ -3,6 +3,7 @@ extends SceneTree
 const TITLE_SCREEN_SCENE := preload("res://scenes/ui/TitleScreen.tscn")
 const TITLE_IMAGE_PATH := "res://SpriteVania Assets/title_screen_black_keep.png"
 const TITLE_IMAGE_IMPORT_PATH := "res://SpriteVania Assets/title_screen_black_keep.png.import"
+const MOON_SKY_PATH := "res://SpriteVania Assets/tile sets/Other Stages/Moon Graveyard/Final/Background_0.png"
 const MENU_LABELS := [
 	"Continue",
 	"New Game",
@@ -34,6 +35,7 @@ func _run() -> void:
 	_assert_background_uses_black_keep_art(screen)
 	_assert_black_keep_art_import_is_pixel_safe()
 	_assert_title_background_parallax(screen)
+	_assert_moon_sky_and_weather_layers(screen)
 	_assert_left_gradient_title_and_menu(screen)
 	_assert_title_screen_signals(screen)
 
@@ -95,6 +97,45 @@ func _assert_title_background_parallax(screen: Control) -> void:
 	var moved_offset := screen.call("get_title_parallax_offset") as Vector2
 	if starting_offset == moved_offset:
 		_fail("Title background parallax should move over time.")
+		return
+
+func _assert_moon_sky_and_weather_layers(screen: Control) -> void:
+	var moon_sky := screen.get_node_or_null("MoonSkyLayer") as TextureRect
+	if moon_sky == null:
+		_fail("Title screen should include a MoonSkyLayer TextureRect.")
+		return
+	if moon_sky.texture == null or moon_sky.texture.resource_path != MOON_SKY_PATH:
+		_fail("MoonSkyLayer should use the Moon Graveyard night sky.")
+		return
+	if moon_sky.modulate.a > 0.35:
+		_fail("MoonSkyLayer should stay subtle so it does not overpower the title art.")
+		return
+
+	var weather_layer := screen.get_node_or_null("WeatherLayer") as Control
+	if weather_layer == null:
+		_fail("Title screen should include a WeatherLayer for stars and rain.")
+		return
+	if weather_layer.get_node_or_null("StarLayer") == null or weather_layer.get_node_or_null("RainLayer") == null:
+		_fail("WeatherLayer should include StarLayer and RainLayer children.")
+		return
+	if not screen.has_method("get_title_weather_sample_position"):
+		_fail("Title screen should expose a sample weather position for tests.")
+		return
+
+	var star_layer := weather_layer.get_node("StarLayer")
+	var rain_layer := weather_layer.get_node("RainLayer")
+	if star_layer.get_child_count() < 20:
+		_fail("Title screen should create enough star specks for a visible night effect.")
+		return
+	if rain_layer.get_child_count() < 20:
+		_fail("Title screen should create enough rain streaks for a visible weather effect.")
+		return
+
+	var starting_position := screen.call("get_title_weather_sample_position") as Vector2
+	screen.call("_process", 0.5)
+	var moved_position := screen.call("get_title_weather_sample_position") as Vector2
+	if starting_position == moved_position:
+		_fail("Title screen rain/weather should move over time.")
 		return
 
 func _assert_left_gradient_title_and_menu(screen: Control) -> void:

@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/title_screen_black_keep.png" id="2_black_keep"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Other Stages/Moon Graveyard/Final/Background_0.png" id="3_moon_sky"]
 
 [sub_resource type="Gradient" id="Gradient_left_panel"]
 offsets = PackedFloat32Array(0.0, 0.72, 1.0)
@@ -87,6 +88,33 @@ offset_bottom = 32.0
 texture = ExtResource("2_black_keep")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="MoonSkyLayer" type="TextureRect" parent="."]
+modulate = Color(0.62, 0.78, 1, 0.22)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture_filter = 1
+offset_left = -48.0
+offset_top = -48.0
+offset_right = 48.0
+offset_bottom = 48.0
+texture = ExtResource("3_moon_sky")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="WeatherLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="LeftGradientPanel" type="TextureRect" parent="."]
 layout_mode = 1
