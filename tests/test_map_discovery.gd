@@ -8,6 +8,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	_assert_registry_describes_swamp_route()
+	_assert_registry_describes_castle_gate()
 	await _assert_starting_room_is_discovered()
 	await _assert_room_transition_discovers_destination()
 	await _assert_pause_menu_receives_discovered_rooms()
@@ -23,6 +24,16 @@ func _assert_registry_describes_swamp_route() -> void:
 	var adjacent: Array[String] = MapRegistry.get_adjacent_rooms("swamp_outskirts", "RoomMovement")
 	if not adjacent.has("RoomStart") or not adjacent.has("RoomEnemy"):
 		_fail("Map registry should expose Swamp room adjacency.")
+		return
+
+func _assert_registry_describes_castle_gate() -> void:
+	var area_label := str(MapRegistry.get_area_label("castle_gate"))
+	if area_label != "Castle Gate":
+		_fail("Map registry should expose the Castle Gate area label.")
+		return
+	var room_label := str(MapRegistry.get_room_label("castle_gate", "CastleGateStart"))
+	if room_label != "Moonlit Causeway":
+		_fail("Map registry should expose the Castle Gate starting room label.")
 		return
 
 func _assert_starting_room_is_discovered() -> void:

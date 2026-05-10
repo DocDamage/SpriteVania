@@ -2,6 +2,7 @@ extends RefCounted
 class_name MapRegistry
 
 const SWAMP_AREA_ID := "swamp_outskirts"
+const CASTLE_AREA_ID := "castle_gate"
 
 const AREAS := {
 	SWAMP_AREA_ID: {
@@ -38,6 +39,15 @@ const AREAS := {
 			"RoomMiniBoss": {
 				"label": "Bogheart Nest",
 				"adjacent": ["RoomShortcut"],
+			},
+		},
+	},
+	CASTLE_AREA_ID: {
+		"label": "Castle Gate",
+		"rooms": {
+			"CastleGateStart": {
+				"label": "Moonlit Causeway",
+				"adjacent": [],
 			},
 		},
 	},

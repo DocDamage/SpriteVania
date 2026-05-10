@@ -16,6 +16,7 @@ const POLISHED_PRESENTATION_SCENES := [
 	"res://scenes/world/CheckpointShrine.tscn",
 	"res://scenes/player/PlayerFamiliar.tscn",
 	"res://scenes/player/FamiliarBolt.tscn",
+	"res://scenes/world/castle_gate/CastleGateStart.tscn",
 	"res://scenes/world/swamp_outskirts/RoomStart.tscn",
 	"res://scenes/world/swamp_outskirts/RoomMovement.tscn",
 	"res://scenes/world/swamp_outskirts/RoomEnemy.tscn",

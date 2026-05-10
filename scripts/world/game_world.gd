@@ -25,6 +25,9 @@ const HAZARD_COOLDOWN := 0.6
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
 const DEFAULT_ROOM_ID := "RoomStart"
+const COMPLETION_DESTINATIONS := {
+	"swamp_outskirts_complete": "CastleGateStart",
+}
 const ROOM_SCENES := {
 	"RoomStart": preload("res://scenes/world/swamp_outskirts/RoomStart.tscn"),
 	"RoomMovement": preload("res://scenes/world/swamp_outskirts/RoomMovement.tscn"),
@@ -34,6 +37,18 @@ const ROOM_SCENES := {
 	"RoomUpgrade": preload("res://scenes/world/swamp_outskirts/RoomUpgrade.tscn"),
 	"RoomShortcut": preload("res://scenes/world/swamp_outskirts/RoomShortcut.tscn"),
 	"RoomMiniBoss": preload("res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn"),
+	"CastleGateStart": preload("res://scenes/world/castle_gate/CastleGateStart.tscn"),
+}
+const ROOM_AREAS := {
+	"RoomStart": "swamp_outskirts",
+	"RoomMovement": "swamp_outskirts",
+	"RoomEnemy": "swamp_outskirts",
+	"RoomHazard": "swamp_outskirts",
+	"RoomCheckpoint": "swamp_outskirts",
+	"RoomUpgrade": "swamp_outskirts",
+	"RoomShortcut": "swamp_outskirts",
+	"RoomMiniBoss": "swamp_outskirts",
+	"CastleGateStart": "castle_gate",
 }
 const CLASS_DATA := {
 	"warden": preload("res://data/classes/warden.tres"),
@@ -108,7 +123,7 @@ func load_room(room_id: String) -> Node2D:
 
 	if state == null:
 		state = GameStateScript.new()
-	state.current_area = DEFAULT_AREA_ID
+	state.current_area = _area_for_room(resolved_room_id)
 	state.current_room = resolved_room_id
 	state.mark_room_discovered(resolved_room_id)
 
@@ -635,6 +650,14 @@ func _complete_area(completion_id: String) -> void:
 	_update_pause_menu_map_status()
 	_save_game_state()
 	area_completed.emit(completion_id)
+	var destination_room := str(COMPLETION_DESTINATIONS.get(completion_id, ""))
+	if destination_room.is_empty():
+		return
+	load_room(destination_room)
+	if player != null:
+		var player_start := current_room.get_node_or_null("PlayerStart") as Marker2D
+		player.global_position = player_start.global_position if player_start != null else DEFAULT_SPAWN_POSITION
+		player.velocity = Vector2.ZERO
 
 func _update_shortcuts_for_room_entry(room: Node, previous_room_id: String) -> void:
 	if state == null or room == null:
@@ -707,3 +730,6 @@ func _resolve_traversal_upgrade_id(upgrade_id: String) -> String:
 	if class_data != null and not class_data.traversal_unlocks.is_empty():
 		return class_data.traversal_unlocks[0]
 	return upgrade_id
+
+func _area_for_room(room_id: String) -> String:
+	return str(ROOM_AREAS.get(room_id, DEFAULT_AREA_ID))

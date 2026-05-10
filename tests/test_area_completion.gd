@@ -8,6 +8,7 @@ func _initialize() -> void:
 func _run() -> void:
 	await _assert_completion_exit_requires_boss_defeat()
 	await _assert_completion_exit_persists_area()
+	await _assert_swamp_completion_enters_castle_gate()
 	print("PASS: area completion")
 	quit(0)
 
@@ -48,13 +49,31 @@ func _assert_completion_exit_persists_area() -> void:
 	if not state.completed_areas.has("swamp_outskirts_complete"):
 		_fail("Completion exit should persist completed area id.")
 		return
-	if state.current_area != "swamp_outskirts":
-		_fail("Completion should keep current area as the playable area id.")
-		return
-
 	var hud := world.get("hud") as CanvasLayer
 	if hud == null or hud.get_node("%UpgradeTitleLabel").text != "Area complete":
 		_fail("Completion exit should show HUD completion feedback.")
+		return
+
+	await _free_world(world)
+
+func _assert_swamp_completion_enters_castle_gate() -> void:
+	var world := _new_world_in_room("RoomMiniBoss")
+	var state := world.get("state") as GameState
+	state.defeated_bosses.append("swamp_miniboss")
+	var room := world.get("current_room") as Node2D
+	var exit := room.get_node("Entrances/RightEntrance") as Area2D
+	var player := world.get("player") as CharacterBody2D
+	world.call("_on_room_exit_body_entered", player, exit)
+	await physics_frame
+
+	if state.current_area != "castle_gate":
+		_fail("Swamp completion should move the playable area to Castle Gate.")
+		return
+	if state.current_room != "CastleGateStart":
+		_fail("Swamp completion should load the Castle Gate starting room.")
+		return
+	if not state.discovered_rooms.has("CastleGateStart"):
+		_fail("Entering Castle Gate should discover its starting room.")
 		return
 
 	await _free_world(world)
