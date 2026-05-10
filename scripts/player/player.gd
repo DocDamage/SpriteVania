@@ -154,7 +154,7 @@ func take_damage(amount: int) -> void:
 	if is_invulnerable:
 		return
 
-	current_health -= max(1, amount - _base_defense())
+	current_health -= _mitigated_damage(amount)
 	_start_damage_feedback()
 	emit_stats_changed()
 	if current_health <= 0:
@@ -486,6 +486,13 @@ func _base_defense() -> int:
 	if class_data == null:
 		return 0
 	return class_data.base_defense
+
+func _mitigated_damage(amount: int) -> int:
+	var damage_after_defense: int = max(1, amount - _base_defense())
+	var familiar: Node = get_node_or_null("Familiar")
+	if familiar != null and familiar.has_method("reduce_incoming_damage"):
+		return int(familiar.call("reduce_incoming_damage", damage_after_defense))
+	return damage_after_defense
 
 func _start_damage_feedback() -> void:
 	_invulnerability_time_remaining = maxf(0.0, invulnerability_duration)

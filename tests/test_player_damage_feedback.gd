@@ -12,6 +12,9 @@ func _run() -> void:
 	await _assert_invulnerability_blocks_repeat_damage()
 	if _failed:
 		return
+	await _assert_familiar_guard_reduces_incoming_damage()
+	if _failed:
+		return
 	await _assert_lethal_damage_emits_died_after_invulnerability()
 	if _failed:
 		return
@@ -70,6 +73,21 @@ func _assert_invulnerability_blocks_repeat_damage() -> void:
 		return
 	if stats_changed_count[0] != 2:
 		_fail("Second real hit should emit stats_changed. Expected 2, got %s." % stats_changed_count[0])
+		return
+
+	player.queue_free()
+	await process_frame
+
+func _assert_familiar_guard_reduces_incoming_damage() -> void:
+	var player := _spawn_player()
+	player.set("invulnerability_duration", 0.05)
+	var familiar := player.get_node("Familiar") as Node
+	familiar.call("grant_ability_upgrade", "guard")
+	familiar.call("grant_ability_upgrade", "guard")
+
+	player.take_damage(20)
+	if player.current_health != 130:
+		_fail("Two familiar guard levels should reduce a 20 damage hit to 10 after Warden defense. Expected 130, got %s." % player.current_health)
 		return
 
 	player.queue_free()

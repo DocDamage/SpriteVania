@@ -85,6 +85,10 @@ func attack_damage() -> int:
 func attack_cooldown() -> float:
 	return maxf(0.35, base_attack_cooldown - (float(ability_levels.get("focus", 0)) * 0.12))
 
+func reduce_incoming_damage(amount: int) -> int:
+	var guard_reduction := int(ability_levels.get("guard", 0)) * 2
+	return max(1, amount - guard_reduction)
+
 func try_attack() -> bool:
 	if _attack_cooldown_remaining > 0.0:
 		return false
