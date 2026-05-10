@@ -56,14 +56,22 @@ func show_settings() -> void:
 
 func _start_new_game(class_id: String, sprite_id: String) -> void:
 	var world := _replace_screen(GAME_WORLD_PATH)
+	_connect_world_navigation(world)
 	if world.has_method("start_new_game"):
 		world.start_new_game(class_id, sprite_id)
 
 
 func _continue_game() -> void:
 	var world := _replace_screen(GAME_WORLD_PATH)
+	_connect_world_navigation(world)
 	if world.has_method("continue_game"):
 		world.continue_game()
+
+func _connect_world_navigation(world: Node) -> void:
+	if world.has_signal("settings_requested"):
+		world.connect("settings_requested", show_settings)
+	if world.has_signal("quit_to_title_requested"):
+		world.connect("quit_to_title_requested", show_title)
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")

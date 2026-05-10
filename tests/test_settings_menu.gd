@@ -10,6 +10,7 @@ func _initialize() -> void:
 func _run() -> void:
 	await _assert_settings_menu_persists_updates()
 	await _assert_settings_menu_does_not_create_blank_save()
+	await _assert_settings_menu_can_rebind_one_action_and_restore_default()
 	print("PASS: settings menu")
 	quit(0)
 
@@ -92,6 +93,37 @@ func _assert_settings_menu_does_not_create_blank_save() -> void:
 	await process_frame
 	await process_frame
 	await physics_frame
+
+func _assert_settings_menu_can_rebind_one_action_and_restore_default() -> void:
+	var original_events := InputMap.action_get_events("jump")
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	var default_label := str(menu.call("get_action_binding_label", "jump"))
+	if default_label.is_empty():
+		_fail("Settings menu should describe the current jump binding.")
+		return
+
+	if not bool(menu.call("rebind_action_to_key", "jump", KEY_L)):
+		_fail("Settings menu should rebind jump to a requested key.")
+		return
+	var rebound_label := str(menu.call("get_action_binding_label", "jump"))
+	if not rebound_label.contains("L"):
+		_fail("Settings menu should describe the rebound jump key.")
+		return
+
+	menu.call("reset_action_binding", "jump")
+	var restored_events := InputMap.action_get_events("jump")
+	if restored_events.size() != original_events.size():
+		_fail("Resetting a binding should restore the default event count.")
+		return
+
+	InputMap.action_erase_events("jump")
+	for event: InputEvent in original_events:
+		InputMap.action_add_event("jump", event)
+	menu.queue_free()
+	await process_frame
 
 func _fail(message: String) -> void:
 	push_error(message)

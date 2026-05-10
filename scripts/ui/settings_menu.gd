@@ -12,8 +12,10 @@ var _settings := {
 	"fullscreen": false,
 }
 var _save_manager: Node
+var _default_action_events: Dictionary = {}
 
 func _ready() -> void:
+	_capture_default_action_events()
 	%BackButton.pressed.connect(_on_back_pressed)
 	%VolumeSlider.value_changed.connect(_on_volume_changed)
 	%WindowModeButton.toggled.connect(_on_window_mode_toggled)
@@ -42,6 +44,40 @@ func set_fullscreen_enabled(enabled: bool) -> void:
 func get_settings_state() -> Dictionary:
 	return _settings.duplicate()
 
+func get_action_binding_label(action_name: String) -> String:
+	var events := InputMap.action_get_events(action_name)
+	var labels: Array[String] = []
+	for event: InputEvent in events:
+		labels.append(event.as_text().trim_suffix(" (Physical)"))
+	return ", ".join(labels)
+
+func rebind_action_to_key(action_name: String, keycode: Key) -> bool:
+	if not InputMap.has_action(action_name):
+		return false
+
+	var event := InputEventKey.new()
+	event.keycode = keycode
+	InputMap.action_erase_events(action_name)
+	InputMap.action_add_event(action_name, event)
+	_sync_binding_labels()
+	settings_changed.emit(get_settings_state())
+	return true
+
+func reset_action_binding(action_name: String) -> bool:
+	if not _default_action_events.has(action_name):
+		return false
+
+	InputMap.action_erase_events(action_name)
+	for event: InputEvent in _default_action_events[action_name]:
+		InputMap.action_add_event(action_name, event)
+	_sync_binding_labels()
+	settings_changed.emit(get_settings_state())
+	return true
+
+func _capture_default_action_events() -> void:
+	for action_name: String in ["move_left", "move_right", "jump", "attack", "special_attack", "pause"]:
+		if InputMap.has_action(action_name):
+			_default_action_events[action_name] = InputMap.action_get_events(action_name)
 
 func _on_back_pressed() -> void:
 	closed.emit()
@@ -96,3 +132,9 @@ func _sync_controls() -> void:
 		return
 	%VolumeSlider.set_value_no_signal(float(_settings.master_volume))
 	%WindowModeButton.set_pressed_no_signal(bool(_settings.fullscreen))
+	_sync_binding_labels()
+
+func _sync_binding_labels() -> void:
+	if not is_node_ready() or not has_node("%JumpBindingLabel"):
+		return
+	%JumpBindingLabel.text = "Jump: %s" % get_action_binding_label("jump")

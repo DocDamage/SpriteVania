@@ -82,6 +82,29 @@ func _init() -> void:
 		quit(1)
 		return
 
+	var slot_state := GameState.new()
+	slot_state.selected_class = "gunslinger"
+	slot_state.current_room = "RoomEnemy"
+	slot_state.level = 5
+	if not manager.save_game_to_slot("slot_a", slot_state):
+		push_error("Slot save failed")
+		quit(1)
+		return
+	if not manager.has_save_in_slot("slot_a"):
+		push_error("Saved slot should be reported as present")
+		quit(1)
+		return
+	var loaded_slot: GameState = manager.load_game_from_slot("slot_a")
+	if loaded_slot == null or loaded_slot.selected_class != "gunslinger" or loaded_slot.level != 5:
+		push_error("Slot load did not return the requested slot state")
+		quit(1)
+		return
+	var default_loaded := manager.load_game()
+	if default_loaded == null or default_loaded.selected_class != "warden" or default_loaded.level != 3:
+		push_error("Slot save should not overwrite the default save")
+		quit(1)
+		return
+
 	manager.delete_save()
 	manager.free()
 	print("PASS: save manager")

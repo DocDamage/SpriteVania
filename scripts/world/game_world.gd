@@ -2,6 +2,8 @@ extends Node2D
 class_name GameWorld
 
 signal area_completed(area_id: String)
+signal settings_requested
+signal quit_to_title_requested
 
 const GameStateScript := preload("res://scripts/core/game_state.gd")
 const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine.gd")
@@ -9,6 +11,7 @@ const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
+const PAUSE_MENU_SCENE := preload("res://scenes/ui/PauseMenu.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
 const EXIT_SPAWN_OFFSET := 72.0
 const HAZARD_DAMAGE := {
@@ -39,16 +42,26 @@ var state: GameStateScript
 var player: CharacterBody2D
 var current_room: Node2D
 var hud: CanvasLayer
+var pause_menu: Control
 var is_transitioning_rooms := false
 var hazard_cooldowns: Dictionary = {}
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_ensure_hud()
 	register_checkpoints_in(self)
 	register_enemies_in(self)
 	register_upgrade_pickups_in(self)
 	register_room_exits_in(self)
 	register_hazards_in(self)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause"):
+		if is_pause_menu_open():
+			close_pause_menu()
+		else:
+			open_pause_menu()
+		get_viewport().set_input_as_handled()
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -104,8 +117,36 @@ func load_room(room_id: String) -> Node2D:
 	return current_room
 
 func _process(delta: float) -> void:
+	if get_tree().paused and is_pause_menu_open():
+		return
 	for key: String in hazard_cooldowns.keys():
 		hazard_cooldowns[key] = max(0.0, float(hazard_cooldowns[key]) - delta)
+
+func open_pause_menu() -> void:
+	if is_pause_menu_open():
+		return
+	pause_menu = PAUSE_MENU_SCENE.instantiate() as Control
+	add_child(pause_menu)
+	pause_menu.resume_requested.connect(close_pause_menu)
+	pause_menu.settings_requested.connect(_on_pause_settings_requested)
+	pause_menu.save_requested.connect(save_from_pause)
+	pause_menu.quit_to_title_requested.connect(_on_pause_quit_to_title_requested)
+	get_tree().paused = true
+
+func close_pause_menu() -> void:
+	if pause_menu != null:
+		pause_menu.queue_free()
+		pause_menu = null
+	get_tree().paused = false
+
+func is_pause_menu_open() -> bool:
+	return pause_menu != null and is_instance_valid(pause_menu)
+
+func save_from_pause() -> void:
+	if state == null:
+		return
+	_store_player_state()
+	_save_game_state()
 
 func get_current_room_id() -> String:
 	if state == null:
@@ -401,10 +442,18 @@ func _save_game_state() -> void:
 	if manager != null:
 		manager.call("save_game", state)
 
+func _on_pause_settings_requested() -> void:
+	settings_requested.emit()
+
+func _on_pause_quit_to_title_requested() -> void:
+	close_pause_menu()
+	quit_to_title_requested.emit()
+
 func _show_upgrade_feedback(title: String, detail: String) -> void:
 	_ensure_hud()
 	if hud != null and hud.has_method("show_upgrade_feedback"):
 		hud.call("show_upgrade_feedback", title, detail)
+
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
