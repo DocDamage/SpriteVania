@@ -1,6 +1,65 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/title_screen_black_keep.png" id="2_black_keep"]
+
+[sub_resource type="Gradient" id="Gradient_left_panel"]
+offsets = PackedFloat32Array(0.0, 0.72, 1.0)
+colors = PackedColorArray(0.0, 0.0, 0.0, 0.96, 0.0, 0.0, 0.0, 0.78, 0.0, 0.0, 0.0, 0.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_left_panel"]
+gradient = SubResource("Gradient_left_panel")
+width = 640
+height = 8
+fill = 0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_normal"]
+bg_color = Color(0.03, 0.028, 0.025, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.62, 0.42, 0.48)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_hover"]
+bg_color = Color(0.15, 0.12, 0.08, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.78, 0.42, 0.9)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_disabled"]
+bg_color = Color(0.02, 0.02, 0.02, 0.56)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.25, 0.21, 0.62)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -9,40 +68,161 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_filter = 1
 script = ExtResource("1_title")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+texture_filter = 1
+texture = ExtResource("2_black_keep")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+[node name="LeftGradientPanel" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 0.0
+anchor_bottom = 1.0
+offset_right = 620.0
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("Texture_left_panel")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="MenuContent" type="MarginContainer" parent="LeftGradientPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_top = 72
+theme_override_constants/margin_right = 156
+theme_override_constants/margin_bottom = 56
+
+[node name="LayoutStack" type="VBoxContainer" parent="LeftGradientPanel/MenuContent"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 32
+alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "SpriteVania"
-horizontal_alignment = 1
-
-[node name="NewGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="LeftGradientPanel/MenuContent/LayoutStack"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
-text = "New Game"
+theme_override_colors/font_color = Color(0.95, 0.83, 0.56, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 56
+text = "THE BLACK KEEP"
+autowrap_mode = 3
 
-[node name="ContinueButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="MenuStack" type="VBoxContainer" parent="LeftGradientPanel/MenuContent/LayoutStack"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ContinueButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_colors/font_disabled_color = Color(0.5, 0.46, 0.38, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+theme_override_styles/disabled = SubResource("StyleBox_button_disabled")
 text = "Continue"
 
-[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="NewGameButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 44)
+custom_minimum_size = Vector2(280, 42)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "New Game"
+
+[node name="LoadGameButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "Load Game"
+
+[node name="SettingsButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
 text = "Settings"
+
+[node name="AccessibilityButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "Accessibility"
+
+[node name="ExtrasButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "Extras"
+
+[node name="CreditsButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "Credits"
+
+[node name="QuitButton" type="Button" parent="LeftGradientPanel/MenuContent/LayoutStack/MenuStack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_button_normal")
+theme_override_styles/hover = SubResource("StyleBox_button_hover")
+theme_override_styles/pressed = SubResource("StyleBox_button_hover")
+theme_override_styles/focus = SubResource("StyleBox_button_hover")
+text = "Quit"
