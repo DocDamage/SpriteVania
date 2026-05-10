@@ -48,6 +48,8 @@ func show_character_select() -> void:
 
 func show_settings() -> void:
 	var settings := _replace_screen(SETTINGS_MENU_PATH)
+	if settings.has_method("set_save_manager"):
+		settings.call("set_save_manager", _get_save_manager())
 	if settings.has_signal("closed"):
 		settings.connect("closed", show_title)
 
@@ -62,3 +64,6 @@ func _continue_game() -> void:
 	var world := _replace_screen(GAME_WORLD_PATH)
 	if world.has_method("continue_game"):
 		world.continue_game()
+
+func _get_save_manager() -> Node:
+	return get_tree().root.get_node_or_null("SaveManager")
