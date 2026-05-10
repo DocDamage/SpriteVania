@@ -6,6 +6,7 @@ const SCENE_PATHS := [
 	"res://scenes/enemies/SwampMiniBoss.tscn",
 	"res://scenes/player/PlayerFamiliar.tscn",
 	"res://scenes/player/Player.tscn",
+	"res://scenes/player/FamiliarBolt.tscn",
 	"res://scenes/ui/CharacterSelect.tscn",
 	"res://scenes/ui/HUD.tscn",
 	"res://scenes/ui/PauseMenu.tscn",
@@ -35,10 +36,12 @@ func _assert_scene_instantiates(scene_path: String) -> void:
 	if scene == null:
 		push_error(scene_path + " did not load as a PackedScene")
 		quit(1)
+		return
 
 	var instance := scene.instantiate()
 	if instance == null:
 		push_error(scene_path + " did not instantiate")
 		quit(1)
+		return
 
 	instance.free()

@@ -19,6 +19,7 @@ var _contact_bodies: Dictionary = {}
 var _contact_cooldowns: Dictionary = {}
 
 func _ready() -> void:
+	add_to_group("enemies")
 	current_health = max_health
 	_ensure_contact_hitbox()
 

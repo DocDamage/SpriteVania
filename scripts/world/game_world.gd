@@ -9,6 +9,7 @@ const GameStateScript := preload("res://scripts/core/game_state.gd")
 const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine.gd")
 const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
+const FAMILIAR_SCRIPT := preload("res://scripts/player/player_familiar.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const PAUSE_MENU_SCENE := preload("res://scenes/ui/PauseMenu.tscn")
@@ -269,6 +270,9 @@ func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) ->
 		state.current_resource = int(player.get("current_resource"))
 		state.level = int(player.get("level"))
 		state.xp = int(player.get("xp"))
+		var familiar := _get_active_familiar()
+		if familiar != null:
+			state.familiar_state = familiar.call("to_dictionary")
 	_save_game_state()
 
 func _spawn_player(spawn_position: Vector2) -> void:
@@ -284,6 +288,7 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	player.call("set_traversal_unlocks", state.traversal_unlocks)
 	if player.has_method("set_learned_attack_skills"):
 		player.call("set_learned_attack_skills", state.learned_attack_skills)
+	_apply_familiar_state()
 	if state.current_health > 0:
 		player.set("current_health", state.current_health)
 	if state.current_resource > 0:
@@ -316,6 +321,9 @@ func _on_player_died() -> void:
 func _on_enemy_died(enemy_id: String, xp_reward: int) -> void:
 	if player != null:
 		player.call("gain_xp", xp_reward)
+	var familiar := _get_active_familiar()
+	if familiar != null:
+		familiar.call("gain_xp", xp_reward)
 	if state != null and not enemy_id.is_empty() and _room_has_defeat_gate_for(current_room, enemy_id):
 		if not state.defeated_bosses.has(enemy_id):
 			state.defeated_bosses.append(enemy_id)
@@ -437,6 +445,9 @@ func _store_player_state() -> void:
 	state.current_resource = int(player.get("current_resource"))
 	state.level = int(player.get("level"))
 	state.xp = int(player.get("xp"))
+	var familiar := _get_active_familiar()
+	if familiar != null:
+		state.familiar_state = familiar.call("to_dictionary")
 
 func _save_game_state() -> void:
 	if state == null:
@@ -465,6 +476,21 @@ func _update_hud_map_context() -> void:
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
+
+func _get_active_familiar() -> Node:
+	if player == null:
+		return null
+	var familiar := player.get_node_or_null("Familiar")
+	if familiar == null or familiar.get_script() != FAMILIAR_SCRIPT:
+		return null
+	return familiar
+
+func _apply_familiar_state() -> void:
+	if state == null or state.familiar_state.is_empty():
+		return
+	var familiar := _get_active_familiar()
+	if familiar != null and familiar.has_method("apply_state"):
+		familiar.call("apply_state", state.familiar_state)
 
 func _resolve_room_spawn_position(previous_room_id: String, _source_exit: Area2D) -> Vector2:
 	var matching_exit := _find_exit_to_room(current_room, previous_room_id)

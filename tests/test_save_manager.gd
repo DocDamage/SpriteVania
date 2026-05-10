@@ -23,6 +23,15 @@ func _init() -> void:
 	state.opened_shortcuts = ["swamp_shortcut_01"]
 	state.completed_areas = ["swamp_outskirts_complete"]
 	state.discovered_rooms = ["RoomStart", "RoomCheckpoint"]
+	state.familiar_state = {
+		"level": 3,
+		"xp": 180,
+		"evolution_stage": "wisp",
+		"ability_points": 1,
+		"ability_levels": {
+			"sting": 2,
+		},
+	}
 	state.settings = {
 		"master_volume": 0.4,
 		"fullscreen": false,
@@ -76,6 +85,19 @@ func _init() -> void:
 		return
 	if not loaded.discovered_rooms.has("RoomStart") or not loaded.discovered_rooms.has("RoomCheckpoint"):
 		push_error("Discovered rooms did not persist")
+		quit(1)
+		return
+	if int(loaded.familiar_state.get("level", 0)) != 3:
+		push_error("Familiar level did not persist")
+		quit(1)
+		return
+	if str(loaded.familiar_state.get("evolution_stage", "")) != "wisp":
+		push_error("Familiar evolution did not persist")
+		quit(1)
+		return
+	var ability_levels := loaded.familiar_state.get("ability_levels", {}) as Dictionary
+	if int(ability_levels.get("sting", 0)) != 2:
+		push_error("Familiar ability levels did not persist")
 		quit(1)
 		return
 	if loaded.settings.get("master_volume", -1.0) != 0.4:

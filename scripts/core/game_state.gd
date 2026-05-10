@@ -20,6 +20,7 @@ var opened_shortcuts: Array[String] = []
 var collected_pickups: Array[String] = []
 var completed_areas: Array[String] = []
 var discovered_rooms: Array[String] = []
+var familiar_state: Dictionary = {}
 var settings: Dictionary = {}
 
 func to_dictionary() -> Dictionary:
@@ -46,6 +47,7 @@ func to_dictionary() -> Dictionary:
 		"collected_pickups": collected_pickups,
 		"completed_areas": completed_areas,
 		"discovered_rooms": discovered_rooms,
+		"familiar_state": familiar_state,
 		"settings": settings,
 	}
 
@@ -70,6 +72,8 @@ static func from_dictionary(data: Dictionary):
 	state.collected_pickups = _string_array(data.get("collected_pickups", []))
 	state.completed_areas = _string_array(data.get("completed_areas", []))
 	state.discovered_rooms = _string_array(data.get("discovered_rooms", []))
+	var loaded_familiar_state: Variant = data.get("familiar_state", {})
+	state.familiar_state = loaded_familiar_state if loaded_familiar_state is Dictionary else {}
 	var loaded_settings: Variant = data.get("settings", {})
 	state.settings = loaded_settings if loaded_settings is Dictionary else {}
 	return state
