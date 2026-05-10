@@ -36,6 +36,7 @@ func _run() -> void:
 	_assert_black_keep_art_import_is_pixel_safe()
 	_assert_title_background_parallax(screen)
 	_assert_moon_sky_and_weather_layers(screen)
+	_assert_title_polish_layers(screen)
 	_assert_left_gradient_title_and_menu(screen)
 	_assert_title_screen_signals(screen)
 
@@ -136,6 +137,38 @@ func _assert_moon_sky_and_weather_layers(screen: Control) -> void:
 	var moved_position := screen.call("get_title_weather_sample_position") as Vector2
 	if starting_position == moved_position:
 		_fail("Title screen rain/weather should move over time.")
+		return
+
+func _assert_title_polish_layers(screen: Control) -> void:
+	var polish_layer := screen.get_node_or_null("PolishLayer") as Control
+	if polish_layer == null:
+		_fail("Title screen should include a PolishLayer.")
+		return
+	if polish_layer.get_node_or_null("PetalLayer") == null:
+		_fail("PolishLayer should include subtle petal particles.")
+		return
+	if polish_layer.get_node("PetalLayer").get_child_count() < 10:
+		_fail("PetalLayer should create enough petals to be visible.")
+		return
+	if polish_layer.get_node_or_null("FogLayer") == null:
+		_fail("PolishLayer should include fog or ash drift.")
+		return
+	if screen.get_node_or_null("Vignette") == null:
+		_fail("Title screen should include a vignette overlay.")
+		return
+	var version_label := screen.get_node_or_null("%VersionLabel") as Label
+	if version_label == null or version_label.text.is_empty():
+		_fail("Title screen should show a small version/build label.")
+		return
+	if not screen.has_method("get_title_polish_sample_position"):
+		_fail("Title screen should expose a polish sample position for tests.")
+		return
+
+	var starting_position := screen.call("get_title_polish_sample_position") as Vector2
+	screen.call("_process", 0.5)
+	var moved_position := screen.call("get_title_polish_sample_position") as Vector2
+	if starting_position == moved_position:
+		_fail("Title polish particles should move over time.")
 		return
 
 func _assert_left_gradient_title_and_menu(screen: Control) -> void:

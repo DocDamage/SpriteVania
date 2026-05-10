@@ -17,6 +17,8 @@ const PARALLAX_IDLE_SPEED := Vector2(0.35, 0.27)
 const MOON_LAYER_OVERSCAN_PIXELS := 48.0
 const STAR_COUNT := 34
 const RAIN_COUNT := 30
+const PETAL_COUNT := 14
+const FOG_COUNT := 6
 const WEATHER_BASE_SIZE := Vector2(960.0, 540.0)
 
 @export var parallax_enabled := true
@@ -24,6 +26,7 @@ const WEATHER_BASE_SIZE := Vector2(960.0, 540.0)
 @onready var background: TextureRect = $Background
 @onready var moon_sky_layer: TextureRect = $MoonSkyLayer
 @onready var weather_layer: Control = $WeatherLayer
+@onready var polish_layer: Control = $PolishLayer
 @onready var continue_button: Button = %ContinueButton
 
 var _title_time := 0.0
@@ -31,6 +34,10 @@ var _title_parallax_offset := Vector2.ZERO
 var _rain_particles: Array[ColorRect] = []
 var _rain_base_positions: Array[Vector2] = []
 var _star_particles: Array[ColorRect] = []
+var _petal_particles: Array[ColorRect] = []
+var _petal_base_positions: Array[Vector2] = []
+var _fog_particles: Array[ColorRect] = []
+var _fog_base_positions: Array[Vector2] = []
 
 
 func _ready() -> void:
@@ -45,6 +52,8 @@ func _ready() -> void:
 
 	refresh_continue_state()
 	_build_weather_layers()
+	_build_polish_layers()
+	_sync_build_label()
 	_apply_title_parallax()
 
 
@@ -63,6 +72,12 @@ func get_title_weather_sample_position() -> Vector2:
 	if _rain_particles.is_empty():
 		return Vector2.ZERO
 	return _rain_particles[0].position
+
+
+func get_title_polish_sample_position() -> Vector2:
+	if _petal_particles.is_empty():
+		return Vector2.ZERO
+	return _petal_particles[0].position
 
 
 func refresh_continue_state() -> void:
@@ -120,6 +135,7 @@ func _apply_title_parallax() -> void:
 	moon_sky_layer.offset_right = MOON_LAYER_OVERSCAN_PIXELS + moon_offset.x
 	moon_sky_layer.offset_bottom = MOON_LAYER_OVERSCAN_PIXELS + moon_offset.y
 	_update_weather_motion()
+	_update_polish_motion()
 
 
 func _get_pointer_parallax_offset() -> Vector2:
@@ -187,6 +203,58 @@ func _build_weather_layers() -> void:
 		_rain_base_positions.append(base_position)
 
 
+func _build_polish_layers() -> void:
+	_petal_particles.clear()
+	_petal_base_positions.clear()
+	_fog_particles.clear()
+	_fog_base_positions.clear()
+	for child: Node in polish_layer.get_children():
+		child.queue_free()
+
+	var fog_layer := Control.new()
+	fog_layer.name = "FogLayer"
+	fog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fog_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	polish_layer.add_child(fog_layer)
+
+	var petal_layer := Control.new()
+	petal_layer.name = "PetalLayer"
+	petal_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	petal_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	polish_layer.add_child(petal_layer)
+
+	for index in FOG_COUNT:
+		var fog := ColorRect.new()
+		fog.name = "Fog%02d" % index
+		fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fog.size = Vector2(190.0 + float(index % 3) * 34.0, 16.0 + float(index % 2) * 8.0)
+		fog.color = Color(0.48, 0.56, 0.68, 0.055)
+		var base_position := Vector2(
+			float((index * 173 + 45) % int(WEATHER_BASE_SIZE.x)),
+			WEATHER_BASE_SIZE.y - 128.0 + float((index * 31) % 96)
+		)
+		fog.position = base_position
+		fog_layer.add_child(fog)
+		_fog_particles.append(fog)
+		_fog_base_positions.append(base_position)
+
+	for index in PETAL_COUNT:
+		var petal := ColorRect.new()
+		petal.name = "Petal%02d" % index
+		petal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		petal.size = Vector2(3.0, 2.0)
+		petal.rotation = deg_to_rad(float((index * 37) % 160) - 80.0)
+		petal.color = Color(1.0, 0.42, 0.55, 0.22)
+		var base_position := Vector2(
+			float((index * 89 + 120) % int(WEATHER_BASE_SIZE.x + 180.0)) - 90.0,
+			float((index * 71 + 30) % int(WEATHER_BASE_SIZE.y + 120.0)) - 60.0
+		)
+		petal.position = base_position
+		petal_layer.add_child(petal)
+		_petal_particles.append(petal)
+		_petal_base_positions.append(base_position)
+
+
 func _update_weather_motion() -> void:
 	var viewport_size := get_viewport_rect().size
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
@@ -205,3 +273,29 @@ func _update_weather_motion() -> void:
 		position.x = fposmod(position.x + 90.0, wrap_x) - 90.0
 		position.y = fposmod(position.y + 90.0, wrap_y) - 90.0
 		_rain_particles[index].position = position.round()
+
+
+func _update_polish_motion() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		viewport_size = WEATHER_BASE_SIZE
+
+	var wrap_x := viewport_size.x + 180.0
+	var wrap_y := viewport_size.y + 140.0
+	for index in _petal_particles.size():
+		var drift := Vector2(_title_time * -18.0, _title_time * 32.0)
+		var sway := sin(_title_time * 1.4 + float(index) * 0.8) * 18.0
+		var position := _petal_base_positions[index] + drift + Vector2(sway, 0.0)
+		position.x = fposmod(position.x + 90.0, wrap_x) - 90.0
+		position.y = fposmod(position.y + 70.0, wrap_y) - 70.0
+		_petal_particles[index].position = position.round()
+
+	for index in _fog_particles.size():
+		var position := _fog_base_positions[index] + Vector2(_title_time * (8.0 + float(index)), sin(_title_time * 0.6 + float(index)) * 5.0)
+		position.x = fposmod(position.x, viewport_size.x + 260.0) - 130.0
+		_fog_particles[index].position = position.round()
+
+
+func _sync_build_label() -> void:
+	var version := str(ProjectSettings.get_setting("application/config/version", "dev"))
+	%VersionLabel.text = "build %s" % version

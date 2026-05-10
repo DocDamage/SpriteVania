@@ -21,6 +21,8 @@ const REBINDABLE_ACTIONS := [
 var _settings := {
 	"master_volume": 1.0,
 	"fullscreen": false,
+	"reduced_motion": false,
+	"high_contrast": false,
 }
 var _save_manager: Node
 var _default_action_events: Dictionary = {}
@@ -30,6 +32,8 @@ func _ready() -> void:
 	%BackButton.pressed.connect(_on_back_pressed)
 	%VolumeSlider.value_changed.connect(_on_volume_changed)
 	%WindowModeButton.toggled.connect(_on_window_mode_toggled)
+	%ReducedMotionButton.toggled.connect(_on_reduced_motion_toggled)
+	%HighContrastButton.toggled.connect(_on_high_contrast_toggled)
 
 	_settings.fullscreen = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 	_sync_controls()
@@ -54,6 +58,21 @@ func set_fullscreen_enabled(enabled: bool) -> void:
 
 func get_settings_state() -> Dictionary:
 	return _settings.duplicate()
+
+func select_settings_tab(tab_name: String) -> void:
+	if not is_node_ready():
+		await ready
+	var tabs := %SettingsTabs as TabContainer
+	for index: int in tabs.get_tab_count():
+		if tabs.get_tab_title(index) == tab_name:
+			tabs.current_tab = index
+			return
+
+func get_selected_settings_tab() -> String:
+	if not is_node_ready():
+		return ""
+	var tabs := %SettingsTabs as TabContainer
+	return tabs.get_tab_title(tabs.current_tab)
 
 func get_action_binding_label(action_name: String) -> String:
 	var events := InputMap.action_get_events(action_name)
@@ -101,6 +120,16 @@ func _on_volume_changed(value: float) -> void:
 func _on_window_mode_toggled(toggled_on: bool) -> void:
 	set_fullscreen_enabled(toggled_on)
 
+func _on_reduced_motion_toggled(toggled_on: bool) -> void:
+	_settings.reduced_motion = toggled_on
+	_persist_settings()
+	settings_changed.emit(get_settings_state())
+
+func _on_high_contrast_toggled(toggled_on: bool) -> void:
+	_settings.high_contrast = toggled_on
+	_persist_settings()
+	settings_changed.emit(get_settings_state())
+
 func _load_persisted_settings() -> void:
 	if _save_manager == null or not _save_manager.has_method("load_game"):
 		return
@@ -112,6 +141,10 @@ func _load_persisted_settings() -> void:
 		_settings.master_volume = clampf(float(loaded_settings.master_volume), 0.0, 1.0)
 	if loaded_settings.has("fullscreen"):
 		_settings.fullscreen = bool(loaded_settings.fullscreen)
+	if loaded_settings.has("reduced_motion"):
+		_settings.reduced_motion = bool(loaded_settings.reduced_motion)
+	if loaded_settings.has("high_contrast"):
+		_settings.high_contrast = bool(loaded_settings.high_contrast)
 
 func _persist_settings() -> void:
 	if _save_manager == null or not _save_manager.has_method("save_game"):
@@ -143,6 +176,8 @@ func _sync_controls() -> void:
 		return
 	%VolumeSlider.set_value_no_signal(float(_settings.master_volume))
 	%WindowModeButton.set_pressed_no_signal(bool(_settings.fullscreen))
+	%ReducedMotionButton.set_pressed_no_signal(bool(_settings.reduced_motion))
+	%HighContrastButton.set_pressed_no_signal(bool(_settings.high_contrast))
 	_sync_binding_labels()
 
 func _sync_binding_labels() -> void:

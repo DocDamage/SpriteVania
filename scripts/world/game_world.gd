@@ -96,6 +96,15 @@ func continue_game() -> void:
 	var manager := _get_save_manager()
 	if manager != null:
 		state = manager.call("load_game") as GameStateScript
+	_continue_from_loaded_state()
+
+func continue_game_from_slot(slot_id: String) -> void:
+	var manager := _get_save_manager()
+	if manager != null and manager.has_method("load_game_from_slot"):
+		state = manager.call("load_game_from_slot", slot_id) as GameStateScript
+	_continue_from_loaded_state()
+
+func _continue_from_loaded_state() -> void:
 	if state == null:
 		state = GameStateScript.new()
 

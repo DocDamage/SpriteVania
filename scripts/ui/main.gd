@@ -5,6 +5,12 @@ const TITLE_SCREEN_PATH := "res://scenes/ui/TitleScreen.tscn"
 const CHARACTER_SELECT_PATH := "res://scenes/ui/CharacterSelect.tscn"
 const SETTINGS_MENU_PATH := "res://scenes/ui/SettingsMenu.tscn"
 const GAME_WORLD_PATH := "res://scenes/world/GameWorld.tscn"
+const LOAD_SLOTS := [
+	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
+	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
+	{"id": "slot_b", "label": "Slot B", "button": "SlotBButton"},
+	{"id": "slot_c", "label": "Slot C", "button": "SlotCButton"},
+]
 
 var current_screen: Node
 
@@ -35,7 +41,7 @@ func show_title() -> void:
 	if title.has_signal("continue_requested"):
 		title.connect("continue_requested", _continue_game)
 	if title.has_signal("load_game_requested"):
-		title.connect("load_game_requested", _continue_game)
+		title.connect("load_game_requested", show_load_game)
 	if title.has_signal("settings_requested"):
 		title.connect("settings_requested", show_settings)
 	if title.has_signal("accessibility_requested"):
@@ -56,24 +62,49 @@ func show_character_select() -> void:
 		select.connect("character_confirmed", _start_new_game)
 
 
-func show_settings() -> void:
+func show_settings(tab_name := "General") -> void:
 	var settings := _replace_screen(SETTINGS_MENU_PATH)
 	if settings.has_method("set_save_manager"):
 		settings.call("set_save_manager", _get_save_manager())
+	if settings.has_method("select_settings_tab"):
+		settings.call("select_settings_tab", tab_name)
 	if settings.has_signal("closed"):
 		settings.connect("closed", show_title)
 
 
+func show_load_game() -> void:
+	var screen := _create_panel_screen("LoadGameScreen", "Load Game")
+	var stack := screen.get_node("Panel/MarginContainer/VBoxContainer") as VBoxContainer
+	var save_manager := _get_save_manager()
+	for slot_data: Dictionary in LOAD_SLOTS:
+		var slot_id := str(slot_data.id)
+		var button := Button.new()
+		button.name = str(slot_data.button)
+		button.unique_name_in_owner = true
+		button.custom_minimum_size = Vector2(260, 40)
+		button.text = "%s - %s" % [slot_data.label, _slot_status_text(save_manager, slot_id)]
+		button.disabled = not _has_slot_save(save_manager, slot_id)
+		button.pressed.connect(func() -> void: _load_game_from_slot(slot_id))
+		stack.add_child(button)
+		stack.move_child(button, max(1, stack.get_child_count() - 2))
+	var back_button := Button.new()
+	back_button.name = "BackButton"
+	back_button.text = "Back"
+	back_button.custom_minimum_size = Vector2(180, 40)
+	back_button.pressed.connect(show_title)
+	stack.add_child(back_button)
+
+
 func show_accessibility() -> void:
-	_show_placeholder_menu("AccessibilityScreen", "Accessibility")
+	show_settings("Accessibility")
 
 
 func show_extras() -> void:
-	_show_placeholder_menu("ExtrasScreen", "Extras")
+	_show_info_menu("ExtrasScreen", "Extras", "Unlocked modes, lore, music, and art will live here as the game grows.")
 
 
 func show_credits() -> void:
-	_show_placeholder_menu("CreditsScreen", "Credits")
+	_show_info_menu("CreditsScreen", "Credits", "SpriteVania is built from the project asset library, Godot, and custom game code.")
 
 
 func _start_new_game(class_id: String, sprite_id: String) -> void:
@@ -89,7 +120,25 @@ func _continue_game() -> void:
 	if world.has_method("continue_game"):
 		world.continue_game()
 
-func _show_placeholder_menu(screen_name: String, title_text: String) -> void:
+func _load_game_from_slot(slot_id: String) -> void:
+	var world := _replace_screen(GAME_WORLD_PATH)
+	_connect_world_navigation(world)
+	if slot_id == "default" and world.has_method("continue_game"):
+		world.continue_game()
+	elif world.has_method("continue_game_from_slot"):
+		world.continue_game_from_slot(slot_id)
+
+func _show_info_menu(screen_name: String, title_text: String, body_text: String) -> void:
+	var screen := _create_panel_screen(screen_name, title_text, body_text)
+	var stack := screen.get_node("Panel/MarginContainer/VBoxContainer") as VBoxContainer
+	var back_button := Button.new()
+	back_button.name = "BackButton"
+	back_button.text = "Back"
+	back_button.custom_minimum_size = Vector2(180, 40)
+	back_button.pressed.connect(show_title)
+	stack.add_child(back_button)
+
+func _create_panel_screen(screen_name: String, title_text: String, body_text := "") -> Control:
 	if current_screen:
 		current_screen.queue_free()
 
@@ -135,19 +184,26 @@ func _show_placeholder_menu(screen_name: String, title_text: String) -> void:
 
 	var body := Label.new()
 	body.name = "BodyLabel"
-	body.text = "Coming soon."
+	body.text = body_text
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stack.add_child(body)
-
-	var back_button := Button.new()
-	back_button.name = "BackButton"
-	back_button.text = "Back"
-	back_button.custom_minimum_size = Vector2(180, 40)
-	back_button.pressed.connect(show_title)
-	stack.add_child(back_button)
 
 	current_screen = screen
 	add_child(current_screen)
+	return screen
+
+func _has_slot_save(save_manager: Node, slot_id: String) -> bool:
+	if save_manager == null:
+		return false
+	if slot_id == "default" and save_manager.has_method("has_save"):
+		return bool(save_manager.call("has_save"))
+	if save_manager.has_method("has_save_in_slot"):
+		return bool(save_manager.call("has_save_in_slot", slot_id))
+	return false
+
+func _slot_status_text(save_manager: Node, slot_id: String) -> String:
+	return "Saved" if _has_slot_save(save_manager, slot_id) else "Empty"
 
 func _connect_world_navigation(world: Node) -> void:
 	if world.has_signal("settings_requested"):

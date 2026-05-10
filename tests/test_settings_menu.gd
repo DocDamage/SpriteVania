@@ -22,6 +22,9 @@ func _run() -> void:
 	await _assert_settings_menu_lists_core_controller_bindings()
 	if _failed:
 		return
+	await _assert_settings_menu_exposes_accessibility_tab()
+	if _failed:
+		return
 	print("PASS: settings menu")
 	quit(0)
 
@@ -171,6 +174,29 @@ func _assert_settings_menu_lists_core_controller_bindings() -> void:
 	InputMap.action_erase_events("dash")
 	for event: InputEvent in original_events:
 		InputMap.action_add_event("dash", event)
+	menu.queue_free()
+	await process_frame
+
+func _assert_settings_menu_exposes_accessibility_tab() -> void:
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	if not menu.has_method("select_settings_tab") or not menu.has_method("get_selected_settings_tab"):
+		_fail("Settings menu should expose tab selection helpers.")
+		return
+	menu.call("select_settings_tab", "Accessibility")
+	if str(menu.call("get_selected_settings_tab")) != "Accessibility":
+		_fail("Settings menu should select the Accessibility tab by name.")
+		return
+
+	if menu.get_node_or_null("%ReducedMotionButton") == null:
+		_fail("Accessibility tab should expose reduced motion control.")
+		return
+	if menu.get_node_or_null("%HighContrastButton") == null:
+		_fail("Accessibility tab should expose high contrast control.")
+		return
+
 	menu.queue_free()
 	await process_frame
 
