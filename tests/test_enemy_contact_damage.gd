@@ -67,6 +67,7 @@ func _assert_enemy_contact_damages_player() -> void:
 		_fail("Enemy contact cooldown should prevent immediate repeat damage.")
 		return
 
+	player.call("_process", float(player.get("invulnerability_duration")))
 	enemy.call("_tick_contact_damage", float(enemy.get("contact_damage_cooldown")))
 	if int(player.get("current_health")) >= after_contact:
 		_fail("Enemy contact should damage again after the cooldown expires.")

@@ -38,8 +38,16 @@ func _assert_hazards_damage_player() -> void:
 		return
 
 	world.call("_on_hazard_body_entered", player, spikes)
+	if int(player.get("current_health")) != after_swamp:
+		_fail("Player invulnerability should prevent immediate damage from a different hazard type.")
+		return
+
+	var recovery_time := maxf(float(player.get("invulnerability_duration")), 0.6)
+	player.call("_process", recovery_time)
+	world.call("_process", recovery_time)
+	world.call("_on_hazard_body_entered", player, spikes)
 	if int(player.get("current_health")) >= after_swamp:
-		_fail("A different hazard type should still damage the player.")
+		_fail("A different hazard type should damage the player after invulnerability expires.")
 		return
 
 	world.queue_free()

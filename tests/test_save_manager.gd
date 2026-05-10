@@ -22,6 +22,10 @@ func _init() -> void:
 	state.defeated_bosses = ["swamp_miniboss"]
 	state.opened_shortcuts = ["swamp_shortcut_01"]
 	state.completed_areas = ["swamp_outskirts_complete"]
+	state.settings = {
+		"master_volume": 0.4,
+		"fullscreen": false,
+	}
 
 	if not manager.save_game(state):
 		push_error("Save failed")
@@ -67,6 +71,14 @@ func _init() -> void:
 		return
 	if not loaded.completed_areas.has("swamp_outskirts_complete"):
 		push_error("Completed area did not persist")
+		quit(1)
+		return
+	if loaded.settings.get("master_volume", -1.0) != 0.4:
+		push_error("Master volume setting did not persist")
+		quit(1)
+		return
+	if loaded.settings.get("fullscreen", true) != false:
+		push_error("Fullscreen setting did not persist")
 		quit(1)
 		return
 

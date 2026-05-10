@@ -21,6 +21,10 @@ const ARMORED_DASH_DISTANCE := 86.0
 const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
 
+@export var invulnerability_duration := 0.45
+@export var hit_flash_duration := 0.12
+@export var knockback_strength := 220.0
+
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
 
@@ -33,6 +37,11 @@ var xp := 0
 var level := 1
 var facing_direction := 1.0
 var traversal_unlocks: Array[String] = []
+var is_invulnerable := false
+var is_hit_flashing := false
+
+var _invulnerability_time_remaining := 0.0
+var _hit_flash_time_remaining := 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -47,7 +56,11 @@ func setup(data: ClassData, sprite_path: String) -> void:
 	current_resource = class_data.max_resource
 	_load_sprite(sprite_path)
 	_setup_class_controller(class_data)
+	_clear_damage_feedback()
 	emit_stats_changed()
+
+func _process(delta: float) -> void:
+	_tick_damage_feedback(delta)
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
@@ -87,8 +100,11 @@ func gain_xp(amount: int) -> void:
 func take_damage(amount: int) -> void:
 	if amount <= 0:
 		return
+	if is_invulnerable:
+		return
 
 	current_health -= max(1, amount - _base_defense())
+	_start_damage_feedback()
 	emit_stats_changed()
 	if current_health <= 0:
 		died.emit()
@@ -132,6 +148,13 @@ func perform_melee_attack(damage: int) -> void:
 
 func perform_guard_counter() -> void:
 	pass
+
+func apply_knockback(source_position: Vector2, strength := knockback_strength) -> void:
+	var knockback_direction := signf(global_position.x - source_position.x)
+	if knockback_direction == 0.0:
+		knockback_direction = -facing_direction
+	velocity.x = knockback_direction * strength
+	velocity.y = minf(velocity.y, -strength * 0.35)
 
 func start_blocking() -> void:
 	pass
@@ -311,3 +334,23 @@ func _base_defense() -> int:
 	if class_data == null:
 		return 0
 	return class_data.base_defense
+
+func _start_damage_feedback() -> void:
+	_invulnerability_time_remaining = maxf(0.0, invulnerability_duration)
+	_hit_flash_time_remaining = maxf(0.0, hit_flash_duration)
+	is_invulnerable = _invulnerability_time_remaining > 0.0
+	is_hit_flashing = _hit_flash_time_remaining > 0.0
+
+func _tick_damage_feedback(delta: float) -> void:
+	if _invulnerability_time_remaining > 0.0:
+		_invulnerability_time_remaining = maxf(0.0, _invulnerability_time_remaining - delta)
+		is_invulnerable = _invulnerability_time_remaining > 0.0
+	if _hit_flash_time_remaining > 0.0:
+		_hit_flash_time_remaining = maxf(0.0, _hit_flash_time_remaining - delta)
+		is_hit_flashing = _hit_flash_time_remaining > 0.0
+
+func _clear_damage_feedback() -> void:
+	_invulnerability_time_remaining = 0.0
+	_hit_flash_time_remaining = 0.0
+	is_invulnerable = false
+	is_hit_flashing = false

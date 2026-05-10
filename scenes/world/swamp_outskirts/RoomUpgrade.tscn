@@ -77,6 +77,12 @@ position = Vector2(500, 420)
 pickup_id = "swamp_first_upgrade"
 upgrade_id = "first_traversal_tool"
 
+[node name="GuardCounterSkill" type="Area2D" parent="Pickups" instance=ExtResource("2_upgrade")]
+position = Vector2(620, 420)
+pickup_id = "swamp_guard_counter"
+upgrade_id = "guard_counter"
+upgrade_type = "attack_skill"
+
 [node name="SwampBackdrop" type="Node2D" parent="." unique_id=1666999583]
 z_index = -100
 
