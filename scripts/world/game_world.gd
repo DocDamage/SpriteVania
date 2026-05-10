@@ -11,6 +11,11 @@ const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const DEFAULT_SPAWN_POSITION := Vector2(64, 64)
 const EXIT_SPAWN_OFFSET := 72.0
+const HAZARD_DAMAGE := {
+	"swamp_water": 8,
+	"spikes": 14,
+}
+const HAZARD_COOLDOWN := 0.6
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
 const DEFAULT_ROOM_ID := "RoomStart"
@@ -35,6 +40,7 @@ var player: CharacterBody2D
 var current_room: Node2D
 var hud: CanvasLayer
 var is_transitioning_rooms := false
+var hazard_cooldowns: Dictionary = {}
 
 func _ready() -> void:
 	_ensure_hud()
@@ -42,6 +48,7 @@ func _ready() -> void:
 	register_enemies_in(self)
 	register_upgrade_pickups_in(self)
 	register_room_exits_in(self)
+	register_hazards_in(self)
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -90,8 +97,13 @@ func load_room(room_id: String) -> Node2D:
 	register_enemies_in(current_room)
 	register_upgrade_pickups_in(current_room)
 	register_room_exits_in(current_room)
+	register_hazards_in(current_room)
 	_apply_open_shortcuts(current_room)
 	return current_room
+
+func _process(delta: float) -> void:
+	for key: String in hazard_cooldowns.keys():
+		hazard_cooldowns[key] = max(0.0, float(hazard_cooldowns[key]) - delta)
 
 func get_current_room_id() -> String:
 	if state == null:
@@ -177,6 +189,25 @@ func register_room_exits_in(root: Node) -> void:
 		register_room_exit(root as Area2D)
 	for child: Node in root.get_children():
 		register_room_exits_in(child)
+
+func register_hazard(hazard: Area2D) -> void:
+	if hazard == null:
+		return
+	var hazard_type := str(hazard.get_meta("hazard_type", ""))
+	if hazard_type.is_empty() or not HAZARD_DAMAGE.has(hazard_type):
+		return
+
+	var callback := Callable(self, "_on_hazard_body_entered").bind(hazard)
+	if not hazard.body_entered.is_connected(callback):
+		hazard.body_entered.connect(callback)
+
+func register_hazards_in(root: Node) -> void:
+	if root == null:
+		return
+	if root is Area2D:
+		register_hazard(root as Area2D)
+	for child: Node in root.get_children():
+		register_hazards_in(child)
 
 func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) -> void:
 	if state == null:
@@ -280,6 +311,20 @@ func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
 		_save_game_state()
 	await get_tree().physics_frame
 	is_transitioning_rooms = false
+
+func _on_hazard_body_entered(body: Node, hazard: Area2D) -> void:
+	if player == null or body != player:
+		return
+
+	var hazard_type := str(hazard.get_meta("hazard_type", ""))
+	if not HAZARD_DAMAGE.has(hazard_type) or not _can_apply_hazard(hazard_type):
+		return
+
+	hazard_cooldowns[hazard_type] = HAZARD_COOLDOWN
+	player.call("take_damage", int(HAZARD_DAMAGE[hazard_type]))
+
+func _can_apply_hazard(hazard_type: String) -> bool:
+	return float(hazard_cooldowns.get(hazard_type, 0.0)) <= 0.0
 
 func _ensure_valid_selected_class() -> void:
 	if state == null:
