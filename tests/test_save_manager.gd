@@ -20,6 +20,7 @@ func _init() -> void:
 	state.traversal_unlocks = ["armored_dash"]
 	state.defeated_bosses = ["swamp_miniboss"]
 	state.opened_shortcuts = ["swamp_shortcut_01"]
+	state.completed_areas = ["swamp_outskirts_complete"]
 
 	if not manager.save_game(state):
 		push_error("Save failed")
@@ -57,6 +58,10 @@ func _init() -> void:
 		return
 	if not loaded.opened_shortcuts.has("swamp_shortcut_01"):
 		push_error("Opened shortcut did not persist")
+		quit(1)
+		return
+	if not loaded.completed_areas.has("swamp_outskirts_complete"):
+		push_error("Completed area did not persist")
 		quit(1)
 		return
 

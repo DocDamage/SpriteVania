@@ -1,6 +1,8 @@
 extends Node2D
 class_name GameWorld
 
+signal area_completed(area_id: String)
+
 const GameStateScript := preload("res://scripts/core/game_state.gd")
 const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine.gd")
 const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
@@ -161,7 +163,7 @@ func register_room_exit(exit: Area2D) -> void:
 	if exit == null:
 		return
 	var next_room := str(exit.get_meta("next_room", ""))
-	if next_room.is_empty() or not ROOM_SCENES.has(next_room):
+	if next_room.is_empty() or (not ROOM_SCENES.has(next_room) and not _is_completion_target(next_room)):
 		return
 
 	var callback := Callable(self, "_on_room_exit_body_entered").bind(exit)
@@ -256,7 +258,7 @@ func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
 		return
 
 	var next_room := str(exit.get_meta("next_room", ""))
-	if next_room.is_empty() or not ROOM_SCENES.has(next_room):
+	if next_room.is_empty() or (not ROOM_SCENES.has(next_room) and not _is_completion_target(next_room)):
 		return
 	if not _can_use_room_exit(exit):
 		return
@@ -264,6 +266,12 @@ func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
 	is_transitioning_rooms = true
 	var previous_room_id := get_current_room_id()
 	_store_player_state()
+	if _is_completion_target(next_room):
+		_complete_area(next_room)
+		await get_tree().physics_frame
+		is_transitioning_rooms = false
+		return
+
 	load_room(next_room)
 	_update_shortcuts_for_room_entry(current_room, previous_room_id)
 	player.global_position = _resolve_room_spawn_position(previous_room_id, exit)
@@ -386,6 +394,19 @@ func _room_has_defeat_gate_for(root: Node, enemy_id: String) -> bool:
 		if _room_has_defeat_gate_for(child, enemy_id):
 			return true
 	return false
+
+func _is_completion_target(target_id: String) -> bool:
+	return target_id.ends_with("_complete")
+
+func _complete_area(completion_id: String) -> void:
+	if state == null:
+		return
+	if not state.completed_areas.has(completion_id):
+		state.completed_areas.append(completion_id)
+	state.current_room = get_current_room_id()
+	_show_upgrade_feedback("Area complete", _format_upgrade_name(completion_id))
+	_save_game_state()
+	area_completed.emit(completion_id)
 
 func _update_shortcuts_for_room_entry(room: Node, previous_room_id: String) -> void:
 	if state == null or room == null:

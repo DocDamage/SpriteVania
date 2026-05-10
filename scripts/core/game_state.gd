@@ -17,6 +17,7 @@ var traversal_unlocks: Array[String] = []
 var defeated_bosses: Array[String] = []
 var opened_shortcuts: Array[String] = []
 var collected_pickups: Array[String] = []
+var completed_areas: Array[String] = []
 var settings: Dictionary = {}
 
 func to_dictionary() -> Dictionary:
@@ -40,6 +41,7 @@ func to_dictionary() -> Dictionary:
 		"defeated_bosses": defeated_bosses,
 		"opened_shortcuts": opened_shortcuts,
 		"collected_pickups": collected_pickups,
+		"completed_areas": completed_areas,
 		"settings": settings,
 	}
 
@@ -61,6 +63,7 @@ static func from_dictionary(data: Dictionary):
 	state.defeated_bosses = _string_array(data.get("defeated_bosses", []))
 	state.opened_shortcuts = _string_array(data.get("opened_shortcuts", []))
 	state.collected_pickups = _string_array(data.get("collected_pickups", []))
+	state.completed_areas = _string_array(data.get("completed_areas", []))
 	var loaded_settings: Variant = data.get("settings", {})
 	state.settings = loaded_settings if loaded_settings is Dictionary else {}
 	return state
