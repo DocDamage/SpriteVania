@@ -34,8 +34,18 @@ func show_title() -> void:
 		title.connect("new_game_requested", show_character_select)
 	if title.has_signal("continue_requested"):
 		title.connect("continue_requested", _continue_game)
+	if title.has_signal("load_game_requested"):
+		title.connect("load_game_requested", _continue_game)
 	if title.has_signal("settings_requested"):
 		title.connect("settings_requested", show_settings)
+	if title.has_signal("accessibility_requested"):
+		title.connect("accessibility_requested", show_accessibility)
+	if title.has_signal("extras_requested"):
+		title.connect("extras_requested", show_extras)
+	if title.has_signal("credits_requested"):
+		title.connect("credits_requested", show_credits)
+	if title.has_signal("quit_requested"):
+		title.connect("quit_requested", _quit_game)
 
 
 func show_character_select() -> void:
@@ -54,6 +64,18 @@ func show_settings() -> void:
 		settings.connect("closed", show_title)
 
 
+func show_accessibility() -> void:
+	_show_placeholder_menu("AccessibilityScreen", "Accessibility")
+
+
+func show_extras() -> void:
+	_show_placeholder_menu("ExtrasScreen", "Extras")
+
+
+func show_credits() -> void:
+	_show_placeholder_menu("CreditsScreen", "Credits")
+
+
 func _start_new_game(class_id: String, sprite_id: String) -> void:
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
@@ -67,6 +89,66 @@ func _continue_game() -> void:
 	if world.has_method("continue_game"):
 		world.continue_game()
 
+func _show_placeholder_menu(screen_name: String, title_text: String) -> void:
+	if current_screen:
+		current_screen.queue_free()
+
+	var screen := Control.new()
+	screen.name = screen_name
+	screen.layout_mode = 3
+	screen.anchors_preset = Control.PRESET_FULL_RECT
+	screen.anchor_right = 1.0
+	screen.anchor_bottom = 1.0
+	screen.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	screen.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+	var panel := Panel.new()
+	panel.name = "Panel"
+	panel.custom_minimum_size = Vector2(360, 220)
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -180.0
+	panel.offset_top = -110.0
+	panel.offset_right = 180.0
+	panel.offset_bottom = 110.0
+	screen.add_child(panel)
+
+	var margins := MarginContainer.new()
+	margins.name = "MarginContainer"
+	margins.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margins.add_theme_constant_override("margin_left", 24)
+	margins.add_theme_constant_override("margin_top", 24)
+	margins.add_theme_constant_override("margin_right", 24)
+	margins.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margins)
+
+	var stack := VBoxContainer.new()
+	stack.name = "VBoxContainer"
+	stack.add_theme_constant_override("separation", 18)
+	margins.add_child(stack)
+
+	var title := Label.new()
+	title.name = "TitleLabel"
+	title.text = title_text
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	stack.add_child(title)
+
+	var body := Label.new()
+	body.name = "BodyLabel"
+	body.text = "Coming soon."
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stack.add_child(body)
+
+	var back_button := Button.new()
+	back_button.name = "BackButton"
+	back_button.text = "Back"
+	back_button.custom_minimum_size = Vector2(180, 40)
+	back_button.pressed.connect(show_title)
+	stack.add_child(back_button)
+
+	current_screen = screen
+	add_child(current_screen)
+
 func _connect_world_navigation(world: Node) -> void:
 	if world.has_signal("settings_requested"):
 		world.connect("settings_requested", show_settings)
@@ -75,3 +157,7 @@ func _connect_world_navigation(world: Node) -> void:
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
+
+
+func _quit_game() -> void:
+	get_tree().quit()
