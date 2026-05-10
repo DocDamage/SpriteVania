@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/trees.png" id="5_ehqm6"]
 [ext_resource type="TileSet" path="res://resources/tilesets/swamp_tileset.tres" id="6_fnp0v"]
 [ext_resource type="Texture2D" path="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Evironment/props.png" id="7_alykm"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/swamp_fire_frames.tres" id="8_fire"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(260, 48)
@@ -168,3 +169,10 @@ scale = Vector2(0.9, 0.9)
 texture = ExtResource("7_alykm")
 region_enabled = true
 region_rect = Rect2(0, 64, 64, 48)
+
+[node name="HazardWarningFire" type="AnimatedSprite2D" parent="SwampDecor"]
+position = Vector2(592, 486)
+scale = Vector2(1.35, 1.35)
+sprite_frames = ExtResource("8_fire")
+animation = &"burn"
+autoplay = "burn"

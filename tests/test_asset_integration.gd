@@ -1,5 +1,16 @@
 extends SceneTree
 
+const SWAMP_ROOM_SCENES := [
+	"res://scenes/world/swamp_outskirts/RoomStart.tscn",
+	"res://scenes/world/swamp_outskirts/RoomMovement.tscn",
+	"res://scenes/world/swamp_outskirts/RoomEnemy.tscn",
+	"res://scenes/world/swamp_outskirts/RoomHazard.tscn",
+	"res://scenes/world/swamp_outskirts/RoomUpgrade.tscn",
+	"res://scenes/world/swamp_outskirts/RoomCheckpoint.tscn",
+	"res://scenes/world/swamp_outskirts/RoomShortcut.tscn",
+	"res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn",
+]
+
 func _init() -> void:
 	_assert_resource("res://resources/tilesets/swamp_tileset.tres", TileSet)
 	_assert_sprite_frames("res://resources/animations/player_swamp_frames.tres", {
@@ -12,10 +23,11 @@ func _init() -> void:
 	})
 	_assert_sprite_frames("res://resources/animations/swamp_spider_frames.tres", {"walk": 4})
 	_assert_sprite_frames("res://resources/animations/swamp_thing_frames.tres", {"walk": 4})
+	_assert_sprite_frames("res://resources/animations/swamp_fire_frames.tres", {"burn": 2})
 	_assert_player_animated_collision()
 	_assert_dialogue_resource()
-	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomStart.tscn")
-	_assert_room_tiles("res://scenes/world/swamp_outskirts/RoomEnemy.tscn")
+	for scene_path: String in SWAMP_ROOM_SCENES:
+		_assert_swamp_room(scene_path)
 	print("PASS: asset integration")
 	quit(0)
 
@@ -70,7 +82,7 @@ func _assert_dialogue_resource() -> void:
 		push_error("Swamp dialogue should compile to multiple dialogue lines")
 		quit(1)
 
-func _assert_room_tiles(path: String) -> void:
+func _assert_swamp_room(path: String) -> void:
 	var scene := load(path) as PackedScene
 	if scene == null:
 		push_error(path + " did not load as a PackedScene")
@@ -85,8 +97,17 @@ func _assert_room_tiles(path: String) -> void:
 		push_error(path + " has too few laid tiles")
 		room.free()
 		quit(1)
-	if room.get_node_or_null("SwampBackdrop") == null:
-		push_error(path + " is missing SwampBackdrop")
+	for required_node: String in ["Entrances", "EnemySpawns", "Pickups", "SwampBackdrop", "SwampDecor"]:
+		if room.get_node_or_null(required_node) == null:
+			push_error(path + " is missing " + required_node)
+			room.free()
+			quit(1)
+	if room.get_node_or_null("SwampDecor").get_child_count() < 3:
+		push_error(path + " has too little swamp decoration")
+		room.free()
+		quit(1)
+	if path.ends_with("RoomStart.tscn") and room.get_node_or_null("PlayerStart") == null:
+		push_error(path + " is missing PlayerStart")
 		room.free()
 		quit(1)
 	if path.ends_with("RoomStart.tscn") and room.get_node_or_null("LoreTablet") == null:
