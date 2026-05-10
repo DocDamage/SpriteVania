@@ -85,6 +85,17 @@ func attack_damage() -> int:
 func attack_cooldown() -> float:
 	return maxf(0.35, base_attack_cooldown - (float(ability_levels.get("focus", 0)) * 0.12))
 
+func effective_attack_range() -> float:
+	var stage_bonus := 0.0
+	match evolution_stage:
+		"wisp":
+			stage_bonus = 12.0
+		"sprite":
+			stage_bonus = 28.0
+		"guardian":
+			stage_bonus = 44.0
+	return attack_range + stage_bonus
+
 func reduce_incoming_damage(amount: int) -> int:
 	var guard_reduction := int(ability_levels.get("guard", 0)) * 2
 	return max(1, amount - guard_reduction)
@@ -136,12 +147,13 @@ func _oriented_offset() -> Vector2:
 func _find_nearest_enemy() -> Node2D:
 	var nearest: Node2D = null
 	var nearest_distance := INF
+	var reach := effective_attack_range()
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy := node as Node2D
 		if enemy == null or not enemy.has_method("take_damage"):
 			continue
 		var distance := global_position.distance_to(enemy.global_position)
-		if distance <= attack_range and distance < nearest_distance:
+		if distance <= reach and distance < nearest_distance:
 			nearest = enemy
 			nearest_distance = distance
 	return nearest

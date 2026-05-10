@@ -19,6 +19,9 @@ func _run() -> void:
 	await _assert_familiar_attacks_nearby_enemies()
 	if _failed:
 		return
+	await _assert_evolution_extends_familiar_attack_reach()
+	if _failed:
+		return
 	print("PASS: familiar")
 	quit(0)
 
@@ -89,6 +92,40 @@ func _assert_familiar_attacks_nearby_enemies() -> void:
 	familiar.call("try_attack")
 	if enemy.current_health >= starting_health:
 		_fail("Familiar should damage a nearby enemy when attacking.")
+		return
+
+	player.queue_free()
+	enemy.queue_free()
+	await process_frame
+
+func _assert_evolution_extends_familiar_attack_reach() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(player)
+	player.global_position = Vector2(100, 100)
+	await process_frame
+
+	var familiar := player.get_node("Familiar") as Node2D
+	familiar.global_position = Vector2(100, 100)
+	enemy.global_position = familiar.global_position + Vector2(float(familiar.get("attack_range")) + 20.0, 0.0)
+	root.add_child(enemy)
+	var starting_health := enemy.current_health
+	if bool(familiar.call("try_attack")):
+		_fail("Base familiar should not attack outside its base range.")
+		return
+	if enemy.current_health != starting_health:
+		_fail("Base familiar should not damage enemies outside base range.")
+		return
+
+	familiar.call("gain_xp", 520)
+	if str(familiar.get("evolution_stage")) != "sprite":
+		_fail("Familiar should evolve to sprite at level 4 before testing extended reach.")
+		return
+	if not bool(familiar.call("try_attack")):
+		_fail("Sprite evolution should extend familiar attack reach beyond the base range. Distance: %.1f, reach: %.1f, enemies: %d." % [familiar.global_position.distance_to(enemy.global_position), float(familiar.call("effective_attack_range")), familiar.get_tree().get_nodes_in_group("enemies").size()])
+		return
+	if enemy.current_health >= starting_health:
+		_fail("Sprite evolution should damage enemies inside its extended reach.")
 		return
 
 	player.queue_free()
