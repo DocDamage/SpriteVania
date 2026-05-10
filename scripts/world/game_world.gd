@@ -239,6 +239,8 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	player.global_position = spawn_position
 	player.call("setup", CLASS_DATA[state.selected_class], state.selected_sprite)
 	player.call("set_traversal_unlocks", state.traversal_unlocks)
+	if player.has_method("set_learned_attack_skills"):
+		player.call("set_learned_attack_skills", state.learned_attack_skills)
 	if state.current_health > 0:
 		player.set("current_health", state.current_health)
 	if state.current_resource > 0:
@@ -295,6 +297,8 @@ func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: 
 			_show_upgrade_feedback("Traversal unlocked", _format_upgrade_name(traversal_id))
 	if upgrade_type == "attack_skill" and not upgrade_id.is_empty() and not state.learned_attack_skills.has(upgrade_id):
 		state.learned_attack_skills.append(upgrade_id)
+		if player != null and player.has_method("set_learned_attack_skills"):
+			player.call("set_learned_attack_skills", state.learned_attack_skills)
 		_show_upgrade_feedback("Attack skill learned", _format_upgrade_name(upgrade_id))
 	_save_game_state()
 

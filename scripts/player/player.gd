@@ -20,6 +20,30 @@ const PIERCING_PROJECTILE_SPEED := 520.0
 const ARMORED_DASH_DISTANCE := 86.0
 const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
+const SKILL_COSTS := {
+	"armored_dash": 8,
+	"combat_slide": 6,
+	"hookshot": 8,
+	"recoil_jump": 8,
+	"blink": 8,
+	"float_fall": 6,
+	"phase_barrier": 10,
+	"guard_counter": 12,
+	"piercing_shot": 10,
+	"binding_sigil": 18,
+}
+const SKILL_COOLDOWNS := {
+	"armored_dash": 0.45,
+	"combat_slide": 0.35,
+	"hookshot": 0.55,
+	"recoil_jump": 0.45,
+	"blink": 0.55,
+	"float_fall": 0.4,
+	"phase_barrier": 0.7,
+	"guard_counter": 0.75,
+	"piercing_shot": 0.45,
+	"binding_sigil": 0.8,
+}
 
 @export var invulnerability_duration := 0.45
 @export var hit_flash_duration := 0.12
@@ -37,11 +61,13 @@ var xp := 0
 var level := 1
 var facing_direction := 1.0
 var traversal_unlocks: Array[String] = []
+var learned_attack_skills: Array[String] = []
 var is_invulnerable := false
 var is_hit_flashing := false
 
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
+var _skill_cooldowns: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("player")
@@ -61,6 +87,7 @@ func setup(data: ClassData, sprite_path: String) -> void:
 
 func _process(delta: float) -> void:
 	_tick_damage_feedback(delta)
+	_tick_skill_cooldowns(delta)
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
@@ -120,6 +147,12 @@ func set_traversal_unlocks(unlocks: Array[String]) -> void:
 func has_traversal_unlock(unlock_id: String) -> bool:
 	return traversal_unlocks.has(unlock_id)
 
+func set_learned_attack_skills(skills: Array[String]) -> void:
+	learned_attack_skills = skills.duplicate()
+
+func has_attack_skill(skill_id: String) -> bool:
+	return learned_attack_skills.has(skill_id)
+
 func get_stats() -> Dictionary:
 	var max_health := _max_health()
 	var max_resource := _max_resource()
@@ -147,7 +180,13 @@ func perform_melee_attack(damage: int) -> void:
 		target.call("take_damage", damage)
 
 func perform_guard_counter() -> void:
-	pass
+	if not _try_use_attack_skill("guard_counter"):
+		return
+	_play_action_animation("shoot")
+	is_invulnerable = true
+	_invulnerability_time_remaining = maxf(_invulnerability_time_remaining, 0.3)
+	for target: Node in _query_attack_targets(Vector2(62, 42), Vector2(34, -8)):
+		target.call("take_damage", class_data.base_attack * 2 if class_data != null else 20)
 
 func apply_knockback(source_position: Vector2, strength := knockback_strength) -> void:
 	var knockback_direction := signf(global_position.x - source_position.x)
@@ -162,6 +201,8 @@ func start_blocking() -> void:
 func perform_armored_dash() -> void:
 	if not has_traversal_unlock("armored_dash"):
 		return
+	if not _try_use_unlocked_skill("armored_dash"):
+		return
 	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
 	velocity.x = 0.0
 
@@ -169,10 +210,14 @@ func fire_projectile(damage: int) -> void:
 	_spawn_projectile(damage, PROJECTILE_SPEED, PROJECTILE_LIFETIME, Color(0.9, 0.82, 0.35, 1.0))
 
 func fire_piercing_shot(damage: int) -> void:
+	if not _try_use_attack_skill("piercing_shot"):
+		return
 	_spawn_projectile(damage, PIERCING_PROJECTILE_SPEED, PROJECTILE_LIFETIME * 1.25, Color(0.95, 0.55, 0.22, 1.0), true)
 
 func perform_slide() -> void:
 	if not has_traversal_unlock("combat_slide"):
+		return
+	if not _try_use_unlocked_skill("combat_slide"):
 		return
 	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
 	velocity.x = 0.0
@@ -180,20 +225,50 @@ func perform_slide() -> void:
 func perform_hookshot() -> void:
 	if not has_traversal_unlock("hookshot"):
 		return
+	if not _try_use_unlocked_skill("hookshot"):
+		return
 	global_position += Vector2(HOOKSHOT_PULL_DISTANCE * facing_direction, -HOOKSHOT_LIFT)
 	velocity = Vector2.ZERO
+
+func perform_recoil_jump() -> void:
+	if not has_traversal_unlock("recoil_jump"):
+		return
+	if not _try_use_unlocked_skill("recoil_jump"):
+		return
+	global_position += Vector2(-36.0 * facing_direction, -44.0)
+	velocity = Vector2(-180.0 * facing_direction, -220.0)
 
 func fire_spell(damage: int) -> void:
 	_spawn_projectile(damage, PROJECTILE_SPEED * 0.85, PROJECTILE_LIFETIME, Color(0.55, 0.35, 0.95, 1.0))
 
 func cast_binding_sigil() -> void:
+	if not _try_use_attack_skill("binding_sigil"):
+		return
+	_play_action_animation("shoot")
 	for target: Node in _query_attack_targets(Vector2(78, 48), Vector2(40, -8)):
-		target.call("take_damage", 4)
+		target.call("take_damage", class_data.base_attack + 4 if class_data != null else 16)
 
 func perform_blink() -> void:
 	if not has_traversal_unlock("blink"):
 		return
+	if not _try_use_unlocked_skill("blink"):
+		return
 	global_position.x += 48.0 * facing_direction
+
+func perform_float_fall() -> void:
+	if not has_traversal_unlock("float_fall"):
+		return
+	if not _try_use_unlocked_skill("float_fall"):
+		return
+	velocity.y = minf(velocity.y, 60.0)
+
+func perform_phase_barrier() -> void:
+	if not has_traversal_unlock("phase_barrier"):
+		return
+	if not _try_use_unlocked_skill("phase_barrier"):
+		return
+	is_invulnerable = true
+	_invulnerability_time_remaining = maxf(_invulnerability_time_remaining, 0.35)
 
 func _load_sprite(sprite_path: String) -> void:
 	if sprite_path.is_empty() or not ResourceLoader.exists(sprite_path):
@@ -284,6 +359,7 @@ func _spawn_projectile(damage: int, speed: float, lifetime: float, color: Color,
 	projectile.speed = speed
 	projectile.lifetime = lifetime
 	projectile.direction = Vector2(facing_direction, 0.0)
+	projectile.piercing = piercing
 	projectile.global_position = global_position + Vector2(PROJECTILE_OFFSET.x * facing_direction, PROJECTILE_OFFSET.y)
 
 	var shape := CollisionShape2D.new()
@@ -354,3 +430,30 @@ func _clear_damage_feedback() -> void:
 	_hit_flash_time_remaining = 0.0
 	is_invulnerable = false
 	is_hit_flashing = false
+
+func _try_use_attack_skill(skill_id: String) -> bool:
+	if not has_attack_skill(skill_id):
+		return false
+	return _try_use_unlocked_skill(skill_id)
+
+func _try_use_unlocked_skill(skill_id: String) -> bool:
+	if float(_skill_cooldowns.get(skill_id, 0.0)) > 0.0:
+		return false
+	var cost := int(SKILL_COSTS.get(skill_id, 0))
+	if current_resource < cost:
+		return false
+	current_resource -= cost
+	_skill_cooldowns[skill_id] = float(SKILL_COOLDOWNS.get(skill_id, 0.0))
+	emit_stats_changed()
+	return true
+
+func _tick_skill_cooldowns(delta: float) -> void:
+	var expired: Array[String] = []
+	for skill_id: String in _skill_cooldowns.keys():
+		var remaining := maxf(0.0, float(_skill_cooldowns[skill_id]) - delta)
+		if remaining <= 0.0:
+			expired.append(skill_id)
+		else:
+			_skill_cooldowns[skill_id] = remaining
+	for skill_id: String in expired:
+		_skill_cooldowns.erase(skill_id)

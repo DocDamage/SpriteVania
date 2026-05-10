@@ -37,6 +37,9 @@ func _run() -> void:
 	if state == null or not state.learned_attack_skills.has(ATTACK_SKILL_ID):
 		_fail("Collecting the attack skill pickup should add guard_counter to learned attack skills.")
 		return
+	if player == null or not bool(player.call("has_attack_skill", ATTACK_SKILL_ID)):
+		_fail("Collecting the attack skill pickup should unlock the skill on the active player.")
+		return
 	if not state.collected_pickups.has(ATTACK_SKILL_PICKUP_ID):
 		_fail("Collecting the attack skill pickup should persist its pickup id.")
 		return
@@ -49,6 +52,17 @@ func _run() -> void:
 		if not loaded.collected_pickups.has(ATTACK_SKILL_PICKUP_ID):
 			_fail("Saved state should include the collected attack skill pickup id.")
 			return
+
+		var loaded_world := GAME_WORLD_SCENE.instantiate()
+		root.add_child(loaded_world)
+		loaded_world.call("continue_game")
+		await process_frame
+		await physics_frame
+		var loaded_player := loaded_world.get("player") as CharacterBody2D
+		if loaded_player == null or not bool(loaded_player.call("has_attack_skill", ATTACK_SKILL_ID)):
+			_fail("Continuing a saved game should restore learned attack skills on the player.")
+			return
+		loaded_world.free()
 
 	world.call("load_room", "RoomUpgrade")
 	await process_frame
