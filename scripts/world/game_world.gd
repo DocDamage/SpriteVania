@@ -10,6 +10,7 @@ const CHECKPOINT_SHRINE_SCRIPT := preload("res://scripts/world/checkpoint_shrine
 const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const FAMILIAR_SCRIPT := preload("res://scripts/player/player_familiar.gd")
+const MapRegistry := preload("res://scripts/world/map_registry.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const PAUSE_MENU_SCENE := preload("res://scenes/ui/PauseMenu.tscn")
@@ -118,6 +119,7 @@ func load_room(room_id: String) -> Node2D:
 	register_hazards_in(current_room)
 	_apply_open_shortcuts(current_room)
 	_update_hud_map_context()
+	_update_pause_menu_map_status()
 	return current_room
 
 func _process(delta: float) -> void:
@@ -138,6 +140,7 @@ func open_pause_menu() -> void:
 	if pause_menu.has_signal("familiar_upgrade_requested"):
 		pause_menu.connect("familiar_upgrade_requested", _on_pause_familiar_upgrade_requested)
 	_update_pause_menu_familiar_status()
+	_update_pause_menu_map_status()
 	get_tree().paused = true
 
 func close_pause_menu() -> void:
@@ -523,6 +526,26 @@ func _update_pause_menu_familiar_status() -> void:
 	if familiar != null and familiar.has_method("get_status"):
 		pause_menu.call("set_familiar_status", familiar.call("get_status"))
 
+func _update_pause_menu_map_status() -> void:
+	if pause_menu == null or not is_instance_valid(pause_menu) or state == null or not pause_menu.has_method("set_map_status"):
+		return
+	pause_menu.call("set_map_status", _map_status())
+
+func _map_status() -> Dictionary:
+	if state == null:
+		return {}
+	var discovered_room_labels: Array[String] = []
+	for room_id: String in state.discovered_rooms:
+		discovered_room_labels.append(MapRegistry.get_room_label(state.current_area, room_id))
+	var completed_area_labels: Array[String] = []
+	for area_id: String in state.completed_areas:
+		completed_area_labels.append(_format_upgrade_name(area_id.replace("_complete", "")))
+	return {
+		"current_room_label": MapRegistry.get_room_label(state.current_area, state.current_room),
+		"discovered_room_labels": discovered_room_labels,
+		"completed_area_labels": completed_area_labels,
+	}
+
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
 
@@ -609,6 +632,7 @@ func _complete_area(completion_id: String) -> void:
 		state.completed_areas.append(completion_id)
 	state.current_room = get_current_room_id()
 	_show_upgrade_feedback("Area complete", _format_upgrade_name(completion_id))
+	_update_pause_menu_map_status()
 	_save_game_state()
 	area_completed.emit(completion_id)
 

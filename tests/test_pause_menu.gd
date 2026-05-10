@@ -16,6 +16,9 @@ func _run() -> void:
 	await _assert_pause_menu_exposes_familiar_upgrades()
 	if _failed:
 		return
+	await _assert_pause_menu_exposes_map_status()
+	if _failed:
+		return
 	await _assert_game_world_toggles_pause_and_saves()
 	if _failed:
 		return
@@ -92,6 +95,30 @@ func _assert_pause_menu_exposes_familiar_upgrades() -> void:
 	menu.queue_free()
 	await process_frame
 
+func _assert_pause_menu_exposes_map_status() -> void:
+	var menu := PAUSE_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	menu.call("set_map_status", {
+		"current_room_label": "Mire Gate",
+		"discovered_room_labels": ["Mire Gate", "Sinking Steps"],
+		"completed_area_labels": ["Swamp Outskirts"],
+	})
+
+	if menu.get_node("%MapCurrentRoomLabel").text != "Current: Mire Gate":
+		_fail("Pause menu should show the current room label in its map section.")
+		return
+	if menu.get_node("%MapDiscoveredLabel").text.find("Sinking Steps") == -1:
+		_fail("Pause menu should list discovered room labels.")
+		return
+	if menu.get_node("%MapCompletionLabel").text.find("Swamp Outskirts") == -1:
+		_fail("Pause menu should list completed areas.")
+		return
+
+	menu.queue_free()
+	await process_frame
+
 func _assert_game_world_toggles_pause_and_saves() -> void:
 	var save_manager := root.get_node("SaveManager")
 	save_manager.save_path = "user://test_pause_menu_save.json"
@@ -120,6 +147,10 @@ func _assert_game_world_toggles_pause_and_saves() -> void:
 		return
 	if not paused:
 		_fail("Opening the pause menu should pause the tree.")
+		return
+	var menu := world.get("pause_menu") as Control
+	if menu == null or menu.get_node("%MapCurrentRoomLabel").text.find("Shrine Hollow") == -1:
+		_fail("Opening pause should populate map status from the current world state.")
 		return
 
 	world.call("save_from_pause")

@@ -10,6 +10,7 @@ func _run() -> void:
 	_assert_registry_describes_swamp_route()
 	await _assert_starting_room_is_discovered()
 	await _assert_room_transition_discovers_destination()
+	await _assert_pause_menu_receives_discovered_rooms()
 	print("PASS: map discovery")
 	quit(0)
 
@@ -47,6 +48,26 @@ func _assert_room_transition_discovers_destination() -> void:
 	if state.discovered_rooms.count("RoomMovement") != 1:
 		_fail("Room discovery should not store duplicate room ids.")
 		return
+	await _free_world(world)
+
+func _assert_pause_menu_receives_discovered_rooms() -> void:
+	var world := _new_world()
+	var start_room := world.get("current_room") as Node2D
+	var right_exit := start_room.get_node("Entrances/RightEntrance") as Area2D
+	var player := world.get("player") as CharacterBody2D
+	right_exit.body_entered.emit(player)
+	await physics_frame
+
+	world.call("open_pause_menu")
+	await process_frame
+	var menu := world.get("pause_menu") as Control
+	if menu == null:
+		_fail("Opening pause should create a pause menu.")
+		return
+	if menu.get_node("%MapDiscoveredLabel").text.find("Sinking Steps") == -1:
+		_fail("Pause menu map should receive discovered room labels from GameWorld.")
+		return
+	world.call("close_pause_menu")
 	await _free_world(world)
 
 func _new_world() -> Node2D:
