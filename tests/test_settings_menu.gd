@@ -4,13 +4,24 @@ const GameState := preload("res://scripts/core/game_state.gd")
 const SaveManager := preload("res://scripts/core/save_manager.gd")
 const SETTINGS_MENU_SCENE := preload("res://scenes/ui/SettingsMenu.tscn")
 
+var _failed := false
+
 func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
 	await _assert_settings_menu_persists_updates()
+	if _failed:
+		return
 	await _assert_settings_menu_does_not_create_blank_save()
+	if _failed:
+		return
 	await _assert_settings_menu_can_rebind_one_action_and_restore_default()
+	if _failed:
+		return
+	await _assert_settings_menu_lists_core_controller_bindings()
+	if _failed:
+		return
 	print("PASS: settings menu")
 	quit(0)
 
@@ -125,6 +136,45 @@ func _assert_settings_menu_can_rebind_one_action_and_restore_default() -> void:
 	menu.queue_free()
 	await process_frame
 
+func _assert_settings_menu_lists_core_controller_bindings() -> void:
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	for label_name: String in [
+		"JumpBindingLabel",
+		"DashBindingLabel",
+		"AttackBindingLabel",
+		"SpecialAttackBindingLabel",
+		"ClassActionBindingLabel",
+		"InteractBindingLabel",
+		"PauseBindingLabel",
+	]:
+		var label := menu.get_node_or_null("%" + label_name) as Label
+		if label == null:
+			_fail("Settings menu is missing binding label: " + label_name)
+			return
+		if label.text.find("Joypad") == -1:
+			_fail("Settings binding label should include controller input: " + label_name)
+			return
+
+	var original_events := InputMap.action_get_events("dash")
+	if not bool(menu.call("rebind_action_to_key", "dash", KEY_Q)):
+		_fail("Settings menu should rebind dash now that dash is a core action.")
+		return
+	menu.call("reset_action_binding", "dash")
+	var restored_events := InputMap.action_get_events("dash")
+	if restored_events.size() != original_events.size():
+		_fail("Resetting dash should restore keyboard and controller defaults.")
+		return
+
+	InputMap.action_erase_events("dash")
+	for event: InputEvent in original_events:
+		InputMap.action_add_event("dash", event)
+	menu.queue_free()
+	await process_frame
+
 func _fail(message: String) -> void:
+	_failed = true
 	push_error(message)
 	quit(1)

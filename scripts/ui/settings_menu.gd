@@ -6,6 +6,17 @@ signal settings_changed(settings: Dictionary)
 
 const MIN_VOLUME_LINEAR := 0.001
 const GameStateScript := preload("res://scripts/core/game_state.gd")
+const REBINDABLE_ACTIONS := [
+	"move_left",
+	"move_right",
+	"jump",
+	"dash",
+	"attack",
+	"special_attack",
+	"class_action",
+	"interact",
+	"pause",
+]
 
 var _settings := {
 	"master_volume": 1.0,
@@ -75,7 +86,7 @@ func reset_action_binding(action_name: String) -> bool:
 	return true
 
 func _capture_default_action_events() -> void:
-	for action_name: String in ["move_left", "move_right", "jump", "attack", "special_attack", "pause"]:
+	for action_name: String in REBINDABLE_ACTIONS:
 		if InputMap.has_action(action_name):
 			_default_action_events[action_name] = InputMap.action_get_events(action_name)
 
@@ -135,6 +146,18 @@ func _sync_controls() -> void:
 	_sync_binding_labels()
 
 func _sync_binding_labels() -> void:
-	if not is_node_ready() or not has_node("%JumpBindingLabel"):
+	if not is_node_ready():
 		return
-	%JumpBindingLabel.text = "Jump: %s" % get_action_binding_label("jump")
+	for action_name: String in REBINDABLE_ACTIONS:
+		var label := get_node_or_null("%%%sBindingLabel" % _action_label_prefix(action_name)) as Label
+		if label != null:
+			label.text = "%s: %s" % [_format_action_name(action_name), get_action_binding_label(action_name)]
+
+func _action_label_prefix(action_name: String) -> String:
+	var words := action_name.split("_", false)
+	for index: int in words.size():
+		words[index] = words[index].capitalize()
+	return "".join(words)
+
+func _format_action_name(action_name: String) -> String:
+	return " ".join(action_name.split("_", false)).capitalize()

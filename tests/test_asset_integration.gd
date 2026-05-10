@@ -114,8 +114,24 @@ func _assert_swamp_room(path: String) -> void:
 		push_error(path + " is missing LoreTablet")
 		room.free()
 		quit(1)
+	if path.ends_with("RoomMovement.tscn"):
+		_assert_wall_jump_practice_shaft(room, path)
 	_assert_no_hidden_collision_body(room, path)
 	room.free()
+
+func _assert_wall_jump_practice_shaft(room: Node, path: String) -> void:
+	var shaft := room.get_node_or_null("WallJumpShaft")
+	if shaft == null:
+		push_error(path + " is missing WallJumpShaft")
+		quit(1)
+	for wall_name: String in ["LeftWall", "RightWall"]:
+		var wall := shaft.get_node_or_null(wall_name) as StaticBody2D
+		if wall == null:
+			push_error(path + " is missing wall jump surface: " + wall_name)
+			quit(1)
+		if not _has_enabled_collision_shape(wall):
+			push_error(path + " wall jump surface has no enabled collision: " + wall_name)
+			quit(1)
 
 func _assert_no_hidden_collision_body(root: Node, path: String) -> void:
 	if root is CollisionObject2D:

@@ -20,6 +20,12 @@ size = Vector2(176, 28)
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_platform"]
 size = Vector2(176, 28)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(32, 220)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_wall"]
+size = Vector2(32, 220)
+
 [node name="RoomMovement" type="Node2D" unique_id=202613911]
 script = ExtResource("1_room")
 room_id = "RoomMovement"
@@ -69,6 +75,28 @@ shape = SubResource("RectangleShape2D_platform")
 [node name="Sprite2D" type="Sprite2D" parent="Platforms/HighStep" unique_id=444835935]
 modulate = Color(0.46, 0.49, 0.44, 1)
 texture = SubResource("PlaceholderTexture2D_platform")
+
+[node name="WallJumpShaft" type="Node2D" parent="." unique_id=563005861]
+
+[node name="LeftWall" type="StaticBody2D" parent="WallJumpShaft" unique_id=1916774717]
+position = Vector2(392, 292)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallJumpShaft/LeftWall" unique_id=723236728]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Sprite2D" type="Sprite2D" parent="WallJumpShaft/LeftWall" unique_id=1551200068]
+modulate = Color(0.38, 0.46, 0.42, 1)
+texture = SubResource("PlaceholderTexture2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="WallJumpShaft" unique_id=238672472]
+position = Vector2(472, 292)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallJumpShaft/RightWall" unique_id=259756689]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Sprite2D" type="Sprite2D" parent="WallJumpShaft/RightWall" unique_id=151482575]
+modulate = Color(0.38, 0.46, 0.42, 1)
+texture = SubResource("PlaceholderTexture2D_wall")
 
 [node name="Entrances" type="Node2D" parent="." unique_id=1733734445]
 

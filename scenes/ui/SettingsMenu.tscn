@@ -48,6 +48,36 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Jump: Space"
 
+[node name="DashBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Dash: Shift, B"
+
+[node name="AttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Attack: J, X"
+
+[node name="SpecialAttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Special Attack: K, Y"
+
+[node name="ClassActionBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Class Action: L, RB"
+
+[node name="InteractBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Interact: E, LB"
+
+[node name="PauseBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pause: Esc, Menu"
+
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 44)
