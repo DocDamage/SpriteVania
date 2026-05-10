@@ -39,3 +39,13 @@ width = 4.0
 default_color = Color(0.98, 0.45, 0.22, 0.82)
 begin_cap_mode = 2
 end_cap_mode = 2
+
+[node name="AggroIndicator" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 5
+offset_left = -3.0
+offset_top = -27.0
+offset_right = 3.0
+offset_bottom = -21.0
+color = Color(1, 0.86, 0.2, 0.9)

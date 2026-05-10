@@ -12,17 +12,21 @@ class_name SwampCrawler
 var direction := -1.0
 var behavior_state := "patrol"
 var is_attack_active := false
+var is_aggro_alert := false
 var _patrol_origin_x := 0.0
 var _attack_timer := 0.0
 var _recovery_timer := 0.0
 var _target: Node2D
 var _attack_hit_targets: Array[int] = []
 var _attack_flash: Line2D
+var _aggro_indicator: ColorRect
 
 func _ready() -> void:
 	super()
 	_patrol_origin_x = global_position.x
 	_attack_flash = get_node_or_null("%AttackFlash") as Line2D
+	_aggro_indicator = get_node_or_null("%AggroIndicator") as ColorRect
+	_update_aggro_feedback()
 
 func _physics_process(delta: float) -> void:
 	_update_behavior(delta)
@@ -34,6 +38,7 @@ func _update_behavior(delta: float) -> void:
 	if behavior_state == "attack":
 		_attack_timer -= delta
 		velocity.x = 0.0
+		_set_aggro_alert(true)
 		_try_apply_attack_damage(_target)
 		if _attack_timer <= 0.0:
 			is_attack_active = false
@@ -48,8 +53,10 @@ func _update_behavior(delta: float) -> void:
 	if behavior_state == "recover":
 		_recovery_timer -= delta
 		velocity.x = 0.0
+		_set_aggro_alert(true)
 		if _recovery_timer <= 0.0:
 			behavior_state = "patrol"
+			_set_aggro_alert(false)
 		return
 
 	_target = _find_nearest_player()
@@ -63,23 +70,27 @@ func _update_behavior(delta: float) -> void:
 			if is_zero_approx(chase_direction):
 				chase_direction = 1.0
 			if not _can_chase_inside_patrol_route(chase_direction, delta):
-				behavior_state = "patrol"
+				behavior_state = "recover"
+				_recovery_timer = attack_recovery
+				_set_aggro_alert(true)
 				direction = -chase_direction
-				_update_patrol_direction()
-				velocity.x = direction * patrol_speed
+				velocity.x = 0.0
 				return
 			behavior_state = "aggro"
+			_set_aggro_alert(true)
 			direction = chase_direction
 			velocity.x = direction * patrol_speed
 			return
 
 	behavior_state = "patrol"
+	_set_aggro_alert(false)
 	_update_patrol_direction()
 	velocity.x = direction * patrol_speed
 
 func _start_attack(target: Node2D) -> void:
 	behavior_state = "attack"
 	is_attack_active = true
+	_set_aggro_alert(true)
 	_attack_timer = attack_duration
 	_attack_hit_targets.clear()
 	var attack_direction: float = sign(target.global_position.x - global_position.x)
@@ -146,3 +157,14 @@ func _update_attack_flash() -> void:
 	if not is_attack_active:
 		return
 	_attack_flash.scale.x = direction
+
+func _set_aggro_alert(next_value: bool) -> void:
+	if is_aggro_alert == next_value:
+		return
+	is_aggro_alert = next_value
+	_update_aggro_feedback()
+
+func _update_aggro_feedback() -> void:
+	if _aggro_indicator == null:
+		return
+	_aggro_indicator.visible = is_aggro_alert

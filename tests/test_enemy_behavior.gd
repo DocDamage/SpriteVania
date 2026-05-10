@@ -21,6 +21,9 @@ func _run() -> void:
 	await _assert_crawler_attack_damages_player_without_body_overlap()
 	if _failed:
 		return
+	await _assert_crawler_shows_aggro_feedback_while_chasing()
+	if _failed:
+		return
 	await _assert_crawler_shows_attack_window_feedback()
 	if _failed:
 		return
@@ -92,8 +95,11 @@ func _assert_crawler_aggro_stays_inside_patrol_route() -> void:
 	if crawler.velocity.x > 0.0:
 		_fail("Crawler should not chase beyond its right patrol route.")
 		return
-	if str(crawler.get("behavior_state")) != "patrol":
-		_fail("Crawler should return to patrol when aggro would pull it outside its route.")
+	if str(crawler.get("behavior_state")) != "recover":
+		_fail("Crawler should pause in recover when aggro would pull it outside its route.")
+		return
+	if not bool(crawler.get("is_aggro_alert")):
+		_fail("Crawler should expose aggro alert feedback while reacting to a blocked chase.")
 		return
 
 	crawler.queue_free()
@@ -149,6 +155,41 @@ func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
 		return
 	if player.knockback_source != crawler.global_position:
 		_fail("Crawler attack should apply knockback from the crawler position.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_crawler_shows_aggro_feedback_while_chasing() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := Node2D.new()
+	player.name = "AggroFeedbackProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	player.global_position = Vector2(180, 100)
+	root.add_child(crawler)
+	root.add_child(player)
+	await process_frame
+
+	var aggro_indicator := crawler.get_node_or_null("%AggroIndicator") as ColorRect
+	if aggro_indicator == null:
+		_fail("Crawler scene should include AggroIndicator so chase state is readable.")
+		return
+	if aggro_indicator.visible:
+		_fail("AggroIndicator should stay hidden while the crawler is not chasing.")
+		return
+	crawler.call("_physics_process", 0.016)
+	if str(crawler.get("behavior_state")) != "aggro":
+		_fail("Crawler should enter aggro state when a player is within chase range but outside attack range.")
+		return
+	if not bool(crawler.get("is_aggro_alert")) or not aggro_indicator.visible:
+		_fail("AggroIndicator should show while the crawler is actively chasing.")
+		return
+	player.global_position = Vector2(500, 100)
+	crawler.call("_physics_process", 0.016)
+	if bool(crawler.get("is_aggro_alert")) or aggro_indicator.visible:
+		_fail("AggroIndicator should hide after the crawler loses the player.")
 		return
 
 	crawler.queue_free()
