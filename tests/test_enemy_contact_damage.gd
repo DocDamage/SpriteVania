@@ -60,6 +60,9 @@ func _assert_enemy_contact_damages_player() -> void:
 	if int(player.get("current_health")) >= starting_health:
 		_fail("Enemy contact should damage the player.")
 		return
+	if (player as CharacterBody2D).velocity.x >= 0.0:
+		_fail("Enemy contact should knock the player left when the damage source is to the right.")
+		return
 
 	var after_contact := int(player.get("current_health"))
 	enemy.call("_tick_contact_damage", 0.016)

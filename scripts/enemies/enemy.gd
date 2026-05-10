@@ -108,6 +108,8 @@ func _apply_contact_damage(body: Node) -> void:
 	if float(_contact_cooldowns.get(body_id, 0.0)) > 0.0:
 		return
 	body.call("take_damage", damage)
+	if body.has_method("apply_knockback"):
+		body.call("apply_knockback", global_position)
 	_contact_cooldowns[body_id] = contact_damage_cooldown
 
 func _sync_overlapping_contact_bodies() -> void:

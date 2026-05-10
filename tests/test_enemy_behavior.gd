@@ -135,6 +135,9 @@ func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
 	if player.damage_taken <= 0:
 		_fail("Crawler attack should damage a nearby player during its explicit attack, not only on body overlap.")
 		return
+	if player.knockback_source != crawler.global_position:
+		_fail("Crawler attack should apply knockback from the crawler position.")
+		return
 
 	crawler.queue_free()
 	player.queue_free()
@@ -231,6 +234,10 @@ class _DamageProbe:
 	extends Node2D
 
 	var damage_taken := 0
+	var knockback_source := Vector2.INF
 
 	func take_damage(amount: int) -> void:
 		damage_taken += amount
+
+	func apply_knockback(source_position: Vector2, _strength := 0.0) -> void:
+		knockback_source = source_position

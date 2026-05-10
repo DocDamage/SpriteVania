@@ -96,6 +96,8 @@ func _try_apply_attack_damage(target: Node) -> void:
 	if global_position.distance_to(target_2d.global_position) > attack_range + 8.0:
 		return
 	target_2d.call("take_damage", damage)
+	if target_2d.has_method("apply_knockback"):
+		target_2d.call("apply_knockback", global_position)
 	_attack_hit_targets.append(target_2d.get_instance_id())
 
 func _find_nearest_player() -> Node2D:
