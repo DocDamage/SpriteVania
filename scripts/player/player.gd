@@ -34,6 +34,9 @@ var level := 1
 var facing_direction := 1.0
 var traversal_unlocks: Array[String] = []
 
+func _ready() -> void:
+	add_to_group("player")
+
 func setup(data: ClassData, sprite_path: String) -> void:
 	class_data = data
 	if class_data == null:
