@@ -1,6 +1,9 @@
 extends RefCounted
 class_name GameState
 
+const SAVE_VERSION := 1
+
+var version: int = SAVE_VERSION
 var selected_class: String = ""
 var selected_sprite: String = ""
 var current_area: String = ""
@@ -25,6 +28,7 @@ var settings: Dictionary = {}
 
 func to_dictionary() -> Dictionary:
 	return {
+		"version": version,
 		"selected_class": selected_class,
 		"selected_sprite": selected_sprite,
 		"current_area": current_area,
@@ -53,6 +57,7 @@ func to_dictionary() -> Dictionary:
 
 static func from_dictionary(data: Dictionary):
 	var state = (load("res://scripts/core/game_state.gd") as GDScript).new()
+	state.version = int(data.get("version", SAVE_VERSION))
 	state.selected_class = str(data.get("selected_class", ""))
 	state.selected_sprite = str(data.get("selected_sprite", ""))
 	state.current_area = str(data.get("current_area", ""))

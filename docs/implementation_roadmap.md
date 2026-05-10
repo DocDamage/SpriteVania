@@ -5,11 +5,14 @@
 - Title, continue, settings, and character selection flow.
 - Three distinct playable classes with class-specific traversal actions and learned attack skills.
 - Save and continue state, including checkpoint room, position, stats, upgrades, shortcuts, boss defeats, discovered rooms, settings, and area completion.
+- Save data now carries an explicit version while older unversioned saves remain loadable.
 - XP and leveling with HUD updates.
 - Room transitions, traversal gates, shortcuts, hazards, enemy contact damage, checkpoint respawn, pause saving, and boss-gated exits.
 - Swamp Outskirts route with start, movement, enemy, hazard, checkpoint, upgrade, shortcut, and miniboss rooms.
 - HUD feedback for health, resource, XP, level, upgrades, current room, and map discovery.
 - Integrated swamp tiles, player animation frames, starter enemy animations, and scene-instantiation coverage.
+- Familiar progression includes leveling, evolution, upgradable abilities, enemy attacks, guard mitigation, and evolution-based attack reach.
+- Combat reliability includes one-shot death handling and knockback from enemy contact and crawler attacks.
 
 ## Remaining Full-Game Priorities
 
@@ -18,8 +21,8 @@
 3. Add deeper level-up rewards, optional upgrades, keys, locked doors, and discovery rewards.
 4. Add story/NPC content, item descriptions, lore rewards, and class-specific motivation scenes.
 5. Finish asset/audio pass: more cut sprite sheets, VFX, UI art/fonts, room transitions, music, and sound effects.
-6. Upgrade map UX from compact discovery text into a full minimap screen.
-7. Harden production: export smoke tests, controller support, performance pass, save migration, and playtest checklist.
+6. Replace the prototype map display with a full minimap screen, icons, and room-state markers.
+7. Harden production: export smoke tests, controller support playtests, performance pass, save migrations, and release checklist.
 
 ## Vertical Slice Definition
 

@@ -51,6 +51,18 @@ func _init() -> void:
 		push_error("Loaded state does not match saved state")
 		quit(1)
 		return
+	var saved_dictionary := state.to_dictionary()
+	if not saved_dictionary.has("version"):
+		push_error("Serialized save data should include a version field")
+		quit(1)
+		return
+	var older_save := saved_dictionary.duplicate(true)
+	older_save.erase("version")
+	var loaded_older: GameState = GameState.from_dictionary(older_save)
+	if loaded_older == null or loaded_older.selected_class != "warden" or loaded_older.level != 3:
+		push_error("Older save data without version should still load")
+		quit(1)
+		return
 	if loaded.current_room != "RoomCheckpoint":
 		push_error("Current room did not persist")
 		quit(1)
