@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://djlhby4kgp7pf"
+path="res://.godot/imported/hurry_up_and_run.wav-72b3b52a9f933293a5f8df79ea3acb50.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Junk Wasteland Environment/Hurry up and run files/hurry_up_and_run.wav"
+dest_files=["res://.godot/imported/hurry_up_and_run.wav-72b3b52a9f933293a5f8df79ea3acb50.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

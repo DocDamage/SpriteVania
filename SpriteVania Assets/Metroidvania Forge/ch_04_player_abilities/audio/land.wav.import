@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://8vpoapabcufg"
+path="res://.godot/imported/land.wav-74c3064f6b893a637948b5f797e95f43.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_04_player_abilities/audio/land.wav"
+dest_files=["res://.godot/imported/land.wav-74c3064f6b893a637948b5f797e95f43.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

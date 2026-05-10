@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://gndmx4n161xe"
+path="res://.godot/imported/burning-ghoul.ase-d3bd28f5c83efb29a254bf06a1716c86.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/SPRITES/burning-ghoul/burning-ghoul.ase"
+dest_files=["res://.godot/imported/burning-ghoul.ase-d3bd28f5c83efb29a254bf06a1716c86.res"]
+
+[params]
+

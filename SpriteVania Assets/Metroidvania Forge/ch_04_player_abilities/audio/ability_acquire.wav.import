@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://yc3wdhqnpyhx"
+path="res://.godot/imported/ability_acquire.wav-4fdf48b0c665785d7746e1c5869260ab.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_04_player_abilities/audio/ability_acquire.wav"
+dest_files=["res://.godot/imported/ability_acquire.wav-4fdf48b0c665785d7746e1c5869260ab.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d0wvmise6bje2"
+path="res://.godot/imported/hurry_up_and_run.mp3-cc46567183b2fbfbe2c746f85a14fabb.mp3str"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Junk Wasteland Environment/Hurry up and run files/hurry_up_and_run.mp3"
+dest_files=["res://.godot/imported/hurry_up_and_run.mp3-cc46567183b2fbfbe2c746f85a14fabb.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

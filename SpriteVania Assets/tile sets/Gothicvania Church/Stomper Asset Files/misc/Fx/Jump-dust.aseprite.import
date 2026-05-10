@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://buy4x53buwnd2"
+path="res://.godot/imported/Jump-dust.aseprite-d7463a99371fdd86c1433c9be4fdf4bb.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/misc/Fx/Jump-dust.aseprite"
+dest_files=["res://.godot/imported/Jump-dust.aseprite-d7463a99371fdd86c1433c9be4fdf4bb.res"]
+
+[params]
+

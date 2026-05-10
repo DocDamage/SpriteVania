@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bf30y1xd286c5"
+path="res://.godot/imported/flying.ase-76deb83ecdca9e5a157e84f4c1985890.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/enemies/Flying/flying.ase"
+dest_files=["res://.godot/imported/flying.ase-76deb83ecdca9e5a157e84f4c1985890.res"]
+
+[params]
+

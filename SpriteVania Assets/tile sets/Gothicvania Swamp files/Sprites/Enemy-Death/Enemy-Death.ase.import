@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://cchf0dq6y6728"
+path="res://.godot/imported/Enemy-Death.ase-fb415eddbd161d957eac9518c5ecde2a.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Enemy-Death/Enemy-Death.ase"
+dest_files=["res://.godot/imported/Enemy-Death.ase-fb415eddbd161d957eac9518c5ecde2a.res"]
+
+[params]
+

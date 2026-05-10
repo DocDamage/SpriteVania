@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://h7tsjvitulfa"
+path="res://.godot/imported/door.ase-62226eda82540067217a73682ef322b1.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/misc/door/door.ase"
+dest_files=["res://.godot/imported/door.ase-62226eda82540067217a73682ef322b1.res"]
+
+[params]
+

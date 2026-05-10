@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://di0wuuvnvl5dn"
+path="res://.godot/imported/ui_error_audio.wav-44bb5de0c710959f562db845427f25c3.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_03_game_systems/audio/ui_error_audio.wav"
+dest_files=["res://.godot/imported/ui_error_audio.wav-44bb5de0c710959f562db845427f25c3.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b885s6awu4o5b"
+path="res://.godot/imported/door_crash.wav-1f82d946b2132e1936bd4c21ca914a71.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_03_game_systems/audio/door_crash.wav"
+dest_files=["res://.godot/imported/door_crash.wav-1f82d946b2132e1936bd4c21ca914a71.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

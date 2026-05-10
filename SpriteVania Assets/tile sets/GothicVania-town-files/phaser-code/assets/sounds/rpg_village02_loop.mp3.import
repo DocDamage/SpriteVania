@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bsio4u7ukg84m"
+path="res://.godot/imported/rpg_village02_loop.mp3-05127f165220625337a6a569aec93d19.mp3str"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/GothicVania-town-files/phaser-code/assets/sounds/rpg_village02_loop.mp3"
+dest_files=["res://.godot/imported/rpg_village02_loop.mp3-05127f165220625337a6a569aec93d19.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

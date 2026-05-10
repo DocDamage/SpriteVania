@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bue3o8pryypmn"
+path="res://.godot/imported/dash.wav-f544573599356aa571610fe2c7222b31.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_04_player_abilities/audio/dash.wav"
+dest_files=["res://.godot/imported/dash.wav-f544573599356aa571610fe2c7222b31.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
