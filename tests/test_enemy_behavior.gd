@@ -15,6 +15,9 @@ func _run() -> void:
 	await _assert_crawler_attacks_nearby_player_then_returns_to_patrol()
 	if _failed:
 		return
+	await _assert_crawler_attack_damages_player_without_body_overlap()
+	if _failed:
+		return
 	await _assert_enemy_death_keeps_xp_signal_and_exposes_drop()
 	if _failed:
 		return
@@ -80,6 +83,26 @@ func _assert_crawler_attacks_nearby_player_then_returns_to_patrol() -> void:
 		return
 	if bool(crawler.get("is_attack_active")):
 		_fail("Crawler attack window should end before returning to patrol.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := _DamageProbe.new()
+	player.name = "DamageProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	player.global_position = Vector2(138, 100)
+	root.add_child(crawler)
+	root.add_child(player)
+	await process_frame
+
+	crawler.call("_physics_process", 0.016)
+	if player.damage_taken <= 0:
+		_fail("Crawler attack should damage a nearby player during its explicit attack, not only on body overlap.")
 		return
 
 	crawler.queue_free()
@@ -172,3 +195,11 @@ func _fail(message: String) -> void:
 	_failed = true
 	push_error(message)
 	quit(1)
+
+class _DamageProbe:
+	extends Node2D
+
+	var damage_taken := 0
+
+	func take_damage(amount: int) -> void:
+		damage_taken += amount

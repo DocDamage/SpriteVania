@@ -10,6 +10,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _assert_melee_attack_damages_enemy()
+	await _assert_melee_attack_has_playable_reach()
 	await _assert_projectile_attack_damages_enemy()
 	await _assert_enemy_death_signal_grants_xp()
 	print("PASS: player combat")
@@ -30,6 +31,25 @@ func _assert_melee_attack_damages_enemy() -> void:
 	await physics_frame
 	if enemy.current_health >= starting_health:
 		push_error("Melee attack should damage an enemy inside the attack box")
+		quit(1)
+	player.free()
+	enemy.free()
+
+func _assert_melee_attack_has_playable_reach() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(player)
+	root.add_child(enemy)
+	player.setup(WARDEN_DATA, "")
+	player.global_position = Vector2(100, 100)
+	enemy.global_position = Vector2(160, 100)
+	await process_frame
+	await physics_frame
+	var starting_health := enemy.current_health
+	player.perform_melee_attack(10)
+	await physics_frame
+	if enemy.current_health >= starting_health:
+		push_error("Melee attack should reach a monster at normal play spacing.")
 		quit(1)
 	player.free()
 	enemy.free()

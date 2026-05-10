@@ -38,7 +38,6 @@ position = Vector2(480, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1861529904]
-visible = false
 modulate = Color(0.34, 0.4, 0.36, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
@@ -51,7 +50,6 @@ metadata/opens_from = "RoomMiniBoss"
 shape = SubResource("RectangleShape2D_gate")
 
 [node name="Sprite2D" type="Sprite2D" parent="OneWayShortcutGate" unique_id=1712187053]
-visible = false
 modulate = Color(0.23, 0.25, 0.27, 0.85)
 texture = SubResource("PlaceholderTexture2D_gate")
 

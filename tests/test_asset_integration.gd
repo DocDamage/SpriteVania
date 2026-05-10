@@ -114,4 +114,29 @@ func _assert_swamp_room(path: String) -> void:
 		push_error(path + " is missing LoreTablet")
 		room.free()
 		quit(1)
+	_assert_no_hidden_collision_body(room, path)
 	room.free()
+
+func _assert_no_hidden_collision_body(root: Node, path: String) -> void:
+	if root is CollisionObject2D:
+		var collision_object := root as CollisionObject2D
+		if collision_object is StaticBody2D and _has_enabled_collision_shape(collision_object) and _has_hidden_or_missing_sprite(collision_object):
+			push_error(path + " has an invisible collision body: " + collision_object.name)
+			quit(1)
+	for child: Node in root.get_children():
+		_assert_no_hidden_collision_body(child, path)
+
+func _has_enabled_collision_shape(root: Node) -> bool:
+	for child: Node in root.get_children():
+		if child is CollisionShape2D and not (child as CollisionShape2D).disabled:
+			return true
+	return false
+
+func _has_hidden_or_missing_sprite(root: Node) -> bool:
+	var has_sprite := false
+	for child: Node in root.get_children():
+		if child is Sprite2D:
+			has_sprite = true
+			if not (child as Sprite2D).visible:
+				return true
+	return not has_sprite and root is StaticBody2D

@@ -37,7 +37,6 @@ position = Vector2(480, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=134635676]
-visible = false
 modulate = Color(0.32, 0.36, 0.35, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
@@ -50,7 +49,6 @@ metadata/requires_defeat = "swamp_miniboss"
 shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="BossExitPlaceholder" unique_id=1348382058]
-visible = false
 modulate = Color(0.54, 0.47, 0.2, 0.55)
 texture = SubResource("PlaceholderTexture2D_exit")
 

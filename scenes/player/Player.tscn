@@ -15,6 +15,10 @@ script = ExtResource("1_player")
 shape = SubResource("RectangleShape2D_player")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1973725044]
+limit_left = 0
+limit_top = 0
+limit_right = 960
+limit_bottom = 540
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1378981791]
 unique_name_in_owner = true

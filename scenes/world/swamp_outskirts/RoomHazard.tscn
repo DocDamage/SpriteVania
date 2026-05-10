@@ -39,7 +39,6 @@ position = Vector2(150, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1104103954]
-visible = false
 modulate = Color(0.34, 0.4, 0.36, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
@@ -50,7 +49,6 @@ position = Vector2(810, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="SafeIsland" unique_id=1497172130]
-visible = false
 modulate = Color(0.34, 0.4, 0.36, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
@@ -64,7 +62,6 @@ metadata/hazard_type = "swamp_water"
 shape = SubResource("RectangleShape2D_hazard")
 
 [node name="Sprite2D" type="Sprite2D" parent="Hazards/SwampWaterHazard" unique_id=1791418556]
-visible = false
 modulate = Color(0.1, 0.32, 0.28, 0.75)
 texture = SubResource("PlaceholderTexture2D_hazard")
 
@@ -76,7 +73,6 @@ metadata/hazard_type = "spikes"
 shape = SubResource("RectangleShape2D_hazard")
 
 [node name="Sprite2D" type="Sprite2D" parent="Hazards/SpikeHazard" unique_id=611683199]
-visible = false
 modulate = Color(0.42, 0.17, 0.16, 0.75)
 texture = SubResource("PlaceholderTexture2D_hazard")
 

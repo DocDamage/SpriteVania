@@ -37,7 +37,6 @@ position = Vector2(480, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1033859210]
-visible = false
 modulate = Color(0.35, 0.41, 0.37, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 

@@ -10,6 +10,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	await _assert_player_has_baseline_double_jump_and_dash()
 	await _assert_locked_attack_skills_do_not_fire()
 	await _assert_warden_guard_counter_consumes_resource_and_cooldown()
 	await _assert_gunslinger_piercing_shot_hits_multiple_targets()
@@ -17,6 +18,30 @@ func _run() -> void:
 	await _assert_traversal_skills_consume_resource_and_cooldown()
 	print("PASS: class abilities")
 	quit(0)
+
+func _assert_player_has_baseline_double_jump_and_dash() -> void:
+	var player := _spawn_player(WARDEN_DATA)
+	player.velocity = Vector2(0, 120)
+	player.set("_air_jumps_remaining", 1)
+	player.perform_jump()
+	if player.velocity.y >= 0.0:
+		_fail("Player should be able to spend an air jump for a double jump.")
+		return
+	if int(player.get("_air_jumps_remaining")) != 0:
+		_fail("Double jump should consume the available air jump.")
+		return
+
+	player.global_position = Vector2(100, 100)
+	player.facing_direction = 1.0
+	player.velocity = Vector2(0, -80)
+	player.perform_dash()
+	if player.global_position.x <= 100.0:
+		_fail("Player should be able to dash forward in the air.")
+		return
+	if player.velocity.y != 0.0:
+		_fail("Dash should flatten vertical velocity for readable ground and air movement.")
+		return
+	player.free()
 
 func _assert_locked_attack_skills_do_not_fire() -> void:
 	var player := _spawn_player(GUNSLINGER_DATA)

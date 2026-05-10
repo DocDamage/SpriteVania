@@ -11,12 +11,13 @@ const XPCurve := preload("res://scripts/core/xp_curve.gd")
 const PlayerProjectile := preload("res://scripts/player/player_projectile.gd")
 const DEFAULT_MOVE_SPEED := 160.0
 const DEFAULT_JUMP_VELOCITY := -360.0
-const MELEE_RANGE := Vector2(46, 34)
-const MELEE_OFFSET := Vector2(30, -8)
+const MELEE_RANGE := Vector2(86, 42)
+const MELEE_OFFSET := Vector2(48, -8)
 const PROJECTILE_OFFSET := Vector2(22, -12)
 const PROJECTILE_LIFETIME := 1.15
 const PROJECTILE_SPEED := 430.0
 const PIERCING_PROJECTILE_SPEED := 520.0
+const BASE_DASH_DISTANCE := 92.0
 const ARMORED_DASH_DISTANCE := 86.0
 const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
@@ -48,6 +49,8 @@ const SKILL_COOLDOWNS := {
 @export var invulnerability_duration := 0.45
 @export var hit_flash_duration := 0.12
 @export var knockback_strength := 220.0
+@export var max_air_jumps := 1
+@export var dash_cooldown := 0.28
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
@@ -68,6 +71,8 @@ var is_hit_flashing := false
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
+var _air_jumps_remaining := 1
+var _dash_cooldown_remaining := 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -88,6 +93,7 @@ func setup(data: ClassData, sprite_path: String) -> void:
 func _process(delta: float) -> void:
 	_tick_damage_feedback(delta)
 	_tick_skill_cooldowns(delta)
+	_dash_cooldown_remaining = maxf(0.0, _dash_cooldown_remaining - delta)
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("move_left", "move_right")
@@ -95,10 +101,14 @@ func _physics_process(delta: float) -> void:
 		facing_direction = signf(direction)
 
 	velocity.x = direction * _move_speed()
+	if is_on_floor():
+		_air_jumps_remaining = max_air_jumps
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = _jump_velocity()
+	if Input.is_action_just_pressed("jump"):
+		perform_jump()
+	if InputMap.has_action("dash") and Input.is_action_just_pressed("dash"):
+		perform_dash()
 
 	move_and_slide()
 	_update_animation()
@@ -140,6 +150,24 @@ func restore_vitals_to_max() -> void:
 	current_health = _max_health()
 	current_resource = _max_resource()
 	emit_stats_changed()
+
+func perform_jump() -> void:
+	if is_on_floor():
+		velocity.y = _jump_velocity()
+		_air_jumps_remaining = max_air_jumps
+		return
+	if _air_jumps_remaining <= 0:
+		return
+	_air_jumps_remaining -= 1
+	velocity.y = _jump_velocity()
+
+func perform_dash() -> void:
+	if _dash_cooldown_remaining > 0.0:
+		return
+	global_position.x += BASE_DASH_DISTANCE * facing_direction
+	velocity.x = 0.0
+	velocity.y = 0.0
+	_dash_cooldown_remaining = dash_cooldown
 
 func set_traversal_unlocks(unlocks: Array[String]) -> void:
 	traversal_unlocks = unlocks.duplicate()

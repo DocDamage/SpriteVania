@@ -39,7 +39,6 @@ position = Vector2(480, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=422582488]
-visible = false
 modulate = Color(0.36, 0.42, 0.39, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
@@ -60,7 +59,6 @@ metadata/next_room = "RoomMovement"
 shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="Entrances/RightEntrance" unique_id=1600947925]
-visible = false
 modulate = Color(0.25, 0.55, 0.45, 0.6)
 texture = SubResource("PlaceholderTexture2D_gate")
 

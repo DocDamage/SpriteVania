@@ -37,18 +37,19 @@ position = Vector2(480, 520)
 shape = SubResource("RectangleShape2D_ground")
 
 [node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1445618928]
-visible = false
 modulate = Color(0.33, 0.39, 0.35, 1)
 texture = SubResource("PlaceholderTexture2D_ground")
 
 [node name="CoverBlock" type="StaticBody2D" parent="." unique_id=181263980]
 position = Vector2(480, 452)
+collision_layer = 0
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CoverBlock" unique_id=542876413]
+disabled = true
 shape = SubResource("RectangleShape2D_entrance")
 
 [node name="Sprite2D" type="Sprite2D" parent="CoverBlock" unique_id=2107590131]
-visible = false
 modulate = Color(0.4, 0.43, 0.42, 1)
 texture = SubResource("PlaceholderTexture2D_pillar")
 
