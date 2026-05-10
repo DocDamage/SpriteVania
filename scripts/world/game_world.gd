@@ -38,6 +38,7 @@ const ROOM_SCENES := {
 	"RoomShortcut": preload("res://scenes/world/swamp_outskirts/RoomShortcut.tscn"),
 	"RoomMiniBoss": preload("res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn"),
 	"CastleGateStart": preload("res://scenes/world/castle_gate/CastleGateStart.tscn"),
+	"CastleBattlements": preload("res://scenes/world/castle_gate/CastleBattlements.tscn"),
 }
 const ROOM_AREAS := {
 	"RoomStart": "swamp_outskirts",
@@ -49,6 +50,7 @@ const ROOM_AREAS := {
 	"RoomShortcut": "swamp_outskirts",
 	"RoomMiniBoss": "swamp_outskirts",
 	"CastleGateStart": "castle_gate",
+	"CastleBattlements": "castle_gate",
 }
 const CLASS_DATA := {
 	"warden": preload("res://data/classes/warden.tres"),

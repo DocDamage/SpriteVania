@@ -41,6 +41,24 @@ func _run() -> void:
 		_fail("Player should spawn just inside the destination room's matching entrance.")
 		return
 
+	world.call("load_room", "CastleGateStart")
+	var castle_start := world.get("current_room") as Node2D
+	var castle_right_exit := castle_start.get_node_or_null("Entrances/RightEntrance") as Area2D
+	if castle_right_exit == null:
+		_fail("CastleGateStart should expose a right-side room exit.")
+		return
+	castle_right_exit.body_entered.emit(player)
+	await physics_frame
+
+	var battlement_room := world.get("current_room") as Node2D
+	if battlement_room == null or battlement_room.name != "CastleBattlements":
+		_fail("Using CastleGateStart's right exit should load CastleBattlements.")
+		return
+	var castle_state := world.get("state") as GameState
+	if castle_state == null or castle_state.current_area != "castle_gate" or not castle_state.discovered_rooms.has("CastleBattlements"):
+		_fail("Castle transition should keep Castle Gate area and discover CastleBattlements.")
+		return
+
 	if save_manager != null:
 		save_manager.call("delete_save")
 	world.free()

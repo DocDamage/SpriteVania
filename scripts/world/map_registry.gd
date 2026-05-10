@@ -47,7 +47,11 @@ const AREAS := {
 		"rooms": {
 			"CastleGateStart": {
 				"label": "Moonlit Causeway",
-				"adjacent": [],
+				"adjacent": ["CastleBattlements"],
+			},
+			"CastleBattlements": {
+				"label": "Outer Battlements",
+				"adjacent": ["CastleGateStart"],
 			},
 		},
 	},

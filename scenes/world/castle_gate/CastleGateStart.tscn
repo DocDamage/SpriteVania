@@ -29,7 +29,9 @@ height = 144
 [node name="CastleGateStart" type="Node2D"]
 script = ExtResource("1_room")
 room_id = "CastleGateStart"
-next_rooms = {}
+next_rooms = {
+"right": "CastleBattlements"
+}
 
 [node name="Ground" type="StaticBody2D" parent="."]
 position = Vector2(480, 520)
@@ -48,6 +50,17 @@ metadata/next_room = ""
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance"]
 shape = SubResource("RectangleShape2D_entrance")
+
+[node name="RightEntrance" type="Area2D" parent="Entrances"]
+position = Vector2(936, 448)
+metadata/next_room = "CastleBattlements"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/RightEntrance"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="Sprite2D" type="Sprite2D" parent="Entrances/RightEntrance"]
+modulate = Color(0.58, 0.52, 0.38, 0.7)
+texture = SubResource("Texture_castle_gate")
 
 [node name="EnemySpawns" type="Node2D" parent="."]
 

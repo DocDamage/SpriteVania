@@ -1,0 +1,98 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/room.gd" id="1_room"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(960, 56)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(220, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_entrance"]
+size = Vector2(48, 144)
+
+[sub_resource type="Gradient" id="Gradient_battlement_stone"]
+offsets = PackedFloat32Array(0.0, 0.48, 1.0)
+colors = PackedColorArray(0.48, 0.49, 0.56, 1.0, 0.24, 0.27, 0.36, 1.0, 0.08, 0.09, 0.14, 1.0)
+
+[sub_resource type="GradientTexture2D" id="Texture_battlement_stone"]
+gradient = SubResource("Gradient_battlement_stone")
+width = 960
+height = 56
+
+[sub_resource type="GradientTexture2D" id="Texture_battlement_block"]
+gradient = SubResource("Gradient_battlement_stone")
+width = 220
+height = 40
+
+[node name="CastleBattlements" type="Node2D"]
+script = ExtResource("1_room")
+room_id = "CastleBattlements"
+next_rooms = {
+"left": "CastleGateStart"
+}
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(480, 520)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Sprite2D" type="Sprite2D" parent="Ground"]
+texture = SubResource("Texture_battlement_stone")
+
+[node name="HighWalkway" type="StaticBody2D" parent="."]
+position = Vector2(560, 376)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HighWalkway"]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="Sprite2D" type="Sprite2D" parent="HighWalkway"]
+modulate = Color(0.36, 0.37, 0.43, 1.0)
+texture = SubResource("Texture_battlement_block")
+
+[node name="Entrances" type="Node2D" parent="."]
+
+[node name="LeftEntrance" type="Area2D" parent="Entrances"]
+position = Vector2(24, 448)
+metadata/next_room = "CastleGateStart"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entrances/LeftEntrance"]
+shape = SubResource("RectangleShape2D_entrance")
+
+[node name="EnemySpawns" type="Node2D" parent="."]
+
+[node name="Pickups" type="Node2D" parent="."]
+
+[node name="PlayerStart" type="Marker2D" parent="."]
+position = Vector2(120, 464)
+
+[node name="CastleBackdrop" type="Node2D" parent="."]
+z_index = -100
+
+[node name="Sky" type="ColorRect" parent="CastleBackdrop"]
+offset_right = 960.0
+offset_bottom = 540.0
+color = Color(0.035, 0.04, 0.1, 1.0)
+
+[node name="DistantKeep" type="Sprite2D" parent="CastleBackdrop"]
+z_index = -90
+position = Vector2(690, 330)
+scale = Vector2(2.4, 2.8)
+modulate = Color(0.11, 0.11, 0.16, 1.0)
+texture = SubResource("Texture_battlement_block")
+
+[node name="CastleDecor" type="Node2D" parent="."]
+z_index = -5
+
+[node name="CrenelA" type="Sprite2D" parent="CastleDecor"]
+position = Vector2(230, 484)
+scale = Vector2(0.55, 0.55)
+modulate = Color(0.34, 0.35, 0.41, 1.0)
+texture = SubResource("Texture_battlement_block")
+
+[node name="CrenelB" type="Sprite2D" parent="CastleDecor"]
+position = Vector2(760, 484)
+scale = Vector2(0.55, 0.55)
+modulate = Color(0.3, 0.31, 0.38, 1.0)
+texture = SubResource("Texture_battlement_block")

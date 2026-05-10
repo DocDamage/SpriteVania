@@ -16,6 +16,7 @@ const SCENE_PATHS := [
 	"res://scenes/world/GameWorld.tscn",
 	"res://scenes/world/UpgradePickup.tscn",
 	"res://scenes/world/castle_gate/CastleGateStart.tscn",
+	"res://scenes/world/castle_gate/CastleBattlements.tscn",
 	"res://scenes/world/swamp_outskirts/RoomCheckpoint.tscn",
 	"res://scenes/world/swamp_outskirts/RoomEnemy.tscn",
 	"res://scenes/world/swamp_outskirts/RoomHazard.tscn",

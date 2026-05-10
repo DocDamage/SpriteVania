@@ -35,6 +35,10 @@ func _assert_registry_describes_castle_gate() -> void:
 	if room_label != "Moonlit Causeway":
 		_fail("Map registry should expose the Castle Gate starting room label.")
 		return
+	var adjacent: Array[String] = MapRegistry.get_adjacent_rooms("castle_gate", "CastleGateStart")
+	if not adjacent.has("CastleBattlements"):
+		_fail("Castle Gate starting room should connect to CastleBattlements.")
+		return
 
 func _assert_starting_room_is_discovered() -> void:
 	var world := _new_world()

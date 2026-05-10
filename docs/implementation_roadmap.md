@@ -13,11 +13,11 @@
 - Integrated swamp tiles, player animation frames, starter enemy animations, and scene-instantiation coverage.
 - Familiar progression includes leveling, evolution, upgradable abilities, enemy attacks, guard mitigation, and evolution-based attack reach.
 - Combat reliability includes one-shot death handling and knockback from enemy contact and crawler attacks.
-- Full-game expansion groundwork has begun with a Castle Gate area entry room that loads after Swamp completion.
+- Full-game expansion groundwork has begun with a two-room Castle Gate route that loads after Swamp completion.
 
 ## Remaining Full-Game Priorities
 
-1. Expand Castle Gate from its entry room into a full route, then build cemetery, church, cold corridor, town, wasteland, horror, and sci-fi routes.
+1. Expand Castle Gate into a full route with enemies, checkpoint, upgrade, shortcut, and boss, then build cemetery, church, cold corridor, town, wasteland, horror, and sci-fi routes.
 2. Expand boss roster from the first miniboss into full biome bosses with class-readable patterns.
 3. Add deeper level-up rewards, optional upgrades, keys, locked doors, and discovery rewards.
 4. Add story/NPC content, item descriptions, lore rewards, and class-specific motivation scenes.
