@@ -8,4 +8,4 @@ func handle_special_attack() -> void:
 	player.perform_guard_counter()
 
 func handle_class_action() -> void:
-	player.start_blocking()
+	player.perform_armored_dash()

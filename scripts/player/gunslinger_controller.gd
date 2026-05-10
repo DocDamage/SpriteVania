@@ -8,4 +8,7 @@ func handle_special_attack() -> void:
 	player.fire_piercing_shot(class_data.base_attack * 2)
 
 func handle_class_action() -> void:
-	player.perform_slide()
+	if player.has_traversal_unlock("hookshot"):
+		player.perform_hookshot()
+	else:
+		player.perform_slide()

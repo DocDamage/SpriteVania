@@ -17,6 +17,9 @@ const PROJECTILE_OFFSET := Vector2(22, -12)
 const PROJECTILE_LIFETIME := 1.15
 const PROJECTILE_SPEED := 430.0
 const PIERCING_PROJECTILE_SPEED := 520.0
+const ARMORED_DASH_DISTANCE := 86.0
+const HOOKSHOT_PULL_DISTANCE := 112.0
+const HOOKSHOT_LIFT := 20.0
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
@@ -29,6 +32,7 @@ var current_resource := 50
 var xp := 0
 var level := 1
 var facing_direction := 1.0
+var traversal_unlocks: Array[String] = []
 
 func setup(data: ClassData, sprite_path: String) -> void:
 	class_data = data
@@ -86,6 +90,12 @@ func take_damage(amount: int) -> void:
 	if current_health <= 0:
 		died.emit()
 
+func set_traversal_unlocks(unlocks: Array[String]) -> void:
+	traversal_unlocks = unlocks.duplicate()
+
+func has_traversal_unlock(unlock_id: String) -> bool:
+	return traversal_unlocks.has(unlock_id)
+
 func get_stats() -> Dictionary:
 	var max_health := _max_health()
 	var max_resource := _max_resource()
@@ -118,6 +128,12 @@ func perform_guard_counter() -> void:
 func start_blocking() -> void:
 	pass
 
+func perform_armored_dash() -> void:
+	if not has_traversal_unlock("armored_dash"):
+		return
+	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
+	velocity.x = 0.0
+
 func fire_projectile(damage: int) -> void:
 	_spawn_projectile(damage, PROJECTILE_SPEED, PROJECTILE_LIFETIME, Color(0.9, 0.82, 0.35, 1.0))
 
@@ -125,7 +141,16 @@ func fire_piercing_shot(damage: int) -> void:
 	_spawn_projectile(damage, PIERCING_PROJECTILE_SPEED, PROJECTILE_LIFETIME * 1.25, Color(0.95, 0.55, 0.22, 1.0), true)
 
 func perform_slide() -> void:
-	pass
+	if not has_traversal_unlock("combat_slide"):
+		return
+	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
+	velocity.x = 0.0
+
+func perform_hookshot() -> void:
+	if not has_traversal_unlock("hookshot"):
+		return
+	global_position += Vector2(HOOKSHOT_PULL_DISTANCE * facing_direction, -HOOKSHOT_LIFT)
+	velocity = Vector2.ZERO
 
 func fire_spell(damage: int) -> void:
 	_spawn_projectile(damage, PROJECTILE_SPEED * 0.85, PROJECTILE_LIFETIME, Color(0.55, 0.35, 0.95, 1.0))
@@ -135,6 +160,8 @@ func cast_binding_sigil() -> void:
 		target.call("take_damage", 4)
 
 func perform_blink() -> void:
+	if not has_traversal_unlock("blink"):
+		return
 	global_position.x += 48.0 * facing_direction
 
 func _load_sprite(sprite_path: String) -> void:

@@ -198,6 +198,7 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	add_child(player)
 	player.global_position = spawn_position
 	player.call("setup", CLASS_DATA[state.selected_class], state.selected_sprite)
+	player.call("set_traversal_unlocks", state.traversal_unlocks)
 	if state.current_health > 0:
 		player.set("current_health", state.current_health)
 	if state.current_resource > 0:
@@ -228,8 +229,12 @@ func _on_upgrade_collected(pickup_id: String, upgrade_id: String, upgrade_type: 
 
 	if not pickup_id.is_empty() and not state.collected_pickups.has(pickup_id):
 		state.collected_pickups.append(pickup_id)
-	if upgrade_type == "traversal" and not upgrade_id.is_empty() and not state.traversal_unlocks.has(upgrade_id):
-		state.traversal_unlocks.append(upgrade_id)
+	if upgrade_type == "traversal":
+		var traversal_id := _resolve_traversal_upgrade_id(upgrade_id)
+		if not traversal_id.is_empty() and not state.traversal_unlocks.has(traversal_id):
+			state.traversal_unlocks.append(traversal_id)
+			if player != null and player.has_method("set_traversal_unlocks"):
+				player.call("set_traversal_unlocks", state.traversal_unlocks)
 	if upgrade_type == "attack_skill" and not upgrade_id.is_empty() and not state.learned_attack_skills.has(upgrade_id):
 		state.learned_attack_skills.append(upgrade_id)
 	_save_game_state()
@@ -352,3 +357,14 @@ func _valid_sprite_id(class_id: String, sprite_id: String) -> String:
 	if class_data != null and not class_data.sprite_options.is_empty():
 		return class_data.sprite_options[0]
 	return ""
+
+func _resolve_traversal_upgrade_id(upgrade_id: String) -> String:
+	if upgrade_id != "first_traversal_tool":
+		return upgrade_id
+	if state == null or not CLASS_DATA.has(state.selected_class):
+		return upgrade_id
+
+	var class_data: Resource = CLASS_DATA[state.selected_class]
+	if class_data != null and not class_data.traversal_unlocks.is_empty():
+		return class_data.traversal_unlocks[0]
+	return upgrade_id
