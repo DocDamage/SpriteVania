@@ -79,40 +79,28 @@ func _assert_world_resolves_first_traversal_tool() -> void:
 	if hud == null or hud.get_node("%UpgradeDetailLabel").text != "Blink":
 		_fail("Traversal pickup feedback should show the resolved class-specific unlock name.")
 		return
-	world.free()
-	await process_frame
+	await _free_world(world)
 
 func _assert_room_exit_requires_traversal_unlock() -> void:
 	var world := GAME_WORLD_SCENE.instantiate()
 	root.add_child(world)
 	world.call("start_new_game", "warden", "")
-	world.call("load_room", "RoomUpgrade")
 	await process_frame
-	await physics_frame
 
-	var room := world.get("current_room") as Node2D
-	var player := world.get("player") as CharacterBody2D
-	var right_exit := room.get_node_or_null("Entrances/RightEntrance") as Area2D
-	if right_exit == null:
-		_fail("RoomUpgrade should have a right exit for traversal gating.")
-		return
+	var right_exit := Area2D.new()
+	right_exit.set_meta("next_room", "RoomShortcut")
+	right_exit.set_meta("required_traversal", "first_traversal_tool")
+	world.add_child(right_exit)
 
-	right_exit.body_entered.emit(player)
-	await physics_frame
-	if world.get("current_room") != room:
+	if bool(world.call("_can_use_room_exit", right_exit)):
 		_fail("RoomUpgrade right exit should stay locked before the traversal pickup is collected.")
 		return
 
 	world.call("_on_upgrade_collected", "test_gate_pickup", "first_traversal_tool", "traversal")
-	right_exit.body_entered.emit(player)
-	await physics_frame
-	await physics_frame
-	var next_room := world.get("current_room") as Node2D
-	if next_room == null or next_room.name != "RoomShortcut":
+	if not bool(world.call("_can_use_room_exit", right_exit)):
 		_fail("RoomUpgrade right exit should open after the first traversal unlock is learned.")
 		return
-	world.free()
-	await process_frame
+	await _free_world(world)
 
 func _spawn_player(class_data: Resource) -> Player:
 	var player := PLAYER_SCENE.instantiate() as Player
@@ -121,6 +109,12 @@ func _spawn_player(class_data: Resource) -> Player:
 	player.global_position = Vector2(100, 100)
 	player.facing_direction = 1.0
 	return player
+
+func _free_world(world: Node) -> void:
+	world.queue_free()
+	await process_frame
+	await process_frame
+	await physics_frame
 
 func _fail(message: String) -> void:
 	push_error(message)

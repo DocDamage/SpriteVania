@@ -72,7 +72,6 @@ func load_room(room_id: String) -> Node2D:
 
 	var rooms := _get_rooms_container()
 	for child: Node in rooms.get_children():
-		rooms.remove_child(child)
 		child.queue_free()
 
 	current_room = ROOM_SCENES[resolved_room_id].instantiate() as Node2D
