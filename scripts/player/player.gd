@@ -19,6 +19,10 @@ const PROJECTILE_SPEED := 430.0
 const PIERCING_PROJECTILE_SPEED := 520.0
 const BASE_DASH_DISTANCE := 92.0
 const ARMORED_DASH_DISTANCE := 86.0
+const WALL_JUMP_HORIZONTAL_SPEED := 210.0
+const WALL_HANG_FALL_SPEED := 28.0
+const SLIDE_ATTACK_RANGE := Vector2(190, 34)
+const SLIDE_ATTACK_OFFSET := Vector2(-43, -4)
 const HOOKSHOT_PULL_DISTANCE := 112.0
 const HOOKSHOT_LIFT := 20.0
 const SKILL_COSTS := {
@@ -67,12 +71,14 @@ var traversal_unlocks: Array[String] = []
 var learned_attack_skills: Array[String] = []
 var is_invulnerable := false
 var is_hit_flashing := false
+var is_wall_hanging := false
 
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
 var _dash_cooldown_remaining := 0.0
+var _wall_direction := 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -100,10 +106,18 @@ func _physics_process(delta: float) -> void:
 	if direction != 0.0:
 		facing_direction = signf(direction)
 
-	velocity.x = direction * _move_speed()
+	if not is_wall_hanging:
+		velocity.x = direction * _move_speed()
 	if is_on_floor():
 		_air_jumps_remaining = max_air_jumps
-	if not is_on_floor():
+		_stop_wall_hang()
+	elif _should_wall_hang(direction):
+		start_wall_hang(signf(direction))
+
+	if is_wall_hanging:
+		velocity.x = 0.0
+		velocity.y = minf(velocity.y, WALL_HANG_FALL_SPEED)
+	elif not is_on_floor():
 		velocity.y += GRAVITY * delta
 	if Input.is_action_just_pressed("jump"):
 		perform_jump()
@@ -152,6 +166,14 @@ func restore_vitals_to_max() -> void:
 	emit_stats_changed()
 
 func perform_jump() -> void:
+	if is_wall_hanging:
+		var launch_direction := -_wall_direction
+		_stop_wall_hang()
+		velocity.x = launch_direction * WALL_JUMP_HORIZONTAL_SPEED
+		velocity.y = _jump_velocity()
+		facing_direction = launch_direction
+		_air_jumps_remaining = max_air_jumps
+		return
 	if is_on_floor():
 		velocity.y = _jump_velocity()
 		_air_jumps_remaining = max_air_jumps
@@ -249,6 +271,22 @@ func perform_slide() -> void:
 		return
 	global_position.x += ARMORED_DASH_DISTANCE * facing_direction
 	velocity.x = 0.0
+	_play_action_animation("run")
+	var damage := class_data.base_attack if class_data != null else 10
+	for target: Node in _query_attack_targets(SLIDE_ATTACK_RANGE, SLIDE_ATTACK_OFFSET):
+		target.call("take_damage", damage)
+
+func start_wall_hang(wall_direction: float) -> void:
+	if is_zero_approx(wall_direction):
+		return
+	_wall_direction = signf(wall_direction)
+	is_wall_hanging = true
+	velocity.x = 0.0
+	velocity.y = minf(velocity.y, 0.0)
+
+func _stop_wall_hang() -> void:
+	is_wall_hanging = false
+	_wall_direction = 0.0
 
 func perform_hookshot() -> void:
 	if not has_traversal_unlock("hookshot"):
@@ -333,13 +371,23 @@ func _sprite_node() -> Sprite2D:
 		return sprite
 	return get_node_or_null("%Sprite2D") as Sprite2D
 
+func _should_wall_hang(input_direction: float) -> bool:
+	if is_on_floor() or not is_on_wall_only() or input_direction == 0.0:
+		return false
+	var wall_normal := get_wall_normal()
+	if wall_normal == Vector2.ZERO:
+		return false
+	return signf(input_direction) == -signf(wall_normal.x)
+
 func _update_animation() -> void:
 	if animated_sprite == null:
 		return
 
 	animated_sprite.flip_h = facing_direction < 0.0
 	var next_animation := "idle"
-	if not is_on_floor():
+	if is_wall_hanging:
+		next_animation = "fall"
+	elif not is_on_floor():
 		if velocity.y < 0.0:
 			next_animation = "jump"
 		else:

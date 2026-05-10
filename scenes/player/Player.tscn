@@ -1,9 +1,10 @@
-[gd_scene format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="SpriteFrames" path="res://resources/animations/player_swamp_frames.tres" id="2_gfjak"]
 [ext_resource type="Script" path="res://addons/goutte.animated_shape_2d/animated_shape_2d.gd" id="3_524rm"]
 [ext_resource type="Resource" path="res://resources/shape_frames/player_collision_frames.tres" id="4_tpg5x"]
+[ext_resource type="PackedScene" path="res://scenes/player/PlayerFamiliar.tscn" id="5_familiar"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(16, 28)
@@ -26,6 +27,8 @@ position = Vector2(0, -12)
 scale = Vector2(1.15, 1.15)
 sprite_frames = ExtResource("2_gfjak")
 animation = &"idle"
+
+[node name="Familiar" parent="." instance=ExtResource("5_familiar")]
 
 [node name="PlayerBodyShapeAnimator" type="Node" parent="." unique_id=614924084 node_paths=PackedStringArray("animated_sprite", "collision_shape")]
 script = ExtResource("3_524rm")

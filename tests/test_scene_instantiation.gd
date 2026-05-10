@@ -4,6 +4,7 @@ const SCENE_PATHS := [
 	"res://scenes/Main.tscn",
 	"res://scenes/enemies/SwampCrawler.tscn",
 	"res://scenes/enemies/SwampMiniBoss.tscn",
+	"res://scenes/player/PlayerFamiliar.tscn",
 	"res://scenes/player/Player.tscn",
 	"res://scenes/ui/CharacterSelect.tscn",
 	"res://scenes/ui/HUD.tscn",

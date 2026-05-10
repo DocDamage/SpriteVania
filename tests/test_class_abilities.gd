@@ -11,6 +11,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await _assert_player_has_baseline_double_jump_and_dash()
+	await _assert_player_has_baseline_wall_hang_and_wall_jump()
+	await _assert_slide_attack_damages_enemy()
 	await _assert_locked_attack_skills_do_not_fire()
 	await _assert_warden_guard_counter_consumes_resource_and_cooldown()
 	await _assert_gunslinger_piercing_shot_hits_multiple_targets()
@@ -42,6 +44,48 @@ func _assert_player_has_baseline_double_jump_and_dash() -> void:
 		_fail("Dash should flatten vertical velocity for readable ground and air movement.")
 		return
 	player.free()
+
+func _assert_player_has_baseline_wall_hang_and_wall_jump() -> void:
+	var player := _spawn_player(WARDEN_DATA)
+	player.velocity = Vector2(0, 220)
+	player.facing_direction = 1.0
+	player.call("start_wall_hang", 1.0)
+	if not bool(player.get("is_wall_hanging")):
+		_fail("Player should expose a wall hang state.")
+		return
+	if player.velocity.y > 0.0:
+		_fail("Wall hang should stop downward fall speed.")
+		return
+
+	player.perform_jump()
+	if bool(player.get("is_wall_hanging")):
+		_fail("Wall jump should leave the wall hang state.")
+		return
+	if player.velocity.y >= 0.0 or player.velocity.x >= 0.0:
+		_fail("Wall jump should launch upward and away from the wall.")
+		return
+	player.free()
+
+func _assert_slide_attack_damages_enemy() -> void:
+	var player := _spawn_player(GUNSLINGER_DATA)
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(enemy)
+	enemy.global_position = player.global_position + Vector2(56, 0)
+	player.set_traversal_unlocks(["combat_slide"])
+	player.current_resource = 60
+	await physics_frame
+
+	var starting_health := enemy.current_health
+	player.perform_slide()
+	await physics_frame
+	if enemy.current_health >= starting_health:
+		_fail("Slide attack should damage an enemy in the slide path.")
+		return
+	if player.current_resource != 54:
+		_fail("Slide attack should consume the combat slide resource cost.")
+		return
+	player.free()
+	enemy.free()
 
 func _assert_locked_attack_skills_do_not_fire() -> void:
 	var player := _spawn_player(GUNSLINGER_DATA)
