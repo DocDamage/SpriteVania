@@ -163,6 +163,7 @@ func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
 
 func _assert_crawler_shows_aggro_feedback_while_chasing() -> void:
 	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	crawler.set_physics_process(false)
 	var player := Node2D.new()
 	player.name = "AggroFeedbackProbe"
 	player.add_to_group("player")

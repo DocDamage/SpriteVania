@@ -33,6 +33,7 @@ func _run() -> void:
 
 	_assert_background_uses_black_keep_art(screen)
 	_assert_black_keep_art_import_is_pixel_safe()
+	_assert_title_background_parallax(screen)
 	_assert_left_gradient_title_and_menu(screen)
 	_assert_title_screen_signals(screen)
 
@@ -72,6 +73,28 @@ func _assert_black_keep_art_import_is_pixel_safe() -> void:
 		return
 	if import_settings.find("mipmaps/generate=false") == -1:
 		_fail("Title art import should disable mipmaps for pixel art.")
+		return
+
+func _assert_title_background_parallax(screen: Control) -> void:
+	var background := screen.get_node_or_null("Background") as TextureRect
+	if background == null:
+		_fail("Title parallax needs the Background TextureRect.")
+		return
+	if background.offset_left > -24.0 or background.offset_top > -24.0:
+		_fail("Title background should keep overscan margins for parallax movement.")
+		return
+	if background.offset_right < 24.0 or background.offset_bottom < 24.0:
+		_fail("Title background should keep overscan margins for parallax movement.")
+		return
+	if not screen.has_method("get_title_parallax_offset"):
+		_fail("Title screen should expose its current parallax offset for tests.")
+		return
+
+	var starting_offset := screen.call("get_title_parallax_offset") as Vector2
+	screen.call("_process", 0.75)
+	var moved_offset := screen.call("get_title_parallax_offset") as Vector2
+	if starting_offset == moved_offset:
+		_fail("Title background parallax should move over time.")
 		return
 
 func _assert_left_gradient_title_and_menu(screen: Control) -> void:
