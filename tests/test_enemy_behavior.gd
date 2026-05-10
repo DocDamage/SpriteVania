@@ -21,6 +21,12 @@ func _run() -> void:
 	await _assert_crawler_attack_damages_player_without_body_overlap()
 	if _failed:
 		return
+	await _assert_crawler_shows_attack_window_feedback()
+	if _failed:
+		return
+	await _assert_enemy_shows_hurt_feedback_when_damaged()
+	if _failed:
+		return
 	await _assert_enemy_death_keeps_xp_signal_and_exposes_drop()
 	if _failed:
 		return
@@ -147,6 +153,62 @@ func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
 
 	crawler.queue_free()
 	player.queue_free()
+	await process_frame
+
+func _assert_crawler_shows_attack_window_feedback() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := Node2D.new()
+	player.name = "AttackFlashProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	root.add_child(crawler)
+	await process_frame
+
+	var attack_flash := crawler.get_node_or_null("%AttackFlash") as Line2D
+	if attack_flash == null:
+		_fail("Crawler scene should include AttackFlash so monster attacks are readable.")
+		return
+	if attack_flash.visible:
+		_fail("Crawler AttackFlash should stay hidden until an attack starts.")
+		return
+	player.global_position = Vector2(126, 100)
+	root.add_child(player)
+	await process_frame
+	crawler.call("_physics_process", 0.016)
+	if not attack_flash.visible:
+		_fail("Crawler AttackFlash should show during the active attack window.")
+		return
+	crawler.call("_physics_process", float(crawler.get("attack_duration")) + 0.01)
+	if attack_flash.visible:
+		_fail("Crawler AttackFlash should hide after the active attack window.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_enemy_shows_hurt_feedback_when_damaged() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(crawler)
+	await process_frame
+
+	var hurt_flash := crawler.get_node_or_null("%HurtFlash") as ColorRect
+	if hurt_flash == null:
+		_fail("Enemy scene should include HurtFlash so successful hits are visible.")
+		return
+	if hurt_flash.visible:
+		_fail("HurtFlash should stay hidden until the enemy takes damage.")
+		return
+	crawler.take_damage(1)
+	if not hurt_flash.visible:
+		_fail("HurtFlash should show immediately when the enemy takes damage.")
+		return
+	crawler.call("_process", 0.2)
+	if hurt_flash.visible:
+		_fail("HurtFlash should hide after its short feedback window.")
+		return
+
+	crawler.queue_free()
 	await process_frame
 
 func _assert_enemy_death_keeps_xp_signal_and_exposes_drop() -> void:

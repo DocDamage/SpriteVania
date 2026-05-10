@@ -12,18 +12,24 @@ signal dropped(enemy_id: String, drop_id: String, drop_amount: int)
 @export var drop_id: String = ""
 @export var drop_amount: int = 0
 
+const HURT_FLASH_DURATION := 0.12
+
 var current_health: int
 var _is_dead := false
 var _contact_hitbox: Area2D
+var _hurt_flash: ColorRect
+var _hurt_flash_time_remaining := 0.0
 var _contact_bodies: Dictionary = {}
 var _contact_cooldowns: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("enemies")
 	current_health = max_health
+	_hurt_flash = get_node_or_null("%HurtFlash") as ColorRect
 	_ensure_contact_hitbox()
 
 func _process(delta: float) -> void:
+	_tick_hurt_flash(delta)
 	_tick_contact_damage(delta)
 
 func take_damage(amount: int) -> void:
@@ -31,11 +37,25 @@ func take_damage(amount: int) -> void:
 		return
 
 	current_health -= amount
+	_show_hurt_flash()
 	if current_health <= 0:
 		_is_dead = true
 		_emit_drop_if_configured()
 		died.emit(enemy_id, xp_reward)
 		queue_free()
+
+func _show_hurt_flash() -> void:
+	if _hurt_flash == null:
+		return
+	_hurt_flash.visible = true
+	_hurt_flash_time_remaining = HURT_FLASH_DURATION
+
+func _tick_hurt_flash(delta: float) -> void:
+	if _hurt_flash_time_remaining <= 0.0:
+		return
+	_hurt_flash_time_remaining = maxf(0.0, _hurt_flash_time_remaining - delta)
+	if _hurt_flash_time_remaining <= 0.0 and _hurt_flash != null:
+		_hurt_flash.visible = false
 
 func _emit_drop_if_configured() -> void:
 	if drop_id.is_empty() or drop_amount <= 0:

@@ -17,10 +17,12 @@ var _attack_timer := 0.0
 var _recovery_timer := 0.0
 var _target: Node2D
 var _attack_hit_targets: Array[int] = []
+var _attack_flash: Line2D
 
 func _ready() -> void:
 	super()
 	_patrol_origin_x = global_position.x
+	_attack_flash = get_node_or_null("%AttackFlash") as Line2D
 
 func _physics_process(delta: float) -> void:
 	_update_behavior(delta)
@@ -35,6 +37,7 @@ func _update_behavior(delta: float) -> void:
 		_try_apply_attack_damage(_target)
 		if _attack_timer <= 0.0:
 			is_attack_active = false
+			_update_attack_flash()
 			if _find_nearest_player() == null:
 				behavior_state = "patrol"
 			else:
@@ -83,6 +86,7 @@ func _start_attack(target: Node2D) -> void:
 	if not is_zero_approx(attack_direction):
 		direction = attack_direction
 	velocity.x = 0.0
+	_update_attack_flash()
 	_try_apply_attack_damage(target)
 
 func _try_apply_attack_damage(target: Node) -> void:
@@ -134,3 +138,11 @@ func _can_chase_inside_patrol_route(chase_direction: float, delta: float) -> boo
 
 func _reverse_direction() -> void:
 	direction *= -1.0
+
+func _update_attack_flash() -> void:
+	if _attack_flash == null:
+		return
+	_attack_flash.visible = is_attack_active
+	if not is_attack_active:
+		return
+	_attack_flash.scale.x = direction
