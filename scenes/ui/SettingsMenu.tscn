@@ -58,6 +58,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Reduce title and screen motion"
 
+[node name="ResetDefaultsButton" type="Button" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 38)
+layout_mode = 2
+text = "Reset Settings Defaults"
+
 [node name="Audio" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
 layout_mode = 2
 theme_override_constants/separation = 10

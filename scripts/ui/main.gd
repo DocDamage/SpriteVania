@@ -36,6 +36,7 @@ func _replace_screen(scene_path: String) -> Node:
 
 func show_title() -> void:
 	var title := _replace_screen(TITLE_SCREEN_PATH)
+	_apply_persisted_settings_to_screen(title)
 	if title.has_signal("new_game_requested"):
 		title.connect("new_game_requested", show_character_select)
 	if title.has_signal("continue_requested"):
@@ -56,6 +57,7 @@ func show_title() -> void:
 
 func show_character_select() -> void:
 	var select := _replace_screen(CHARACTER_SELECT_PATH)
+	_apply_persisted_settings_to_screen(select)
 	if select.has_signal("cancel_requested"):
 		select.connect("cancel_requested", show_title)
 	if select.has_signal("character_confirmed"):
@@ -68,6 +70,8 @@ func show_settings(tab_name := "General") -> void:
 		settings.call("set_save_manager", _get_save_manager())
 	if settings.has_method("select_settings_tab"):
 		settings.call("select_settings_tab", tab_name)
+	if settings.has_signal("settings_changed"):
+		settings.connect("settings_changed", _on_settings_changed)
 	if settings.has_signal("closed"):
 		settings.connect("closed", show_title)
 
@@ -206,6 +210,7 @@ func _slot_status_text(save_manager: Node, slot_id: String) -> String:
 	return "Saved" if _has_slot_save(save_manager, slot_id) else "Empty"
 
 func _connect_world_navigation(world: Node) -> void:
+	_apply_persisted_settings_to_screen(world)
 	if world.has_signal("settings_requested"):
 		world.connect("settings_requested", show_settings)
 	if world.has_signal("quit_to_title_requested"):
@@ -213,6 +218,27 @@ func _connect_world_navigation(world: Node) -> void:
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
+
+
+func _get_persisted_settings() -> Dictionary:
+	var save_manager := _get_save_manager()
+	if save_manager == null or not save_manager.has_method("load_game"):
+		return {}
+	var state: Variant = save_manager.call("load_game")
+	if state == null:
+		return {}
+	var settings: Variant = state.get("settings")
+	return settings if settings is Dictionary else {}
+
+
+func _apply_persisted_settings_to_screen(screen: Node) -> void:
+	if screen != null and screen.has_method("apply_settings"):
+		screen.call("apply_settings", _get_persisted_settings())
+
+
+func _on_settings_changed(settings: Dictionary) -> void:
+	if current_screen != null and current_screen.has_method("apply_settings"):
+		current_screen.call("apply_settings", settings)
 
 
 func _quit_game() -> void:

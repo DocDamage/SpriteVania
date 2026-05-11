@@ -34,6 +34,12 @@ func _run() -> void:
 	await _assert_settings_menu_can_reset_all_bindings()
 	if _failed:
 		return
+	await _assert_settings_menu_clamps_invalid_persisted_values()
+	if _failed:
+		return
+	await _assert_settings_menu_resets_defaults_and_syncs_controls()
+	if _failed:
+		return
 	print("PASS: settings menu")
 	quit(0)
 
@@ -154,6 +160,8 @@ func _assert_settings_menu_lists_core_controller_bindings() -> void:
 	await process_frame
 
 	for label_name: String in [
+		"MoveLeftBindingLabel",
+		"MoveRightBindingLabel",
 		"JumpBindingLabel",
 		"DashBindingLabel",
 		"AttackBindingLabel",
@@ -198,6 +206,10 @@ func _assert_settings_menu_exposes_accessibility_tab() -> void:
 	if str(menu.call("get_selected_settings_tab")) != "Accessibility":
 		_fail("Settings menu should select the Accessibility tab by name.")
 		return
+	menu.call("select_settings_tab", "DoesNotExist")
+	if str(menu.call("get_selected_settings_tab")) != "General":
+		_fail("Unknown settings tabs should fall back to General.")
+		return
 
 	if menu.get_node_or_null("%ReducedMotionButton") == null:
 		_fail("Accessibility tab should expose reduced motion control.")
@@ -235,6 +247,7 @@ func _assert_settings_menu_exposes_full_tab_set() -> void:
 		"ResetAllBindingsButton",
 		"LargeTextButton",
 		"ColorblindModeButton",
+		"ResetDefaultsButton",
 	]:
 		if menu.get_node_or_null("%" + node_name) == null:
 			_fail("Settings menu is missing control: " + node_name)
@@ -324,6 +337,100 @@ func _assert_settings_menu_can_reset_all_bindings() -> void:
 	for event: InputEvent in original_dash_events:
 		InputMap.action_add_event("dash", event)
 	menu.queue_free()
+	await process_frame
+
+func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
+	var save_manager := SaveManager.new()
+	save_manager.save_path = "user://test_settings_menu_invalid_save.json"
+	save_manager.delete_save()
+
+	var seeded_state := GameState.new()
+	seeded_state.settings = {
+		"master_volume": 4.0,
+		"music_volume": -2.0,
+		"sfx_volume": 2.5,
+		"screen_shake": -1.0,
+		"text_speed": 4.0,
+		"colorblind_mode": "Impossible",
+		"high_contrast": true,
+	}
+	save_manager.save_game(seeded_state)
+
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+	menu.call("set_save_manager", save_manager)
+
+	var settings := menu.call("get_settings_state") as Dictionary
+	if not is_equal_approx(float(settings.master_volume), 1.0):
+		_fail("Invalid persisted master volume should clamp high.")
+		return
+	if not is_equal_approx(float(settings.music_volume), 0.0):
+		_fail("Invalid persisted music volume should clamp low.")
+		return
+	if not is_equal_approx(float(settings.sfx_volume), 1.0):
+		_fail("Invalid persisted SFX volume should clamp high.")
+		return
+	if not is_equal_approx(float(settings.screen_shake), 0.0):
+		_fail("Invalid persisted screen shake should clamp low.")
+		return
+	if not is_equal_approx(float(settings.text_speed), 1.0):
+		_fail("Invalid persisted text speed should clamp high.")
+		return
+	if str(settings.colorblind_mode) != "Off":
+		_fail("Invalid persisted colorblind mode should fall back to Off.")
+		return
+	if not bool(settings.high_contrast):
+		_fail("Valid persisted booleans should still load.")
+		return
+
+	menu.queue_free()
+	save_manager.delete_save()
+	save_manager.free()
+	await process_frame
+
+func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
+	var save_manager := SaveManager.new()
+	save_manager.save_path = "user://test_settings_menu_reset_defaults_save.json"
+	save_manager.delete_save()
+	var seeded_state := GameState.new()
+	save_manager.save_game(seeded_state)
+
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+	menu.call("set_save_manager", save_manager)
+
+	menu.call("set_music_volume", 0.2)
+	menu.call("set_sfx_volume", 0.3)
+	menu.call("set_reduced_motion_enabled", true)
+	menu.call("set_high_contrast_enabled", true)
+	menu.call("set_large_text_enabled", true)
+	menu.call("set_colorblind_mode", "Tritanopia")
+	menu.call("reset_settings_to_defaults")
+
+	var settings := menu.call("get_settings_state") as Dictionary
+	if not is_equal_approx(float(settings.music_volume), 1.0) or not is_equal_approx(float(settings.sfx_volume), 1.0):
+		_fail("Reset defaults should restore audio sliders.")
+		return
+	if bool(settings.reduced_motion) or bool(settings.high_contrast) or bool(settings.large_text):
+		_fail("Reset defaults should clear accessibility toggles.")
+		return
+	if str(settings.colorblind_mode) != "Off":
+		_fail("Reset defaults should restore colorblind mode.")
+		return
+	var music_slider := menu.get_node("%MusicVolumeSlider") as HSlider
+	if not is_equal_approx(music_slider.value, 1.0):
+		_fail("Reset defaults should sync music slider.")
+		return
+	var colorblind_button := menu.get_node("%ColorblindModeButton") as OptionButton
+	if colorblind_button.get_item_text(colorblind_button.selected) != "Off":
+		_fail("Reset defaults should sync colorblind option.")
+		return
+
+	menu.queue_free()
+	save_manager.delete_save()
+	save_manager.free()
 	await process_frame
 
 func _fail(message: String) -> void:

@@ -18,6 +18,9 @@ func _run() -> void:
 	await _assert_extras_and_credits_are_real_screens()
 	if _failed:
 		return
+	await _assert_title_applies_persisted_reduced_motion()
+	if _failed:
+		return
 	print("PASS: main title menu")
 	quit(0)
 
@@ -130,6 +133,33 @@ func _assert_extras_and_credits_are_real_screens() -> void:
 
 		main.queue_free()
 		await process_frame
+
+func _assert_title_applies_persisted_reduced_motion() -> void:
+	var save_manager := root.get_node("SaveManager")
+	save_manager.save_path = "user://test_main_title_reduced_motion_save.json"
+	save_manager.delete_save()
+
+	var state := GameState.new()
+	state.settings = {
+		"reduced_motion": true,
+	}
+	save_manager.save_game(state)
+
+	var main := MAIN_SCENE.instantiate() as Main
+	root.add_child(main)
+	await process_frame
+
+	var title := main.get("current_screen") as TitleScreen
+	if title == null:
+		_fail("Main should start on the title screen.")
+		return
+	if bool(title.get("parallax_enabled")):
+		_fail("Title screen should disable parallax when reduced motion is persisted.")
+		return
+
+	main.queue_free()
+	save_manager.delete_save()
+	await process_frame
 
 func _fail(message: String) -> void:
 	_failed = true

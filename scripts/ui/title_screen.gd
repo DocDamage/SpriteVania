@@ -80,6 +80,15 @@ func get_title_polish_sample_position() -> Vector2:
 	return _petal_particles[0].position
 
 
+func apply_settings(settings: Dictionary) -> void:
+	var reduced_motion := bool(settings.get("reduced_motion", false))
+	parallax_enabled = not reduced_motion
+	if weather_layer != null:
+		weather_layer.visible = not reduced_motion
+	if polish_layer != null:
+		polish_layer.visible = not reduced_motion
+
+
 func refresh_continue_state() -> void:
 	var save_manager := get_tree().root.get_node_or_null("SaveManager")
 	continue_button.disabled = save_manager == null or not save_manager.has_save()

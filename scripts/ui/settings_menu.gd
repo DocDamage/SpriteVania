@@ -51,6 +51,7 @@ func _ready() -> void:
 	%LargeTextButton.toggled.connect(_on_large_text_toggled)
 	%ColorblindModeButton.item_selected.connect(_on_colorblind_mode_selected)
 	%ResetAllBindingsButton.pressed.connect(reset_all_bindings)
+	%ResetDefaultsButton.pressed.connect(reset_settings_to_defaults)
 
 	_settings.fullscreen = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 	_settings.vsync = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
@@ -133,6 +134,7 @@ func select_settings_tab(tab_name: String) -> void:
 		if tabs.get_tab_title(index) == tab_name:
 			tabs.current_tab = index
 			return
+	tabs.current_tab = 0
 
 func get_selected_settings_tab() -> String:
 	if not is_node_ready():
