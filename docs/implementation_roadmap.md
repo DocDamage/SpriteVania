@@ -1,5 +1,11 @@
 # SpriteVania Implementation Roadmap
 
+## Current Creative Direction
+
+The current implementation foundation remains the SpriteVania vertical slice: it is the playable systems base for movement, combat, saves, rooms, UI, progression, and tests. The target game direction is now **The Black Keep**, a larger castle-and-portal action RPG / Metroidvania built on that foundation.
+
+See the full creative and systems direction in [The Black Keep Master Plan](BLACK_KEEP_MASTER_PLAN.md).
+
 ## Current Vertical Slice
 
 - Title, continue, settings, and character selection flow.
