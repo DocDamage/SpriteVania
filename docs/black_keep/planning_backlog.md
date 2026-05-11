@@ -19,7 +19,7 @@ This backlog orders the Black Keep planning work needed before large production 
 
 | Priority | Document | Purpose | Status |
 |---|---|---|---|
-| 1 | [Asset Audit Results](asset_audit_results.md) | Classify real assets and choose playable candidates. | Outline |
+| 1 | [Asset Audit Results](asset_audit_results.md) | Classify real assets and choose playable candidates. | First-pass folder audit complete |
 | 2 | [First Milestone Production Spec](first_milestone_production_spec.md) | Convert the milestone route into room-by-room build scope. | Outline |
 | 3 | [Character Creation Spec](character_creation_spec.md) | Define starter select, naming, confirmation, save data, and opening variants. | Outline |
 | 4 | [Party System Technical Spec](party_system_technical_spec.md) | Define roster, party state, names, HP/resources, Momentum, tag attacks, and hub management. | Outline |
@@ -43,8 +43,8 @@ This backlog orders the Black Keep planning work needed before large production 
 
 ## Open Questions
 
-- Which actual sprites become the 8 playable characters.
-- Which assets support the final zone list.
+- Which actual sprites become the 8 playable characters after contact-sheet and motion review.
+- Which audited zone assets pass in-engine style and scale checks.
 - Which asset folders have enough tile, parallax, enemy, boss, and UI coverage for production.
 - Whether the first milestone should ship all three starter variants or one starter-first implementation pass.
 - How much of the global settings split should happen before party-system implementation.
@@ -54,4 +54,3 @@ This backlog orders the Black Keep planning work needed before large production 
 - Each planning doc should become a task source for implementation tickets.
 - Asset audit results should be treated as a dependency for playable roster, zone manifest, and production art scope.
 - Specs should use stable IDs for rooms, characters, abilities, seals, zones, and state flags before code work begins.
-
