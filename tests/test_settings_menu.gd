@@ -25,6 +25,15 @@ func _run() -> void:
 	await _assert_settings_menu_exposes_accessibility_tab()
 	if _failed:
 		return
+	await _assert_settings_menu_exposes_full_tab_set()
+	if _failed:
+		return
+	await _assert_expanded_settings_persist_updates()
+	if _failed:
+		return
+	await _assert_settings_menu_can_reset_all_bindings()
+	if _failed:
+		return
 	print("PASS: settings menu")
 	quit(0)
 
@@ -197,6 +206,123 @@ func _assert_settings_menu_exposes_accessibility_tab() -> void:
 		_fail("Accessibility tab should expose high contrast control.")
 		return
 
+	menu.queue_free()
+	await process_frame
+
+func _assert_settings_menu_exposes_full_tab_set() -> void:
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	var tabs := menu.get_node_or_null("%SettingsTabs") as TabContainer
+	if tabs == null:
+		_fail("Settings menu should expose SettingsTabs.")
+		return
+	var tab_titles: Array[String] = []
+	for index: int in tabs.get_tab_count():
+		tab_titles.append(tabs.get_tab_title(index))
+	for expected: String in ["General", "Audio", "Video", "Gameplay", "Controls", "Accessibility"]:
+		if not tab_titles.has(expected):
+			_fail("Settings menu should include %s tab." % expected)
+			return
+
+	for node_name: String in [
+		"MusicVolumeSlider",
+		"SfxVolumeSlider",
+		"VsyncButton",
+		"ScreenShakeSlider",
+		"TextSpeedSlider",
+		"ResetAllBindingsButton",
+		"LargeTextButton",
+		"ColorblindModeButton",
+	]:
+		if menu.get_node_or_null("%" + node_name) == null:
+			_fail("Settings menu is missing control: " + node_name)
+			return
+
+	menu.queue_free()
+	await process_frame
+
+func _assert_expanded_settings_persist_updates() -> void:
+	var save_manager := SaveManager.new()
+	save_manager.save_path = "user://test_settings_menu_expanded_save.json"
+	save_manager.delete_save()
+
+	var seeded_state := GameState.new()
+	seeded_state.selected_class = "warden"
+	seeded_state.current_room = "RoomCheckpoint"
+	save_manager.save_game(seeded_state)
+
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+	menu.call("set_save_manager", save_manager)
+
+	menu.call("set_music_volume", 0.25)
+	menu.call("set_sfx_volume", 0.65)
+	menu.call("set_vsync_enabled", true)
+	menu.call("set_screen_shake", 0.2)
+	menu.call("set_text_speed", 0.85)
+	menu.call("set_large_text_enabled", true)
+	menu.call("set_colorblind_mode", "Deuteranopia")
+
+	var loaded := save_manager.load_game()
+	if loaded == null:
+		_fail("Expanded settings updates should keep a loadable save.")
+		return
+	var settings := loaded.settings
+	if not is_equal_approx(float(settings.get("music_volume", -1.0)), 0.25):
+		_fail("Music volume should persist.")
+		return
+	if not is_equal_approx(float(settings.get("sfx_volume", -1.0)), 0.65):
+		_fail("SFX volume should persist.")
+		return
+	if bool(settings.get("vsync", false)) != true:
+		_fail("VSync setting should persist.")
+		return
+	if not is_equal_approx(float(settings.get("screen_shake", -1.0)), 0.2):
+		_fail("Screen shake setting should persist.")
+		return
+	if not is_equal_approx(float(settings.get("text_speed", -1.0)), 0.85):
+		_fail("Text speed setting should persist.")
+		return
+	if bool(settings.get("large_text", false)) != true:
+		_fail("Large text setting should persist.")
+		return
+	if str(settings.get("colorblind_mode", "")) != "Deuteranopia":
+		_fail("Colorblind mode should persist.")
+		return
+
+	menu.queue_free()
+	save_manager.delete_save()
+	save_manager.free()
+	await process_frame
+
+func _assert_settings_menu_can_reset_all_bindings() -> void:
+	var original_jump_events := InputMap.action_get_events("jump")
+	var original_dash_events := InputMap.action_get_events("dash")
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	menu.call("rebind_action_to_key", "jump", KEY_L)
+	menu.call("rebind_action_to_key", "dash", KEY_Q)
+	if not bool(menu.call("reset_all_bindings")):
+		_fail("Settings menu should reset all bindings.")
+		return
+	if InputMap.action_get_events("jump").size() != original_jump_events.size():
+		_fail("Reset all should restore jump bindings.")
+		return
+	if InputMap.action_get_events("dash").size() != original_dash_events.size():
+		_fail("Reset all should restore dash bindings.")
+		return
+
+	InputMap.action_erase_events("jump")
+	for event: InputEvent in original_jump_events:
+		InputMap.action_add_event("jump", event)
+	InputMap.action_erase_events("dash")
+	for event: InputEvent in original_dash_events:
+		InputMap.action_add_event("dash", event)
 	menu.queue_free()
 	await process_frame
 
