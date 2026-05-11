@@ -21,6 +21,9 @@ func _run() -> void:
 	await _assert_title_applies_persisted_reduced_motion()
 	if _failed:
 		return
+	await _assert_main_applies_persisted_runtime_settings()
+	if _failed:
+		return
 	print("PASS: main title menu")
 	quit(0)
 
@@ -159,6 +162,36 @@ func _assert_title_applies_persisted_reduced_motion() -> void:
 
 	main.queue_free()
 	save_manager.delete_save()
+	await process_frame
+
+func _assert_main_applies_persisted_runtime_settings() -> void:
+	var save_manager := root.get_node("SaveManager")
+	save_manager.save_path = "user://test_main_runtime_settings_save.json"
+	save_manager.delete_save()
+
+	var master_bus_index := AudioServer.get_bus_index("Master")
+	var original_volume_db := AudioServer.get_bus_volume_db(master_bus_index)
+	AudioServer.set_bus_volume_db(master_bus_index, 0.0)
+
+	var state := GameState.new()
+	state.settings = {
+		"master_volume": 0.25,
+	}
+	save_manager.save_game(state)
+
+	var main := MAIN_SCENE.instantiate() as Main
+	root.add_child(main)
+	await process_frame
+
+	var expected_db := linear_to_db(0.25)
+	var actual_db := AudioServer.get_bus_volume_db(master_bus_index)
+	if not is_equal_approx(actual_db, expected_db):
+		_fail("Main should apply persisted master volume on startup.")
+		return
+
+	main.queue_free()
+	save_manager.delete_save()
+	AudioServer.set_bus_volume_db(master_bus_index, original_volume_db)
 	await process_frame
 
 func _fail(message: String) -> void:

@@ -5,6 +5,7 @@ const TITLE_SCREEN_PATH := "res://scenes/ui/TitleScreen.tscn"
 const CHARACTER_SELECT_PATH := "res://scenes/ui/CharacterSelect.tscn"
 const SETTINGS_MENU_PATH := "res://scenes/ui/SettingsMenu.tscn"
 const GAME_WORLD_PATH := "res://scenes/world/GameWorld.tscn"
+const MIN_VOLUME_LINEAR := 0.0001
 const LOAD_SLOTS := [
 	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
 	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
@@ -16,6 +17,7 @@ var current_screen: Node
 
 
 func _ready() -> void:
+	_apply_runtime_settings(_get_persisted_settings())
 	show_title()
 
 
@@ -232,13 +234,43 @@ func _get_persisted_settings() -> Dictionary:
 
 
 func _apply_persisted_settings_to_screen(screen: Node) -> void:
+	var settings := _get_persisted_settings()
+	_apply_runtime_settings(settings)
 	if screen != null and screen.has_method("apply_settings"):
-		screen.call("apply_settings", _get_persisted_settings())
+		screen.call("apply_settings", settings)
 
 
 func _on_settings_changed(settings: Dictionary) -> void:
+	_apply_runtime_settings(settings)
 	if current_screen != null and current_screen.has_method("apply_settings"):
 		current_screen.call("apply_settings", settings)
+
+func _apply_runtime_settings(settings: Dictionary) -> void:
+	if settings.has("master_volume"):
+		_apply_bus_volume("Master", clampf(float(settings.master_volume), 0.0, 1.0))
+	if settings.has("music_volume"):
+		_apply_bus_volume("Music", clampf(float(settings.music_volume), 0.0, 1.0))
+	if settings.has("sfx_volume"):
+		_apply_bus_volume("SFX", clampf(float(settings.sfx_volume), 0.0, 1.0))
+	if settings.has("fullscreen"):
+		_apply_fullscreen_enabled(bool(settings.fullscreen))
+	if settings.has("vsync"):
+		_apply_vsync_enabled(bool(settings.vsync))
+
+func _apply_bus_volume(bus_name: String, value: float) -> void:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index < 0:
+		return
+	var volume_db := -80.0 if value <= 0.0 else linear_to_db(maxf(value, MIN_VOLUME_LINEAR))
+	AudioServer.set_bus_volume_db(bus_index, volume_db)
+
+func _apply_fullscreen_enabled(enabled: bool) -> void:
+	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED
+	DisplayServer.window_set_mode(mode)
+
+func _apply_vsync_enabled(enabled: bool) -> void:
+	var mode := DisplayServer.VSYNC_ENABLED if enabled else DisplayServer.VSYNC_DISABLED
+	DisplayServer.window_set_vsync_mode(mode)
 
 
 func _quit_game() -> void:
