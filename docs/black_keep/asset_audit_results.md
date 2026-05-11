@@ -21,10 +21,44 @@ ImageMagick contact sheets were generated for the current top candidates:
 - [samurai_frames.png](contact_sheets/samurai_frames.png)
 - [magic_cliffs_frames.png](contact_sheets/magic_cliffs_frames.png)
 - [witch_3_sheets.png](contact_sheets/witch_3_sheets.png)
+- [witch_3_sliced_frames.png](contact_sheets/witch_3_sliced_frames.png)
 - [swat_1_sheets.png](contact_sheets/swat_1_sheets.png)
+- [swat_1_sliced_frames.png](contact_sheets/swat_1_sliced_frames.png)
 - [scientists_1_sheets.png](contact_sheets/scientists_1_sheets.png)
+- [scientists_1_sliced_frames.png](contact_sheets/scientists_1_sliced_frames.png)
 
 These sheets are for planning review only. Final selection still requires in-engine import, animation timing, collision scale, and style checks.
+
+## Contact Sheet Visual Review
+
+Second-pass visual review from the generated contact sheets:
+
+| Candidate | Visual read | Strengths | Concerns | Recommendation |
+|---|---|---|---|---|
+| `player_generic` | Dark armored sword fighter with large readable weapon arcs | Strong attack readability, many combat poses, shield block, climb, roll, death, hit, run | More agile swordsman than heavy Iron Knight; red/blue palette may need retint | Import-test as Iron Knight technical prototype; consider final retheme |
+| `player/samurai` | Small, fast ninja/samurai silhouette with bright cyan slash effects | Strong Ronin identity, readable sword VFX, good action poses | Smaller/simple silhouette than `player_generic`; animation names are not folder-separated | Import-test as Ronin; requires frame mapping |
+| `magic_cliffs_player` | Bright blond agile sword character | Clear agile motion, readable attacks, good jump/fall/death silhouettes | Does not visually read as The Shadow; too bright for stealth/scout role without palette work | Defer for Shadow; keep as agile fallback or NPC/enemy candidate |
+| `Witch_3` | Staff/spear-bearing caster with dark clothing and many spell/combat frames | Strong Witch silhouette, run/jump/special/attack coverage, good staff read | Reads more staff/spear witch than ash ritualist; 64px charge sheet is an exception | Import-test as Black Witch of Ash; plan ash VFX overlay |
+| `SWAT_1` | Modern rifle-bearing tactical character | Best Arc-Gunner read, strong shot/recharge/run/walk coverage, readable muzzle flashes | Military SWAT identity may need magical/arc VFX and palette pass | Import-test as Arc-Gunner first |
+| `Scientists_1` | Yellow hazmat/scientist silhouette | Strong Gadgeteer/science identity, special frames, readable run/walk | No obvious attack/jump sheet; bulky suit may feel slow | Use as Gadgeteer/NPC candidate; defer as playable until combat frames are solved |
+
+## Import-Test Shortlist
+
+Recommended first import-test order:
+
+1. `SWAT_1` as The Arc-Gunner.
+2. `player/samurai` as The Ronin.
+3. `Witch_3` as The Black Witch of Ash.
+4. `player_generic` as Iron Knight technical prototype.
+
+Deferred:
+
+- `magic_cliffs_player` for The Shadow unless palette/silhouette edits make it read stealthier.
+- `Scientists_1` for The Gadgeteer until attack/jump coverage is solved.
+
+Rejected for immediate playable use:
+
+- `Adventure Character`, due to smaller and inconsistent scale compared with stronger candidates.
 
 ## Repository Asset Summary
 
@@ -266,11 +300,11 @@ Transitions include 1,214 PNGs across many mask styles: iris, dissolve, slash, c
 
 | Black Keep role | Recommended candidate pool | Confidence |
 |---|---|---|
-| The Ronin | `player/samurai`; Feudal Japan stage characters as backup | High, pending animation-name mapping |
-| The Arc-Gunner | `craft pix characters/SWAT_1` first, SWAT_3/Policewoman backup | High for sheet coverage, pending style/scale review |
-| The Iron Knight | `player/player_generic`; `player/Knight`; `player/Special Knight` backup | Medium-high for technical coverage, medium for visual role |
-| The Black Witch of Ash | `craft pix characters/Witch_3`, Witch_1/2 backup | High for sheet coverage, pending silhouette choice |
-| The Shadow | `player/magic_cliffs_player` as movement base; needs visual role review or custom art | Medium-low |
+| The Ronin | `player/samurai`; Feudal Japan stage characters as backup | High; import-test after frame mapping |
+| The Arc-Gunner | `craft pix characters/SWAT_1` first, SWAT_3/Policewoman backup | High; first import-test target |
+| The Iron Knight | `player/player_generic`; `player/Knight`; `player/Special Knight` backup | Medium-high technically; visual identity needs retheme or confirmation |
+| The Black Witch of Ash | `craft pix characters/Witch_3`, Witch_1/2 backup | High; add ash VFX to push identity |
+| The Shadow | Defer `magic_cliffs_player`; seek darker scout/ranger candidate or custom edit | Low-medium |
 | The Gadgeteer | `craft pix characters/Scientists_1`; Scientists_2/3 backup | Medium; lacks obvious attack/jump coverage |
 | The Blood-Marked | Demon/Gladiator/monstrous pool | Medium-low |
 | The Yokai-Bound | Demon/Satyr/Dragon/Minotaur pool | Medium-low |
@@ -295,10 +329,12 @@ Transitions include 1,214 PNGs across many mask styles: iris, dissolve, slash, c
 - Whether Arc-Gunner should use SWAT sheets directly or a cleaned/customized derivative.
 - Whether The Shadow needs new art instead of reusing available movement-rich sprites.
 - Whether Final Tower and Monster Belly packs need additional parallax and enemy art.
+- Whether `player_generic` should become the final Iron Knight or remain a temporary technical prototype.
+- Whether Witch_3's staff/spear read is acceptable for The Black Witch of Ash.
 
 ## Implementation Notes
 
-- Next pass should review generated contact sheets and select import-test candidates.
+- Next pass should create import-test plans for `SWAT_1`, `player/samurai`, `Witch_3`, and `player_generic`.
 - Test the top 4 playable candidates in Godot before locking the roster.
 - Prefer direct import tests for `player_generic`, `player/samurai`, `Witch_3`, and `SWAT_1`.
 - CraftPix-style sheets need a slicing convention, likely 128x128, with explicit exceptions for 64px-high charge/projectile sheets.
