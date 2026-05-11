@@ -45,7 +45,7 @@ The milestone is complete when:
 - The player can attack enemies clearly with keyboard and controller.
 - Enemies can damage the player.
 - Room enemies respawn when the player leaves and re-enters.
-- Double jump, dash, air dash, wall jump, wall hang, slide attack, and dive
+- Double jump, dash, air dash, wall jump, wall hang, dash strike, and dive
   bomb are testable in controlled milestone rooms.
 - The familiar follows, attacks, levels, and preserves state through saves.
 - The Witch joins the party and can tag in.
@@ -156,8 +156,7 @@ Tasks:
 - Add double jump.
 - Add wall hang.
 - Add wall jump.
-- Add slide.
-- Add slide attack.
+- Add dash strike by merging the former slide attack into dash.
 - Add dive bomb attack with enemy bounce.
 - Add controller bindings for every movement action.
 
@@ -167,9 +166,9 @@ Acceptance:
 - Dash cannot place the player through solid collision.
 - Air dash works once per airtime unless reset by landing or allowed pickup.
 - Double jump works once per airtime.
-- Wall hang can hold briefly and then slide or release.
+- Wall hang can hold briefly and then enter controlled wall fall or release.
 - Wall jump pushes away from the wall.
-- Slide attack has a hitbox and clear recovery.
+- Dash strike has a hitbox and clear recovery.
 - Dive bomb triggers with down plus attack in air, damages an enemy, and bounces
   the player upward on a successful hit.
 

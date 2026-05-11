@@ -8,6 +8,8 @@ var selected_starter_id: String = ""
 var player_name: String = ""
 var selected_class: String = ""
 var selected_sprite: String = ""
+var character_appearance: Dictionary = {}
+var character_spriteframes_path: String = ""
 var current_area: String = ""
 var current_room: String = ""
 var checkpoint_id: String = ""
@@ -39,6 +41,8 @@ func to_dictionary() -> Dictionary:
 		"player_name": player_name,
 		"selected_class": selected_class,
 		"selected_sprite": selected_sprite,
+		"character_appearance": character_appearance,
+		"character_spriteframes_path": character_spriteframes_path,
 		"current_area": current_area,
 		"current_room": current_room,
 		"checkpoint_id": checkpoint_id,
@@ -74,6 +78,9 @@ static func from_dictionary(data: Dictionary):
 	state.player_name = str(data.get("player_name", ""))
 	state.selected_class = str(data.get("selected_class", ""))
 	state.selected_sprite = str(data.get("selected_sprite", ""))
+	var loaded_character_appearance: Variant = data.get("character_appearance", {})
+	state.character_appearance = loaded_character_appearance if loaded_character_appearance is Dictionary else {}
+	state.character_spriteframes_path = str(data.get("character_spriteframes_path", ""))
 	state.current_area = str(data.get("current_area", ""))
 	state.current_room = str(data.get("current_room", ""))
 	state.checkpoint_id = str(data.get("checkpoint_id", ""))

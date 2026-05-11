@@ -16,7 +16,7 @@ approach.
 
 Headless tests:
 
-- Fast tests for resources, save data, movement logic, room graph, and state.
+- Fast tests for resources, save data, movement logic, room graph, CharacterCreator2D manifests, recipes, export profiles, and state.
 
 Dev scenes:
 
@@ -67,8 +67,18 @@ Movement tests:
 - Double jump count is enforced.
 - Wall hang duration works.
 - Wall jump pushes away from wall.
-- Slide attack creates low hitbox.
+- Dash-strike creates the expected forward hitbox.
 - Dive bomb bounces on enemy hit.
+
+CharacterCreator2D tests:
+
+- Source manifest preserves the full imported package payload.
+- Runtime assets load without importing raw Unity-only reference files.
+- Export profile exposes complete base and aim animation inventory.
+- Bulk export sets expose first-slice, movement, combat, all-base, and all-aim checklists.
+- Recipes validate selected parts, palettes, morph values, content-pack versions, and fallbacks.
+- Generated or imported `SpriteFrames` load and can be assigned to the player.
+- Missing animations and invalid recipes fail with actionable validation messages.
 
 Combat tests:
 
@@ -129,8 +139,17 @@ Movement sandbox:
 - Air dash gap.
 - Double-jump ledge.
 - Wall hang and wall jump wall.
-- Slide tunnel.
+- Dash-strike target lane.
 - Dive-bomb dummy.
+
+Character creator sandbox:
+
+- Layered rig preview.
+- Part and palette selection.
+- Morph controls.
+- Animation checklist preview.
+- Sheet bake and `SpriteFrames` generation.
+- Validation report display.
 
 Combat sandbox:
 

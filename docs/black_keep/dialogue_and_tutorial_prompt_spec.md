@@ -70,13 +70,13 @@ Movement:
 - Teach air dash.
 - Teach wall hang.
 - Teach wall jump.
-- Teach slide.
+- Teach dash.
 
 Combat:
 
 - Teach attack.
 - Teach combo.
-- Teach slide attack.
+- Teach dash strike.
 - Teach dive bomb.
 - Teach enemy windup.
 - Teach healing or checkpoint.
@@ -115,7 +115,7 @@ Swamp_MovementTutorial:
 - Double jump prompt.
 - Dash prompt.
 - Wall prompt.
-- Slide prompt if available.
+- Dash-strike prompt if available.
 
 Swamp_EnemyTutorial:
 

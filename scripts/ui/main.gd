@@ -120,7 +120,10 @@ func show_credits() -> void:
 
 
 func _start_new_game(starter_id: String, character_name: String) -> void:
-	var initial_state := _initial_state_for_starter(starter_id, character_name)
+	var appearance := {}
+	if current_screen != null and current_screen.has_method("get_selected_appearance"):
+		appearance = current_screen.call("get_selected_appearance") as Dictionary
+	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance)
 	var save_manager := _get_save_manager()
 	if save_manager != null and save_manager.has_method("save_game"):
 		save_manager.call("save_game", initial_state)
@@ -266,12 +269,13 @@ func _connect_world_navigation(world: Node) -> void:
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
 
-func _initial_state_for_starter(starter_id: String, character_name: String) -> GameStateScript:
+func _initial_state_for_starter(starter_id: String, character_name: String, character_appearance := {}) -> GameStateScript:
 	var definition := CharacterRegistry.get_definition(starter_id)
 	var state := GameStateScript.new()
 	state.selected_starter_id = starter_id
 	state.player_name = character_name.strip_edges()
 	state.selected_class = str(definition.get("class_id")) if definition != null else "warden"
+	state.character_appearance = character_appearance if character_appearance is Dictionary else {}
 	state.selected_sprite = ""
 	state.current_area = "swamp_outskirts"
 	state.current_room = "RoomStart"

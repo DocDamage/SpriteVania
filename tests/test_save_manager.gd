@@ -179,6 +179,21 @@ func _init() -> void:
 			push_error("Save manager should expose %s()" % method_name)
 			quit(1)
 			return
+	if not manager.has_method("_temporary_save_path"):
+		push_error("Save manager should write through a temporary save path before replacing a slot.")
+		quit(1)
+		return
+	var default_temp_path := manager.call("_temporary_save_path", manager.save_path) as String
+	if FileAccess.file_exists(default_temp_path):
+		push_error("Successful default save should not leave a temporary save file behind.")
+		quit(1)
+		return
+	var hostile_slot_path := manager.call("_slot_save_path", " ../bad:slot\\name ") as String
+	var hostile_slot_file := hostile_slot_path.get_file()
+	if hostile_slot_file.contains("..") or hostile_slot_file.contains(":") or hostile_slot_file.contains("/") or hostile_slot_file.contains("\\"):
+		push_error("Slot save paths should sanitize traversal and platform-unsafe characters.")
+		quit(1)
+		return
 	var slot_metadata: Array = manager.call("scan_save_slots", ["default", "slot_a", "slot_b"])
 	if slot_metadata.size() != 3:
 		push_error("Save manager should scan requested save slots")

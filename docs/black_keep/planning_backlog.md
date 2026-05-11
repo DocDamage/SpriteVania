@@ -39,6 +39,8 @@ buildable specs.
 31. Dialogue and tutorial prompt spec.
 32. Quest and progression spec.
 33. First implementation sprint.
+34. CharacterCreator2D Godot-native port roadmap.
+35. CharacterCreator2D source import and export profile spec.
 
 ## Planning Documents
 
@@ -85,6 +87,16 @@ Priority 0: [First Implementation Sprint](first_implementation_sprint.md)
 
 - Purpose: define the first focused sprint that moves from docs into code.
 - Status: draft.
+
+Priority 0: [CharacterCreator2D Port](../character_creator_2d_port.md)
+
+- Purpose: document source import layout, complete animation inventory, bulk export profile, and Godot runtime handoff.
+- Status: active.
+
+Priority 0: [Godot CharacterCreator2D Tool Roadmap](../character_creator_2d_godot_tool_roadmap.md)
+
+- Purpose: define the in-game creator, separate Character Studio app, recipes, layered rig, morphing, validation, and sheet baker roadmap.
+- Status: active.
 
 Priority 1: [Asset Audit Results](asset_audit_results.md)
 
@@ -177,7 +189,7 @@ Priority 15: [Momentum Tuning](momentum_tuning.md)
 
 Priority 16: [Combat and Movement Spec](combat_movement_spec.md)
 
-- Purpose: define attacks, combo basics, dash, double jump, wall actions, slide
+- Purpose: define attacks, combo basics, dash, double jump, wall actions, dash strike
   attack, dive bomb, and controller support.
 - Status: draft.
 

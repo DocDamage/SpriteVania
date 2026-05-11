@@ -44,6 +44,16 @@ custom_minimum_size = Vector2(420, 96)
 layout_mode = 2
 autowrap_mode = 3
 
+[node name="AppearanceScroll" type="ScrollContainer" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(420, 220)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="AppearanceOptions" type="VBoxContainer" parent="CenterContainer/VBoxContainer/AppearanceScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="NameEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

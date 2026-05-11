@@ -189,7 +189,7 @@ Milestone services:
 
 Acceptance:
 
-- Player can test attack, combo, dash, wall jump, slide attack, dive bomb, and
+- Player can test attack, combo, dash, wall jump, dash strike, dive bomb, and
   tag swap without enemy death pressure.
 
 ### Archive Nook

@@ -19,6 +19,10 @@ swamp road, with portals into pocket dimensions from different times and places.
   title screen, menu routing, settings, persistence, and accessibility.
 - [Art Pipeline](art_pipeline.md):
   palette rules, sprite requirements, normalization, parallax, and priorities.
+- [CharacterCreator2D Port](../character_creator_2d_port.md):
+  Godot-native source import, animation profile, bulk export, and runtime handoff.
+- [Godot CharacterCreator2D Tool Roadmap](../character_creator_2d_godot_tool_roadmap.md):
+  in-game creator, separate Character Studio app, recipes, rig, morphing, and baker roadmap.
 - [Asset Classification](asset_classification.md):
   sorting criteria for playable, NPC, enemy, boss, terrain, UI, and VFX.
 - [Story Outline](story_outline.md):
@@ -124,3 +128,4 @@ The repo already has a working Godot vertical slice foundation:
 - Swamp Outskirts route and Castle Gate groundwork.
 - HUD feedback for health, resource, XP, level, upgrades, room, and map.
 - Familiar progression.
+- CharacterCreator2D Base Fantasy source package import and Godot-native creator/exporter planning.

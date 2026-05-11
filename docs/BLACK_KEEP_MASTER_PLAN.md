@@ -34,6 +34,8 @@ The detailed production specs live in the focused documents under
 - [Dialogue and tutorial prompt spec](black_keep/dialogue_and_tutorial_prompt_spec.md)
 - [Quest and progression spec](black_keep/quest_and_progression_spec.md)
 - [Character creation spec](black_keep/character_creation_spec.md)
+- [CharacterCreator2D port](character_creator_2d_port.md)
+- [Godot CharacterCreator2D tool roadmap](character_creator_2d_godot_tool_roadmap.md)
 - [Party and combat overview](black_keep/party_and_combat.md)
 - [Party system technical spec](black_keep/party_system_technical_spec.md)
 - [Momentum tuning](black_keep/momentum_tuning.md)
@@ -119,6 +121,7 @@ The current implementation foundation includes:
 - Familiar progression with leveling, evolution, upgrades, and enemy attacks.
 - Controller support groundwork and input-map tests.
 - Title-screen art, parallax, weather, polish layers, and expanded settings.
+- CharacterCreator2D Base Fantasy source import, complete animation inventory profiling, and Godot-native creator/tool roadmap.
 
 This foundation should be refined into the first Black Keep milestone rather
 than discarded.
@@ -222,8 +225,8 @@ The game should support modern Metroidvania movement, including:
 - Air dash.
 - Wall jump.
 - Wall hang.
-- Wall slide.
-- Slide attack.
+- Controlled wall fall.
+- Dash strike.
 - Dive-bomb attack.
 - Character-specific traversal identities.
 
@@ -349,7 +352,7 @@ Playable candidates need these animation targets:
 - Death.
 - Special.
 - Dash.
-- Slide.
+- Dash strike.
 
 Asset review categories:
 

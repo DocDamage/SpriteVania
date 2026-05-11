@@ -74,7 +74,7 @@ scripts/dev/playable_import_test_scene.gd
 docs/black_keep/playable_import_test_results.md
 ```
 
-The scene creates a flat ground, jump gap, ledge, wall/vertical-ascent test, low-ceiling/slide test, dummy target, moving-target path marker, camera reference, candidate preview slots, and a runtime asset-coverage scan.
+The scene creates a flat ground, jump gap, ledge, wall/vertical-ascent test, dash-strike test lane, dummy target, moving-target path marker, camera reference, candidate preview slots, and a runtime asset-coverage scan.
 
 ### Current Candidate Results
 
@@ -168,7 +168,7 @@ hurt
 death
 special
 dash
-slide
+dash_strike
 ```
 
 ## Highest-Priority Playable Candidate Pool
@@ -179,7 +179,7 @@ These candidates have the strongest animation-folder evidence from the scan. The
 |---|---|---|---|---|
 | `SpriteVania Assets/player/player_generic` | Iron Knight / fallback full playable template | 145 PNGs; folders include Attacks, Climb, Dead, Hit, Idle, Jump, Roll, Run, Shield Block; mostly `128x96` frames with Dead at `128x128` | Needs visual role check; may be more generic than final identity | Strongest animation-completeness candidate |
 | `SpriteVania Assets/player/samurai` | The Ronin | 152 PNGs; two `120x120` frame folders plus a `720x1560` sheet; Feudal Japan role fit | Filenames are frame-number based; animation labels need mapping before import | Strongest Ronin candidate |
-| `SpriteVania Assets/player/magic_cliffs_player` | Shadow movement reference / agile fallback | 54 PNGs plus spritesheets; individual frames are mostly `128x96`; attack, crouch-attack, death, fall, hurt, idle, jump, jump-attack, run | No obvious dash/slide/special; visual role may not fit Shadow exactly | Good animation reference or fallback playable |
+| `SpriteVania Assets/player/magic_cliffs_player` | Shadow movement reference / agile fallback | 54 PNGs plus spritesheets; individual frames are mostly `128x96`; attack, crouch-attack, death, fall, hurt, idle, jump, jump-attack, run | No obvious dash/dash-strike/special; visual role may not fit Shadow exactly | Good animation reference or fallback playable |
 | `SpriteVania Assets/player/Adventure Character` | Explorer / generic fallback | 68 PNGs; mixed small individual frames and sheets: `32x32`, `62x41`, `65x58`, `1116x41`, etc. | Scale is much smaller and inconsistent versus main candidates | Lower priority unless style proves useful |
 
 ## ImageMagick Dimension and Coverage Pass
@@ -190,7 +190,7 @@ Top `player` folder candidates:
 |---|---|---|---|
 | `player_generic` | 128x96 for most folders; 128x128 for death | Attacks 38, Climb 16, Dead 6, Hit 16, Idle 12, Jump 14, Roll 14, Run 12, Shield Block 6 | Best immediate technical fit; needs identity art decision |
 | `samurai` | 120x120 individual frames; 720x1560 sheet | 78 color-2 frames, 72 base frames | Strong Ronin fit; needs animation-name mapping |
-| `magic_cliffs_player` | 128x96 individual frames; sheets from 256x96 to 1024x96 | Attack 8, crouch-attack 5, death 8, fall 2, hurt 1, idle 4, jump 3, jump-attack 5, run 8 | Useful agile reference; limited hurt/fall and no clear dash/slide |
+| `magic_cliffs_player` | 128x96 individual frames; sheets from 256x96 to 1024x96 | Attack 8, crouch-attack 5, death 8, fall 2, hurt 1, idle 4, jump 3, jump-attack 5, run 8 | Useful agile reference; limited hurt/fall and no clear dash/dash-strike |
 | `Adventure Character` | Mixed small frames/sheets from 26x30 through 1116x41 | Good basic platformer set but small scale | Lower priority; likely needs scaling/cleanup |
 
 Top CraftPix-style candidates are generally 128px-tall horizontal sheets. Estimated frame counts are width divided by 128 unless noted.
@@ -361,7 +361,7 @@ Transitions include 1,214 PNGs across many mask styles: iris, dissolve, slash, c
 
 - Which candidate sprites look best after visual inspection.
 - Whether CraftPix character scale matches the current player scale.
-- How `player/samurai` frame numbers map to idle/run/jump/fall/attack/hurt/death/special/dash/slide.
+- How `player/samurai` frame numbers map to idle/run/jump/fall/attack/hurt/death/special/dash/dash-strike.
 - Whether Arc-Gunner should use SWAT sheets directly or a cleaned/customized derivative.
 - Whether The Shadow needs new art instead of reusing available movement-rich sprites.
 - Whether Final Tower and Monster Belly packs need additional parallax and enemy art.

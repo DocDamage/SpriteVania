@@ -40,7 +40,7 @@ Risks:
 Next action:
 
 - Build `ronin_prototype_frames`.
-- Map idle, run, jump, fall, attack, hurt, death, dash, slide, and special.
+- Map idle, run, jump, fall, attack, hurt, death, dash, dash-strike, and special.
 
 ### The Arc-Gunner
 
@@ -237,11 +237,11 @@ Decision:
 
 Role:
 
-- Slide attack tutorial target.
+- Dash-strike tutorial target.
 
 Risks:
 
-- Must be low enough to justify slide attack.
+- Must be low enough to justify dash strike.
 - Contact damage must be readable.
 
 Next action:

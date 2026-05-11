@@ -445,6 +445,10 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	add_child(player)
 	player.global_position = spawn_position
 	player.call("setup", CLASS_DATA[state.selected_class], state.selected_sprite)
+	if player.has_method("apply_character_appearance"):
+		player.call("apply_character_appearance", state.character_appearance)
+	if not state.character_spriteframes_path.is_empty() and player.has_method("apply_spriteframes_path"):
+		player.call("apply_spriteframes_path", state.character_spriteframes_path)
 	player.call("set_traversal_unlocks", state.traversal_unlocks)
 	if player.has_method("set_learned_attack_skills"):
 		player.call("set_learned_attack_skills", state.learned_attack_skills)

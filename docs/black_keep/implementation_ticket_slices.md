@@ -141,7 +141,7 @@ Work:
 - Implement velocity dash.
 - Add air dash.
 - Add double jump.
-- Add wall hang, slide, and wall jump.
+- Add wall hang, controlled wall fall, and wall jump.
 - Add collision-safe dash.
 
 Verification:
@@ -164,7 +164,7 @@ Work:
 - Add three-hit combo.
 - Add hit feedback.
 - Add attack tutorial prompt hook.
-- Add slide attack.
+- Add dash strike.
 - Add dive bomb and bounce.
 
 Verification:

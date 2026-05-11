@@ -11,6 +11,7 @@ tested, or rejected before gameplay work can stabilize.
 - Identify the exact sheets that need slicing.
 - Keep placeholder use explicit.
 - Make the first route look finished enough for meaningful playtests.
+- Integrate the CharacterCreator2D source package through the Godot-native creator, recipe, morph, and sheet-baking pipeline.
 
 ## Import Settings
 
@@ -28,6 +29,8 @@ Godot resource expectations:
 
 - Character animations should become `SpriteFrames` resources or equivalent
   reusable animation resources.
+- CharacterCreator2D output should become recipes plus generated `SpriteFrames`;
+  Unity is not part of the production export path.
 - Tile sets should become `TileSet` resources with collision assigned.
 - Parallax layers should be separated by depth.
 - VFX should be imported as reusable animation resources.
@@ -42,18 +45,18 @@ Source candidate:
 
 Tasks:
 
-- Map frame ranges to idle, run, jump, fall, attack, hurt, death, dash, slide,
-  and special.
+- Map frame ranges to idle, walk, run, jump, fall, attack, hurt, death, dash,
+  dash-strike, and special.
 - Create first `SpriteFrames` resource.
 - Scale test against current player collision.
 - Create three-hit combo animation mapping.
-- Create slide attack animation mapping.
+- Create dash-strike animation mapping.
 - Create dive-bomb animation mapping.
 - Document missing or faked animations.
 
 Acceptance:
 
-- Ronin can run, jump, attack, dash, slide, and take damage in the import-test
+- Ronin can run, jump, attack, dash, dash-strike, and take damage in the import-test
   scene.
 
 ### The Arc-Gunner
@@ -147,7 +150,7 @@ First standard patrol enemy:
 Small crawler:
 
 - Use existing crawler if current implementation already has one.
-- Add slide-attack vulnerability tag.
+- Add dash-strike vulnerability tag.
 
 Cursed samurai:
 
@@ -255,8 +258,8 @@ Required VFX:
 - Enemy hit flash.
 - Dash trail.
 - Double-jump burst.
-- Wall slide dust.
-- Slide attack slash or impact.
+- Wall contact dust.
+- Dash-strike slash or impact.
 - Dive-bomb impact.
 - Ashen Hexburst.
 - Silent Arrowfall.
@@ -303,6 +306,33 @@ Use stable derived asset names:
 
 Do not overwrite source asset files.
 
+## CharacterCreator2D Integration Tasks
+
+Source:
+
+- `SpriteVania Assets/Base Fantasy v1.99.unitypackage`
+
+Tasks:
+
+- Preserve the full package payload in the generated manifest.
+- Keep Godot-loadable runtime assets separate from ignored raw reference assets.
+- Generate complete base and aim animation export inventory.
+- Build Godot-native recipe resources for selected parts, palettes, morph values, content-pack IDs, and export profile IDs.
+- Build layered rig preview scene for the in-game creator and separate Character Studio app.
+- Add morph controls for safe transform-based changes first: height, width, head size, limb proportions, posture, weapon scale, and cape volume.
+- Add per-part mesh/lattice morphing only after transform morphs validate.
+- Add checklist-driven bulk export UI with first-slice, movement, combat, all-base, all-aim, and custom sets.
+- Bake selected rig animations into transparent sheets.
+- Generate Godot `SpriteFrames`, import manifest, contact sheet, and recipe provenance.
+- Add validation for collision fit, frame bounds, missing animations, transparency, pivot stability, and small-scale readability.
+
+Acceptance:
+
+- No Unity editor or Unity runtime is needed to create, preview, morph, bulk-export, or import a character.
+- A recipe can be saved, reloaded, validated, baked, and assigned to the player.
+- `all_base` and `all_aim` checklists expose the complete imported CC2D animation inventory.
+- Headless import and runtime assignment tests pass.
+
 ## Open Questions
 
 - Which folders contain the best Shadow candidate?
@@ -311,3 +341,4 @@ Do not overwrite source asset files.
 - Does Masakiro need custom art before the first prototype boss pass?
 - Should the derived assets live under `assets/black_keep/` or a different
   project convention?
+- Which CharacterCreator2D morph controls are safe enough for in-game use versus Character Studio only?

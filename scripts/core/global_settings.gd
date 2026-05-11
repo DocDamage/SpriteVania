@@ -57,5 +57,21 @@ static func normalize_settings(settings: Dictionary) -> Dictionary:
 			"colorblind_mode":
 				normalized[key] = str(value) if COLORBLIND_MODES.has(str(value)) else "Off"
 			_:
-				normalized[key] = bool(value)
+				normalized[key] = _normalized_bool(value)
 	return normalized
+
+static func _normalized_bool(value: Variant) -> bool:
+	match typeof(value):
+		TYPE_BOOL:
+			return value
+		TYPE_INT, TYPE_FLOAT:
+			return float(value) != 0.0
+		TYPE_STRING, TYPE_STRING_NAME:
+			var normalized := str(value).strip_edges().to_lower()
+			if ["false", "0", "off", "no", "disabled"].has(normalized):
+				return false
+			if ["true", "1", "on", "yes", "enabled"].has(normalized):
+				return true
+		TYPE_NIL:
+			return false
+	return true

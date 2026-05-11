@@ -21,6 +21,20 @@ Character resources:
 - `CharacterSkillTable`
 - `TagAttackDefinition`
 - `TraversalExpressionDefinition`
+- `CharacterRecipe`
+- `CharacterPartDefinition`
+- `CharacterPaletteDefinition`
+- `CharacterMorphProfile`
+- `CharacterExportProfile`
+- `CharacterContentPackManifest`
+
+CharacterCreator2D generated resources:
+
+- Part/source manifest.
+- Complete animation inventory.
+- Bulk export checklist sets.
+- Generated `SpriteFrames`.
+- Import/export provenance manifest.
 
 Room and zone resources:
 
@@ -96,6 +110,15 @@ Familiar manager:
 - Handles familiar target selection.
 - Saves level, XP, evolution, and abilities.
 
+Character creator manager:
+
+- Loads CharacterCreator2D manifests, content packs, recipes, palettes, morph profiles, and export profiles.
+- Assembles layered Godot rigs for preview and baking.
+- Validates recipe compatibility, collision fit, animation coverage, pivots, frame bounds, and missing parts.
+- Bakes selected animation checklists into transparent sheets and `SpriteFrames`.
+- Runs recipe migrations and missing-part fallbacks.
+- Provides the same core service to the in-game creator and the separate Character Studio app.
+
 World state manager:
 
 - Owns World Break state.
@@ -114,6 +137,8 @@ Character creation scene:
 
 - Reads starter definitions.
 - Writes initial save data only after confirmation.
+- Can launch the simplified in-game CharacterCreator2D recipe editor.
+- Stores selected recipe, morph values, and optional generated `SpriteFrames` path.
 
 Gameplay root:
 
@@ -154,6 +179,8 @@ Save data should include:
 - Seal unlocks.
 - Discovered rooms.
 - Settings overrides.
+- Character recipe IDs and embedded recipe fallback data.
+- Character morph values, palette IDs, content-pack versions, and generated `SpriteFrames` paths.
 
 Write flow:
 
@@ -230,7 +257,7 @@ Gameplay actions:
 - Attack.
 - Special.
 - Dash.
-- Slide.
+- Dash strike.
 - Interact.
 - Swap.
 - Familiar command.

@@ -92,10 +92,9 @@ Required:
 - Air dash works.
 - Double jump works.
 - Wall hang works.
-- Wall slide works.
+- Wall hang/fall behavior works without a separate slide mechanic.
 - Wall jump works.
-- Slide works.
-- Slide attack works.
+- Dash strike works as the merged dash/combat burst.
 - Dive bomb works.
 - Dive bomb bounces on enemy hit.
 - Dash and dive bomb do not tunnel through collision.

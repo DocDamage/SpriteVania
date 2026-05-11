@@ -61,10 +61,10 @@ Player SFX:
 - Double jump.
 - Land.
 - Dash.
-- Wall slide.
+- Controlled wall fall.
 - Wall jump.
-- Slide.
-- Slide attack.
+- Dash strike.
+- Dash strike.
 - Dive bomb start.
 - Dive bomb impact.
 - Hurt.

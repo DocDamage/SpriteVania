@@ -25,7 +25,7 @@ Small Crawler:
 - Purpose: low-profile enemy.
 - Zones: Swamp.
 - Behavior: crawl, lunge or contact damage, hurt, death.
-- Tutorial role: teaches slide attack.
+- Tutorial role: teaches dash strike.
 
 Ranged Watch Guard:
 
@@ -106,7 +106,7 @@ First enemy:
 Crawler:
 
 - Place in a flat or slightly low tunnel.
-- Make slide attack clearly useful but not mandatory.
+- Make dash strike clearly useful but not mandatory.
 
 Ranged guard:
 

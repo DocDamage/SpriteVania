@@ -22,6 +22,15 @@ func _run() -> void:
 	await _assert_evolution_extends_familiar_attack_reach()
 	if _failed:
 		return
+	await _assert_familiar_visuals_track_evolution()
+	if _failed:
+		return
+	await _assert_familiar_state_sanitizes_invalid_saved_data()
+	if _failed:
+		return
+	await _assert_familiar_handles_missing_target_and_invalid_enemies()
+	if _failed:
+		return
 	print("PASS: familiar")
 	quit(0)
 
@@ -150,6 +159,97 @@ func _assert_evolution_extends_familiar_attack_reach() -> void:
 
 	player.queue_free()
 	enemy.queue_free()
+	await process_frame
+
+func _assert_familiar_visuals_track_evolution() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	root.add_child(player)
+	await process_frame
+	var familiar := player.get_node("Familiar") as Node2D
+	if not familiar.has_method("get_visual_status"):
+		_fail("Familiar should expose visual status for verifying evolution polish.")
+		return
+
+	var spark_status := familiar.call("get_visual_status") as Dictionary
+	if str(spark_status.get("stage", "")) != "spark":
+		_fail("Familiar visuals should start in the spark stage.")
+		return
+	if str(spark_status.get("body_texture", "")) != "res://SpriteVania Assets/familiar_owl_idle.png":
+		_fail("Familiar should use the imported owl sprite texture, not only procedural glow.")
+		return
+	if bool(spark_status.get("ring_visible", true)):
+		_fail("Spark familiar should not show its evolved stage ring.")
+		return
+
+	familiar.call("gain_xp", 520)
+	var sprite_status := familiar.call("get_visual_status") as Dictionary
+	if str(sprite_status.get("stage", "")) != "sprite":
+		_fail("Familiar visual status should track sprite evolution.")
+		return
+	if not bool(sprite_status.get("ring_visible", false)):
+		_fail("Sprite evolution should enable the familiar stage ring.")
+		return
+	if float(sprite_status.get("glow_scale_x", 0.0)) <= float(spark_status.get("glow_scale_x", 0.0)):
+		_fail("Familiar glow should grow as it evolves.")
+		return
+
+	familiar.call("gain_xp", 1320)
+	var guardian_status := familiar.call("get_visual_status") as Dictionary
+	if str(guardian_status.get("stage", "")) != "guardian":
+		_fail("Familiar visual status should track guardian evolution.")
+		return
+	if str(guardian_status.get("core_color", "")) == str(sprite_status.get("core_color", "")):
+		_fail("Guardian familiar should have a distinct core color from sprite.")
+		return
+
+	player.queue_free()
+	await process_frame
+
+func _assert_familiar_state_sanitizes_invalid_saved_data() -> void:
+	var familiar := FAMILIAR_SCRIPT.new() as Node2D
+	root.add_child(familiar)
+	await process_frame
+
+	familiar.call("apply_state", {
+		"level": -3,
+		"xp": -5,
+		"ability_points": -2,
+		"ability_levels": {
+			"sting": -99,
+			"focus": 2.7,
+			"unknown": 7,
+		},
+	})
+	if int(familiar.get("level")) != 1 or int(familiar.get("xp")) != 0 or int(familiar.get("ability_points")) != 0:
+		_fail("Familiar apply_state should clamp negative level, XP, and ability points.")
+		return
+	var ability_levels := familiar.get("ability_levels") as Dictionary
+	if ability_levels.has("unknown") or int(ability_levels.get("sting", -1)) != 0 or int(ability_levels.get("focus", 0)) != 2:
+		_fail("Familiar apply_state should keep only known, non-negative ability levels.")
+		return
+	if str(familiar.get("evolution_stage")) != "spark":
+		_fail("Familiar apply_state should derive evolution from sanitized level.")
+		return
+
+	familiar.queue_free()
+	await process_frame
+
+func _assert_familiar_handles_missing_target_and_invalid_enemies() -> void:
+	var familiar := FAMILIAR_SCRIPT.new() as Node2D
+	root.add_child(familiar)
+	await process_frame
+	familiar.call("_physics_process", 0.016)
+
+	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	root.add_child(enemy)
+	enemy.global_position = familiar.global_position
+	enemy.queue_free()
+	await process_frame
+	if bool(familiar.call("try_attack")):
+		_fail("Familiar should ignore enemies that have already left the scene tree.")
+		return
+
+	familiar.queue_free()
 	await process_frame
 
 func _fail(message: String) -> void:

@@ -227,7 +227,7 @@ Exits:
 Enemies:
 
 - One standard patrol enemy.
-- One small crawler if slide attack is already available.
+- One small crawler if dash strike is already available.
 
 Respawn:
 

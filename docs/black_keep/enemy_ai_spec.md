@@ -167,7 +167,7 @@ Small crawler:
 - Lower profile.
 - Slower patrol.
 - Contact or short lunge attack.
-- Vulnerable to slide attack.
+- Vulnerable to dash strike.
 
 Flying scout:
 
@@ -280,7 +280,7 @@ Automated tests:
 Manual playtests:
 
 - First enemy room teaches attack clearly.
-- Crawler can be hit with slide attack.
+- Crawler can be hit with dash strike.
 - Flying enemy does not create unfair jump blocks.
 - Samurai patrols feel readable.
 - Alarm escape is tense but not a softlock.

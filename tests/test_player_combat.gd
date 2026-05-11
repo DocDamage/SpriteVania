@@ -14,6 +14,7 @@ func _run() -> void:
 	await _assert_melee_combo_steps_increase_damage()
 	await _assert_dive_bomb_damages_enemy_and_bounces()
 	await _assert_projectile_attack_damages_enemy()
+	await _assert_projectile_spawn_without_scene_parent_is_safe()
 	await _assert_enemy_death_signal_grants_xp()
 	await _assert_restore_resource_caps_at_max_and_emits_stats()
 	print("PASS: player combat")
@@ -156,6 +157,13 @@ func _assert_projectile_attack_damages_enemy() -> void:
 		quit(1)
 	player.free()
 	enemy.free()
+
+func _assert_projectile_spawn_without_scene_parent_is_safe() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	player.setup(GUNSLINGER_DATA, "")
+	player.global_position = Vector2(100, 100)
+	player.fire_projectile(10)
+	player.free()
 
 func _assert_enemy_death_signal_grants_xp() -> void:
 	var player := PLAYER_SCENE.instantiate() as Player

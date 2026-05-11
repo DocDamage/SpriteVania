@@ -20,6 +20,60 @@ const EVOLUTION_LEVELS := {
 	6: "guardian",
 }
 const KNOWN_ABILITIES := ["sting", "focus", "guard"]
+const VISUAL_STATES := {
+	"spark": {
+		"glow_color": Color(0.35, 0.85, 1.0, 0.72),
+		"core_color": Color(0.95, 1.0, 1.0, 1.0),
+		"tail_color": Color(0.18, 0.72, 0.88, 0.5),
+		"ring_color": Color(0.35, 0.85, 1.0, 0.0),
+		"body_color": Color(0.82, 0.92, 1.0, 0.92),
+		"glow_scale": Vector2(0.85, 0.85),
+		"core_scale": Vector2(0.52, 0.52),
+		"body_scale": Vector2(0.16, 0.16),
+		"tail_scale": Vector2(0.35, 0.2),
+		"tail_offset": Vector2(-8, 5),
+		"ring_visible": false,
+	},
+	"wisp": {
+		"glow_color": Color(0.3, 0.95, 1.0, 0.82),
+		"core_color": Color(0.88, 1.0, 1.0, 1.0),
+		"tail_color": Color(0.1, 0.8, 0.95, 0.58),
+		"ring_color": Color(0.38, 0.95, 1.0, 0.28),
+		"body_color": Color(0.92, 1.0, 1.0, 1.0),
+		"glow_scale": Vector2(1.0, 1.0),
+		"core_scale": Vector2(0.58, 0.58),
+		"body_scale": Vector2(0.18, 0.18),
+		"tail_scale": Vector2(0.42, 0.24),
+		"tail_offset": Vector2(-9, 6),
+		"ring_visible": true,
+	},
+	"sprite": {
+		"glow_color": Color(0.56, 1.0, 0.72, 0.86),
+		"core_color": Color(0.96, 1.0, 0.7, 1.0),
+		"tail_color": Color(0.22, 0.9, 0.64, 0.62),
+		"ring_color": Color(0.75, 1.0, 0.46, 0.34),
+		"body_color": Color(0.9, 1.0, 0.84, 1.0),
+		"glow_scale": Vector2(1.16, 1.16),
+		"core_scale": Vector2(0.66, 0.66),
+		"body_scale": Vector2(0.2, 0.2),
+		"tail_scale": Vector2(0.5, 0.28),
+		"tail_offset": Vector2(-10, 7),
+		"ring_visible": true,
+	},
+	"guardian": {
+		"glow_color": Color(1.0, 0.82, 0.42, 0.9),
+		"core_color": Color(1.0, 0.97, 0.52, 1.0),
+		"tail_color": Color(1.0, 0.58, 0.28, 0.66),
+		"ring_color": Color(1.0, 0.77, 0.24, 0.46),
+		"body_color": Color(1.0, 0.94, 0.72, 1.0),
+		"glow_scale": Vector2(1.32, 1.32),
+		"core_scale": Vector2(0.76, 0.76),
+		"body_scale": Vector2(0.22, 0.22),
+		"tail_scale": Vector2(0.58, 0.32),
+		"tail_offset": Vector2(-11, 8),
+		"ring_visible": true,
+	},
+}
 
 var target: Node2D
 var level := 1
@@ -29,15 +83,22 @@ var ability_points := 0
 var ability_levels: Dictionary = {}
 var _bob_time := 0.0
 var _attack_cooldown_remaining := 0.0
+@onready var _glow_sprite := get_node_or_null("Glow") as Sprite2D
+@onready var _core_sprite := get_node_or_null("Core") as Sprite2D
+@onready var _tail_sprite := get_node_or_null("Tail") as Sprite2D
+@onready var _stage_ring := get_node_or_null("StageRing") as Sprite2D
+@onready var _body_sprite := get_node_or_null("BodySprite") as Sprite2D
 
 func _ready() -> void:
 	top_level = true
 	target = get_parent() as Node2D
 	if target != null:
 		global_position = target.global_position + follow_offset
+	_sync_visuals()
 
 func _physics_process(delta: float) -> void:
 	_attack_cooldown_remaining = maxf(0.0, _attack_cooldown_remaining - delta)
+	_animate_visuals(delta)
 	if target == null or not is_instance_valid(target):
 		return
 
@@ -124,11 +185,14 @@ func to_dictionary() -> Dictionary:
 	}
 
 func apply_state(data: Dictionary) -> void:
-	level = max(1, int(data.get("level", 1)))
+	level = clampi(int(data.get("level", 1)), 1, XP_THRESHOLDS.size())
 	xp = max(0, int(data.get("xp", 0)))
 	ability_points = max(0, int(data.get("ability_points", 0)))
 	var loaded_abilities: Variant = data.get("ability_levels", {})
-	ability_levels = loaded_abilities.duplicate() if loaded_abilities is Dictionary else {}
+	ability_levels = {}
+	if loaded_abilities is Dictionary:
+		for ability_id: String in KNOWN_ABILITIES:
+			ability_levels[ability_id] = max(0, int(loaded_abilities.get(ability_id, 0)))
 	_update_evolution_stage()
 	stats_changed.emit(get_status())
 
@@ -141,19 +205,33 @@ func get_status() -> Dictionary:
 		"ability_levels": ability_levels.duplicate(),
 	}
 
+func get_visual_status() -> Dictionary:
+	_resolve_visual_nodes()
+	return {
+		"stage": evolution_stage,
+		"glow_scale_x": _glow_sprite.scale.x if _glow_sprite != null else 0.0,
+		"ring_visible": _stage_ring.visible if _stage_ring != null else false,
+		"core_color": str(_core_sprite.modulate) if _core_sprite != null else "",
+		"body_texture": _body_sprite.texture.resource_path if _body_sprite != null and _body_sprite.texture != null else "",
+	}
+
 func _oriented_offset() -> Vector2:
 	var facing := 1.0
-	if "facing_direction" in target:
+	if target != null and is_instance_valid(target) and "facing_direction" in target:
 		facing = float(target.get("facing_direction"))
+	if is_zero_approx(facing):
+		facing = 1.0
 	return Vector2(-absf(follow_offset.x) * signf(facing), follow_offset.y)
 
 func _find_nearest_enemy() -> Node2D:
+	if not is_inside_tree():
+		return null
 	var nearest: Node2D = null
 	var nearest_distance := INF
 	var reach := effective_attack_range()
 	for node: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy := node as Node2D
-		if enemy == null or not enemy.has_method("take_damage"):
+		if enemy == null or not is_instance_valid(enemy) or not enemy.is_inside_tree() or enemy.is_queued_for_deletion() or not enemy.has_method("take_damage"):
 			continue
 		var distance := global_position.distance_to(enemy.global_position)
 		if distance <= reach and distance < nearest_distance:
@@ -162,6 +240,8 @@ func _find_nearest_enemy() -> Node2D:
 	return nearest
 
 func _spawn_attack_flash(target_position: Vector2) -> void:
+	if not is_inside_tree():
+		return
 	var bolt_scene := load("res://scenes/player/FamiliarBolt.tscn") as PackedScene
 	if bolt_scene == null:
 		return
@@ -172,6 +252,9 @@ func _spawn_attack_flash(target_position: Vector2) -> void:
 	var parent := get_tree().current_scene
 	if parent == null:
 		parent = get_parent()
+	if parent == null or not is_instance_valid(parent):
+		bolt.queue_free()
+		return
 	parent.add_child(bolt)
 
 func _level_for_xp(value: int) -> int:
@@ -189,7 +272,49 @@ func _update_evolution_stage() -> void:
 		evolution_stage = "sprite"
 	elif level >= 2:
 		evolution_stage = "wisp"
+	_sync_visuals()
 
 func _grant_ability_level(ability_id: String) -> void:
 	ability_levels[ability_id] = int(ability_levels.get(ability_id, 0)) + 1
 	stats_changed.emit(get_status())
+
+func _sync_visuals() -> void:
+	_resolve_visual_nodes()
+	var state := VISUAL_STATES.get(evolution_stage, VISUAL_STATES["spark"]) as Dictionary
+	if _glow_sprite != null:
+		_glow_sprite.modulate = state["glow_color"]
+		_glow_sprite.scale = state["glow_scale"]
+	if _core_sprite != null:
+		_core_sprite.modulate = state["core_color"]
+		_core_sprite.scale = state["core_scale"]
+	if _tail_sprite != null:
+		_tail_sprite.modulate = state["tail_color"]
+		_tail_sprite.scale = state["tail_scale"]
+		_tail_sprite.position = state["tail_offset"]
+	if _body_sprite != null:
+		_body_sprite.modulate = state["body_color"]
+		_body_sprite.scale = state["body_scale"]
+	if _stage_ring != null:
+		_stage_ring.modulate = state["ring_color"]
+		_stage_ring.visible = bool(state["ring_visible"])
+		_stage_ring.scale = Vector2(1.0, 1.0) * maxf(float(state["glow_scale"].x), float(state["glow_scale"].y))
+
+func _animate_visuals(delta: float) -> void:
+	if _tail_sprite != null:
+		_tail_sprite.rotation = sin(_bob_time * 0.8) * 0.12
+	if _stage_ring != null and _stage_ring.visible:
+		_stage_ring.rotation += delta * 0.7
+	if _body_sprite != null:
+		_body_sprite.rotation = sin(_bob_time * 0.55) * 0.035
+
+func _resolve_visual_nodes() -> void:
+	if _glow_sprite == null:
+		_glow_sprite = get_node_or_null("Glow") as Sprite2D
+	if _core_sprite == null:
+		_core_sprite = get_node_or_null("Core") as Sprite2D
+	if _tail_sprite == null:
+		_tail_sprite = get_node_or_null("Tail") as Sprite2D
+	if _stage_ring == null:
+		_stage_ring = get_node_or_null("StageRing") as Sprite2D
+	if _body_sprite == null:
+		_body_sprite = get_node_or_null("BodySprite") as Sprite2D

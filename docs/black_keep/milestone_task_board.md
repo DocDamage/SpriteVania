@@ -124,7 +124,7 @@ Task: Add modern movement kit.
 
 - Add double jump.
 - Add wall hang.
-- Add wall slide.
+- Add controlled wall fall.
 - Add wall jump.
 
 Done when:
@@ -143,15 +143,15 @@ Done when:
 
 - A new player can identify attack and damage an enemy.
 
-Task: Add slide attack and dive bomb.
+Task: Add dash strike and dive bomb.
 
-- Add low slide hitbox.
+- Add forward dash-strike hitbox.
 - Add airborne down plus attack dive.
 - Add enemy bounce.
 
 Done when:
 
-- Slide and dive bomb pass manual and automated checks.
+- Dash strike and dive bomb pass manual and automated checks.
 
 ## Phase 4: Enemy AI
 

@@ -115,13 +115,33 @@ Confirmation layout:
 - Player-given name.
 - Fixed title.
 - Starting role summary.
+- Appearance summary when a CharacterCreator2D recipe is selected.
 - Start Game button.
 - Back button.
+
+CharacterCreator2D customization layout:
+
+- Layered character preview.
+- Part/category browser.
+- Palette and material controls.
+- Morph controls with safe gameplay bounds.
+- Animation preview and frame scrubber.
+- Validation panel for silhouette, frame bounds, missing parts, and required animations.
+- Save Recipe, Bake Sheets, and Back actions.
+
+Bulk export layout for the separate Character Studio app:
+
+- Checklist presets: first slice, movement, combat, all base, all aim, custom.
+- Per-animation checkboxes.
+- Output target, FPS, frame size, columns, and scale controls.
+- Export queue status.
+- Generated `SpriteFrames`, contact sheet, and manifest links.
 
 Acceptance:
 
 - Witch and Shadow are never shown as starter choices.
 - Name validation errors are readable.
+- Creator screens do not require Unity and can run inside Godot.
 
 ## Settings Menu
 

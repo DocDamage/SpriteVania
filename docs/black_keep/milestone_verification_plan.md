@@ -25,7 +25,7 @@ The milestone is not ready if:
 - Enemies do not patrol or attack.
 - Enemy paths get stuck in normal rooms.
 - Room re-entry fails to respawn standard enemies.
-- Double jump, dash, air dash, wall jump, wall hang, slide attack, or dive bomb
+- Double jump, dash, air dash, wall jump, wall hang, dash strike, or dive bomb
   cannot be tested.
 - Familiar state is lost on save, continue, or room transition.
 - Continue loads the wrong room or broken position.
@@ -70,7 +70,7 @@ Tests:
 - Attack hitbox damages an enemy hurtbox.
 - Enemy hurt, death, and XP events fire.
 - Three-hit combo advances and resets.
-- Slide attack creates a low hitbox.
+- Dash strike creates a forward combat hitbox during dash movement.
 - Dive bomb damages an enemy and bounces the player.
 - Hitstop and screen shake respect settings values.
 
@@ -95,8 +95,9 @@ Tests:
 - Air dash is limited before landing.
 - Double jump is limited before landing.
 - Wall hang holds briefly.
-- Wall slide limits fall speed.
+- Wall hang/fall behavior remains controlled without a separate slide mechanic.
 - Wall jump pushes away from wall.
+- Dash strike creates the merged dash/combat burst.
 - Dive bomb does not tunnel through floor collision.
 
 ### Party And Recruitment
@@ -150,7 +151,7 @@ Steps:
 5. Attack and defeat first enemy.
 6. Test double jump and dash.
 7. Test wall hang and wall jump.
-8. Test slide attack.
+8. Test dash strike.
 9. Test dive bomb on enemy.
 10. Recruit Witch.
 11. Complete tag tutorial.

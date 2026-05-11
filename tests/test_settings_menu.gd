@@ -108,6 +108,9 @@ func _assert_settings_menu_clamps_invalid_global_settings() -> void:
 		"screen_shake": -1.0,
 		"text_speed": 8.0,
 		"colorblind_mode": "NotARealMode",
+		"fullscreen": "false",
+		"reduced_motion": "true",
+		"high_contrast": "0",
 		"large_text": true,
 	}))
 	file = null
@@ -137,6 +140,15 @@ func _assert_settings_menu_clamps_invalid_global_settings() -> void:
 		return
 	if str(settings.colorblind_mode) != "Off":
 		_fail("Global colorblind mode should fall back to Off.")
+		return
+	if bool(settings.fullscreen):
+		_fail("String false values in persisted settings should normalize to false.")
+		return
+	if not bool(settings.reduced_motion):
+		_fail("String true values in persisted settings should normalize to true.")
+		return
+	if bool(settings.high_contrast):
+		_fail("String zero values in persisted settings should normalize to false.")
 		return
 	if not bool(settings.large_text):
 		_fail("Valid global booleans should still load.")

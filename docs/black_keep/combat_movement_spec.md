@@ -24,7 +24,6 @@ Required actions:
 - Attack.
 - Special attack.
 - Dash.
-- Slide or crouch.
 - Swap left.
 - Swap right.
 - Swap direct slot 1.
@@ -112,7 +111,7 @@ Feedback:
 - Distinct sound from first jump.
 - Animation or frame swap if the sprite supports it.
 
-## Wall Hang, Wall Slide, And Wall Jump
+## Wall Hang, Controlled Wall Fall, And Wall Jump
 
 Wall contact:
 
@@ -124,11 +123,11 @@ Wall hang:
 
 - Hang duration: 1.0 s first pass.
 - Hang fall speed: 0 px/s while duration remains.
-- After duration, convert to wall slide.
+- After duration, convert to controlled wall fall or release.
 
-Wall slide:
+Controlled wall fall:
 
-- Slide fall speed: 110 px/s.
+- Controlled fall speed: 110 px/s.
 - Player can release by pressing away.
 - Player can drop by pressing down.
 
@@ -140,23 +139,17 @@ Wall jump:
 - Resets double jump.
 - Does not reset air dash unless later approved.
 
-## Slide And Slide Attack
+## Dash Strike
 
-Slide:
+Dash strike merges the former slide attack into dash. There is no separate
+slide state or low-profile traversal requirement for the first playable slice.
 
-- Triggered by down plus dash, or slide action where remapped.
-- Slide speed: 300 px/s.
-- Duration: 0.35 s.
-- Low profile can pass under narrow gaps.
-- Cancels into jump after minimum 0.12 s.
-
-Slide attack:
-
-- Triggered by attack during slide.
-- Low forward hitbox.
-- Strong against small ground enemies.
-- Cannot be spammed while holding slide.
-- Recovery: 0.20 s.
+- Triggered by a class action after the dash-strike unlock.
+- Uses the existing dash state, dash trail, and dash cooldown style.
+- Forward hitbox activates at dash start.
+- Strong against small ground enemies without requiring narrow-passage slide
+  mechanics.
+- Cannot be spammed while dash-strike cooldown is active.
 
 ## Dive Bomb
 
@@ -225,7 +218,7 @@ The Ronin:
 - Fast melee.
 - Three-hit sword combo.
 - Air slash.
-- Slide slash.
+- Dash slash.
 - Dive-bomb blade drop.
 - Perfect-swap bonus window slightly easier.
 
@@ -233,7 +226,7 @@ The Arc-Gunner:
 
 - Ranged basic shot.
 - Reload or heat resource.
-- Close strike for slide attack.
+- Close strike for dash strike.
 - Aerial downward burst for dive bomb.
 - Ground dash can have recoil styling.
 
@@ -241,7 +234,7 @@ The Iron Knight:
 
 - Slower melee.
 - Guard or shield bash.
-- Strong slide shoulder.
+- Strong dash shoulder.
 - Heavy dive impact.
 - More hitstop, less launch vulnerability.
 
@@ -284,7 +277,6 @@ Rules:
 
 - Hitboxes should be authored per attack frame or timing segment.
 - Hurtboxes should stay readable and consistent.
-- Low-profile slide must change hurtbox only during the slide.
 - Dive bomb hitbox should not activate before startup ends.
 - Projectiles must belong to a source character for XP, familiar, and combo
   rules.
@@ -323,7 +315,7 @@ Automated tests:
 - Double jump cannot exceed allowed uses.
 - Air dash cannot exceed allowed uses.
 - Wall jump pushes away from wall.
-- Slide attack creates low hitbox.
+- Dash strike creates a forward combat hitbox during dash movement.
 - Dive bomb bounces on enemy hit.
 - Controller actions map to gameplay actions.
 

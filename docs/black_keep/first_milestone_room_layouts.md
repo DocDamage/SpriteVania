@@ -223,7 +223,7 @@ Layout:
 - Double-jump ledge.
 - Dash gap with safe bottom.
 - Wall hang and wall jump nook.
-- Optional slide tunnel if slide is available.
+- Optional dash-strike target lane if dash strike is available.
 
 Markers:
 
@@ -248,7 +248,7 @@ Layout:
 
 - Attack prompt before first enemy.
 - One standard patrol enemy.
-- One optional crawler if slide attack is ready.
+- One optional crawler if dash strike is ready.
 - Flat combat lane with no pits.
 
 Markers:

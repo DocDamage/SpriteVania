@@ -55,6 +55,17 @@ func _assert_character_select_lists_only_starters_and_validates_name() -> void:
 	if _confirmed_starter_id != "arc_gunner" or _confirmed_name != "Vale":
 		_fail("CharacterSelect should emit selected starter ID and trimmed name.")
 		return
+	if not select.has_method("get_selected_appearance") or not select.has_method("get_appearance_slot_ids"):
+		_fail("CharacterSelect should expose CharacterCreator2D appearance helpers.")
+		return
+	var appearance_slot_ids: Array = select.call("get_appearance_slot_ids")
+	if not appearance_slot_ids.has("Base/Body Skin") or not appearance_slot_ids.has("Base/Hair") or not appearance_slot_ids.has("Fantasy/Armor"):
+		_fail("CharacterSelect should expose imported CharacterCreator2D body, hair, and armor slots.")
+		return
+	var appearance: Dictionary = select.call("get_selected_appearance")
+	if not (appearance.get("Base/Hair", {}) as Dictionary).has("path"):
+		_fail("CharacterSelect should produce a saved appearance dictionary with sprite paths.")
+		return
 
 	select.queue_free()
 	await process_frame
@@ -104,6 +115,13 @@ func _assert_each_starter_creates_save_and_continue_loads_it() -> void:
 			return
 		if loaded.selected_class != str(expected_classes[starter_id]):
 			_fail("Initial save should map starter to a playable class.")
+			return
+		if loaded.character_appearance.is_empty() or not loaded.character_appearance.has("Base/Body Skin"):
+			_fail("Initial save should persist CharacterCreator2D appearance selections.")
+			return
+		var player: Node = world.get("player")
+		if player == null or not player.has_method("get_character_appearance") or (player.call("get_character_appearance") as Dictionary).is_empty():
+			_fail("GameWorld should pass saved CharacterCreator2D appearance selections into the player runtime.")
 			return
 		if loaded.current_room != "RoomStart" or loaded.current_area != "swamp_outskirts":
 			_fail("Initial save should start in the opening room.")

@@ -9,6 +9,7 @@ titles and naming that character. The Witch is not selectable.
 - Keep the player's name separate from fixed character titles.
 - Support keyboard and controller from the first menu.
 - Create save data that can evolve into the full party system.
+- Support the Godot-native CharacterCreator2D recipe pipeline for player appearance, palettes, morph values, and generated animation resources.
 - Avoid final dialogue until writing direction is locked.
 
 ## Starter Choices
@@ -72,6 +73,14 @@ Save flags:
 11. Game loads opening variant.
 12. Game transitions to `ModernOutskirts_Start`.
 
+Appearance flow:
+
+- Starter selection remains a gameplay/class choice.
+- Appearance editing uses the Godot-native CharacterCreator2D recipe model.
+- The creator can run as a simplified in-game flow or as the full separate Character Studio app.
+- A confirmed recipe stores selected parts, palette IDs, morph values, export profile ID, and optional generated `SpriteFrames` path.
+- The game can start from a default starter recipe before the full creator UI is complete.
+
 Back behavior:
 
 - From starter select: return to title screen.
@@ -92,6 +101,7 @@ Required content:
 - Difficulty/readability note.
 - Confirm action.
 - Back action.
+- Appearance/customize action when the Godot-native creator is enabled.
 
 Card data:
 
@@ -243,6 +253,10 @@ Character creation writes:
 - `current_room_id`
 - `current_checkpoint_id`
 - `character_definitions_version`
+- `character_recipe_id`
+- `character_recipe`
+- `character_spriteframes_path`
+- `character_creator_content_versions`
 - `created_timestamp`
 - `last_saved_timestamp`
 
@@ -256,6 +270,16 @@ Runtime state defaults:
 - Unlocked skills: starter baseline skills.
 - Costume ID: default.
 - Palette ID: default.
+- Morph values: defaults from the selected body preset.
+- Generated SpriteFrames path: empty until the recipe is baked or linked to an imported sheet.
+
+Character recipe data:
+
+- Body type and part slot selections.
+- Palette and per-material color selections.
+- Morph values for height, width, head size, limb proportions, posture, equipment scale, and other safe rig parameters.
+- Content pack IDs and part source IDs for migration and fallback.
+- Export profile ID and checklist set used to bake gameplay sheets.
 
 ## Opening Variants
 
@@ -320,6 +344,9 @@ Automated tests:
 - Default name can be accepted.
 - Confirmation writes initial party state.
 - Confirmation writes current room and checkpoint.
+- Confirmation persists character appearance recipe data.
+- Generated or linked CharacterCreator2D `SpriteFrames` can be assigned to the spawned player.
+- Recipe migration preserves old saves when part IDs or content-pack versions change.
 - Back navigation preserves selected starter and name where expected.
 - Controller confirm/back actions work in every screen.
 
@@ -349,6 +376,8 @@ Manual tests:
 - Does each starter get a unique first tutorial prompt in room one?
 - Which exact sprite preview resource is used for each starter after import
   tests?
+- Which morph controls ship in the in-game creator versus the separate Character Studio app?
+- Which recipe fields are allowed to affect gameplay silhouettes before collision validation?
 
 ## Implementation Notes
 
@@ -357,3 +386,4 @@ Manual tests:
 - Do not hardcode display names into save logic.
 - Make confirmation screen controller-first.
 - Do not create a blank save before confirmation succeeds.
+- Keep Unity out of the production pipeline. CharacterCreator2D source data is reference/input only; the creator, preview rig, morphing, and sheet baker must run in Godot.

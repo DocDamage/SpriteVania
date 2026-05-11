@@ -192,12 +192,14 @@ First migration target:
 - Convert current room/checkpoint into milestone scene IDs where possible.
 - Set locked party roster defaults.
 - Initialize familiar data if old save has familiar progression.
+- Initialize CharacterCreator2D recipe fields, morph values, content-pack versions, and generated `SpriteFrames` paths with safe defaults if absent.
 
 ## Save Timing
 
 Autosave candidates:
 
 - After character creation confirmation.
+- After character recipe confirmation or successful character sheet bake.
 - After reaching a checkpoint.
 - After Witch recruitment.
 - After Shadow recruitment.

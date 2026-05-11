@@ -41,7 +41,7 @@ Dash values:
 Wall values:
 
 - Wall hang duration: 1.00 second.
-- Wall slide speed: 110 pixels per second.
+- Controlled wall fall speed: 110 pixels per second.
 - Wall jump horizontal push: 260 pixels per second.
 - Wall jump vertical push: negative 330 pixels per second.
 - Wall jump input lock: 0.10 seconds.
@@ -59,7 +59,7 @@ Light combo:
 - Combo buffer: 0.20 seconds.
 - Combo reset: 0.70 seconds after recovery.
 
-Slide attack:
+Dash strike:
 
 - Damage: 12.
 - Startup: 0.06 seconds.

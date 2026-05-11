@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://4rn1efguk4sw"
+path="res://.godot/imported/Player (1).ase-60178d9bf8f5dd9a9e8e1f9ae19a002a.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Feudal Japan Stages/Feudal Japan Village – 2D Pixel Art Platformer Asset Pack/Character/Player (1).ase"
+dest_files=["res://.godot/imported/Player (1).ase-60178d9bf8f5dd9a9e8e1f9ae19a002a.res"]
+
+[params]
+

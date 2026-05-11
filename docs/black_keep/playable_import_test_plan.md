@@ -40,7 +40,7 @@ A candidate passes import testing when it supports:
 - Death/KO.
 - Special or tag-entry placeholder.
 - Dash placeholder.
-- Slide placeholder.
+- Dash-strike placeholder.
 - Collision shape alignment.
 - Camera framing.
 - Current room traversal without visual scale mismatch.
@@ -116,7 +116,7 @@ Proof goals:
 - Character scale is not too small compared with the current player.
 - Frame ranges can be mapped without heavy manual cleanup.
 - Basic sword combo feels readable.
-- Dash/slide can be faked from existing movement frames if missing.
+- Dash/dash-strike can be faked from existing movement frames if missing.
 
 Risks:
 
@@ -227,7 +227,7 @@ Decision after test:
 Reason deferred:
 
 - Good motion coverage, but visual read is too bright and heroic for The Shadow.
-- No clear dash/slide/special.
+- No clear dash/dash-strike/special.
 
 Potential future use:
 
@@ -260,7 +260,7 @@ Create a temporary import-test scene later with:
 - One wall or vertical ascent test.
 - One dummy enemy target.
 - One moving enemy target.
-- One low ceiling/slide test.
+- One dash-strike target-lane test.
 - One dash distance marker.
 - Camera framing reference.
 
@@ -280,4 +280,3 @@ Each candidate should produce:
 - Whether all first milestone playable characters must share the same frame box.
 - Whether Iron Knight should prioritize shield/tank silhouette over animation completeness.
 - Whether The Shadow should get custom/generated art instead of using existing assets.
-

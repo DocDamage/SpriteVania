@@ -11,6 +11,7 @@ assets must feel like one coherent game.
 - Keep pixel-art import settings consistent.
 - Make every gameplay-critical sprite readable in motion.
 - Track cleanup needs instead of burying them in code.
+- Rebuild CharacterCreator2D as a Godot-native recipe, rig, morph, and sheet-baking pipeline.
 
 ## Source Asset Rules
 
@@ -94,11 +95,14 @@ Tiles:
 
 ## Playable Sprite Requirements
 
-Playable candidates are chosen by animation completeness first.
+Playable candidates are chosen by animation completeness first. For
+CharacterCreator2D-derived characters, recipes and the Godot-native rig are the
+source of truth; flattened sheets and `SpriteFrames` are build artifacts.
 
 Required target animations:
 
 - Idle.
+- Walk.
 - Run.
 - Jump.
 - Fall.
@@ -107,20 +111,26 @@ Required target animations:
 - Death.
 - Special.
 - Dash.
-- Slide.
 
 Optional but valuable:
 
 - Wall hang.
-- Wall slide.
+- Controlled wall fall.
 - Dive bomb.
 - Guard.
 - Tag entry.
 - Victory or recruit pose.
 
-Sprites missing dash, slide, or special animations can still qualify if the
+Sprites missing dash or special animations can still qualify if the
 missing animations can be faked with VFX, existing frames, or generated frames
 that are later cleaned in Aseprite.
+
+CharacterCreator2D required coverage:
+
+- Full base animation inventory remains available through `base:*` export IDs.
+- Full aim animation inventory remains available through `aim:*` export IDs.
+- Bulk export checklists can target first-slice, movement, combat, all-base, all-aim, or custom sets.
+- The Godot baker must output transparent sprite sheets, import manifests, and `SpriteFrames`.
 
 ## Character Pipeline
 
@@ -136,6 +146,21 @@ that are later cleaned in Aseprite.
 10. Test in movement room.
 11. Test in combat room.
 12. Record final pass, prototype pass, defer, or reject decision.
+
+## CharacterCreator2D Pipeline
+
+1. Import source package into runtime assets and ignored raw reference data.
+2. Generate source manifests, animation inventory, and export profile.
+3. Build or load a character recipe.
+4. Assemble the layered Godot rig from selected parts, palettes, tags, and morph values.
+5. Preview selected animations at game scale.
+6. Validate silhouette, collision fit, pivots, frame bounds, transparency, and readability.
+7. Choose a bulk export checklist or custom animation set.
+8. Bake selected animations into transparent sheets.
+9. Generate `SpriteFrames`, import manifest, contact sheet, and provenance data.
+10. Assign generated resources to playable characters, NPCs, or portraits.
+11. Run visual regression checks for canonical recipes.
+12. Store recipe and generated artifacts separately.
 
 ## Enemy Pipeline
 
@@ -201,8 +226,8 @@ Required first-pass VFX:
 - Enemy hit flash.
 - Dash trail.
 - Double-jump burst.
-- Wall slide dust.
-- Slide attack slash.
+- Wall contact dust.
+- Dash-strike slash.
 - Dive-bomb impact.
 - Ashen Hexburst.
 - Silent Arrowfall.
@@ -270,6 +295,8 @@ Automated checks:
 
 - Required derived assets exist.
 - Required animations are present in character resources.
+- CharacterCreator2D recipes resolve to valid parts and generated/imported `SpriteFrames`.
+- CharacterCreator2D export profiles expose complete base and aim animation inventory.
 - TileSet resources load.
 - Parallax resources load.
 - VFX resources load.
@@ -290,3 +317,4 @@ Manual checks:
 - Which final fonts are approved for UI.
 - Which title and menu UI elements need custom art.
 - How much generated or edited art is acceptable for missing animation frames.
+- How far morphing can go before a recipe must be marked invalid for gameplay collision/readability.

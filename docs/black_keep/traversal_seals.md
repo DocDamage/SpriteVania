@@ -163,7 +163,7 @@ Arc-Gunner:
 
 - Vertical ascent: recoil boost.
 - Gap crossing: arc booster dash.
-- Narrow passage: tactical slide.
+- Dash strike: tactical burst through close ground threats.
 - Barrier bypass: charged arc shot.
 - Hazard crossing: insulated field.
 - Water/depth: pressure-sealed kit.

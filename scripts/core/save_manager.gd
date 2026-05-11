@@ -88,12 +88,30 @@ func delete_save() -> void:
 		DirAccess.remove_absolute(save_path)
 
 func _save_state_to_path(path: String, state: GameStateScript) -> bool:
-	var file := FileAccess.open(path, FileAccess.WRITE)
+	var base_dir := path.get_base_dir()
+	if not base_dir.is_empty():
+		DirAccess.make_dir_recursive_absolute(base_dir)
+
+	var temp_path := _temporary_save_path(path)
+	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
-		push_error("Could not open save file for writing: %s" % path)
+		push_error("Could not open save file for writing: %s" % temp_path)
 		return false
 
 	file.store_string(JSON.stringify(state.to_dictionary()))
+	file = null
+
+	if FileAccess.file_exists(path):
+		var remove_error := DirAccess.remove_absolute(path)
+		if remove_error != OK:
+			DirAccess.remove_absolute(temp_path)
+			push_error("Could not replace save file: %s" % path)
+			return false
+	var rename_error := DirAccess.rename_absolute(temp_path, path)
+	if rename_error != OK:
+		DirAccess.remove_absolute(temp_path)
+		push_error("Could not finalize save file: %s" % path)
+		return false
 	return true
 
 func _load_state_from_path(path: String, report_errors := true) -> GameStateScript:
@@ -137,7 +155,23 @@ func _slot_save_path(slot_id: String) -> String:
 	return "%s_slot_%s" % [base_path, safe_slot_id]
 
 func _safe_slot_id(slot_id: String) -> String:
-	var safe_slot_id := slot_id.strip_edges().replace("/", "_").replace("\\", "_")
+	var safe_slot_id := ""
+	for index: int in slot_id.strip_edges().length():
+		var character := slot_id.strip_edges().substr(index, 1)
+		if character.to_lower() != character.to_upper() or character.is_valid_int() or character == "_":
+			safe_slot_id += character
+		else:
+			safe_slot_id += "_"
+	while safe_slot_id.contains("__"):
+		safe_slot_id = safe_slot_id.replace("__", "_")
+	safe_slot_id = safe_slot_id.strip_edges()
+	while safe_slot_id.begins_with("_"):
+		safe_slot_id = safe_slot_id.substr(1)
+	while safe_slot_id.ends_with("_"):
+		safe_slot_id = safe_slot_id.substr(0, safe_slot_id.length() - 1)
 	if safe_slot_id.is_empty():
 		safe_slot_id = "default"
 	return safe_slot_id
+
+func _temporary_save_path(path: String) -> String:
+	return "%s.tmp" % path

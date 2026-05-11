@@ -19,7 +19,7 @@ The scene creates:
 - Jump gap.
 - Step-up ledge.
 - Wall / vertical-ascent test.
-- Low-ceiling / slide test.
+- Dash-strike target-lane test.
 - Dummy target.
 - Moving-target path marker.
 - Camera reference.
@@ -57,7 +57,7 @@ This scene must remain dev-only and must not replace existing playable classes.
 | death | Present via `Dead.png` | Needs frame mapping | Present via `Dead.png` | Present via `Dead/` |
 | special | Present via `Special.png` / `Recharge.png` | Needs frame mapping or VFX fallback | Present via `Special.png` / `Charge.png` | Can prototype with `Shield Block/`, `Climb/`, or `Attacks/` |
 | dash | Fake with run/shot + VFX | Fake with movement/slash frames | Fake with run/special + ash VFX | Prototype via `Roll/` |
-| slide | Needs generated/faked frame | Needs generated/faked frame | Needs generated/faked frame | Prototype via `Roll/` or low attack fallback |
+| dash_strike | Needs generated/faked frame | Needs generated/faked frame | Needs generated/faked frame | Prototype via `Roll/` or attack fallback |
 
 ## Candidate Notes
 
@@ -75,7 +75,7 @@ Risks:
 
 - Military/SWAT look may be too literal without magical infusion.
 - Needs arc-magic muzzle flash, projectile VFX, and possibly palette normalization.
-- Dash and slide need faked/generated actions.
+- Dash and dash-strike need faked/generated actions.
 
 Acceptance for milestone one:
 
@@ -115,7 +115,7 @@ Risks:
 
 - Reads as a staff/spear witch unless ash VFX and palette push the identity.
 - `Charge.png` likely needs special slicing because it differs from the 128x128 convention.
-- Dash/slide need faked/generated actions.
+- Dash/dash-strike need faked/generated actions.
 
 Acceptance for milestone one:
 

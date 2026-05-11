@@ -95,7 +95,7 @@ Required animation target:
 - Death.
 - Special.
 - Dash.
-- Slide.
+- Dash strike.
 
 Missing special-case animations can be filled later if:
 

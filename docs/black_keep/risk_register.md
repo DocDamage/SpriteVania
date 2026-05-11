@@ -28,7 +28,7 @@ Asset mismatch:
 
 Playable sprite coverage:
 
-- Risk: selected characters may lack dash, slide, wall, or special animations.
+- Risk: selected characters may lack dash, dash-strike, wall, or special animations.
 - Impact: high.
 - Mitigation: accept prototype fakes early, document missing frames, and plan
   cleanup.

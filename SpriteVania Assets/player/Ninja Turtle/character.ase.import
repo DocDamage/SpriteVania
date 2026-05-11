@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://d4j55lxy3ywl7"
+path="res://.godot/imported/character.ase-1aa7b161d01560b2c03af69a3f2e377f.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/player/Ninja Turtle/character.ase"
+dest_files=["res://.godot/imported/character.ase-1aa7b161d01560b2c03af69a3f2e377f.res"]
+
+[params]
+

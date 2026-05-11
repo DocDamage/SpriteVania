@@ -99,8 +99,8 @@ Tasks:
 - Add dash trail or afterimage.
 - Add ground dash and air dash.
 - Add double jump.
-- Add wall hang, wall slide, and wall jump.
-- Add slide attack.
+- Add wall hang, controlled wall fall, and wall jump.
+- Add dash strike.
 - Add dive bomb with enemy bounce.
 - Add three-hit combo.
 - Add clear attack prompt.
@@ -112,7 +112,7 @@ Acceptance:
 - Player can identify attack input.
 - Player attacks damage enemies.
 - Dash visibly travels over time.
-- Double jump, dash, air dash, wall actions, slide attack, and dive bomb pass
+- Double jump, dash, air dash, wall actions, dash strike, and dive bomb pass
   automated and manual checks.
 - Keyboard and controller routes work.
 
@@ -229,6 +229,37 @@ Dependencies:
 - Character creation.
 - Save foundation.
 - Combat and HUD support.
+
+## Epic 6A: Godot CharacterCreator2D Tooling
+
+Purpose:
+
+- Rebuild CharacterCreator2D as a Godot-native in-game creator and separate Character Studio app.
+
+Primary docs:
+
+- [CharacterCreator2D Port](../character_creator_2d_port.md)
+- [Godot CharacterCreator2D Tool Roadmap](../character_creator_2d_godot_tool_roadmap.md)
+- [Character Creation Spec](character_creation_spec.md)
+- [Art Pipeline](art_pipeline.md)
+
+Tasks:
+
+- Define recipe, slot, part, palette, morph, export profile, and content-pack resources.
+- Build layered rig preview from imported source parts.
+- Expose complete base and aim animation inventory.
+- Add checklist-driven bulk export for first-slice, movement, combat, all-base, all-aim, and custom sets.
+- Add safe morph controls and validation.
+- Bake transparent sheets and generate `SpriteFrames`, manifests, and contact sheets.
+- Add recipe migration and missing-part fallback.
+- Build separate Character Studio app shell.
+
+Acceptance:
+
+- Character creation can save a recipe and generated `SpriteFrames` path.
+- Godot can create, preview, morph, bulk-export, and import a character without Unity.
+- All imported CC2D base and aim animations remain selectable for export.
+- Headless tests cover manifests, export profile, checklist sets, generated `SpriteFrames`, and runtime player assignment.
 
 ## Epic 7: First Milestone Room Build
 
