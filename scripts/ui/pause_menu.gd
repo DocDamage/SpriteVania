@@ -12,6 +12,8 @@ const FAMILIAR_ABILITIES := {
 	"focus": "Focus",
 	"guard": "Guard",
 }
+const DEFAULT_HEADER_FONT_SIZE := 36
+const LARGE_HEADER_FONT_SIZE := 42
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -23,6 +25,15 @@ func _ready() -> void:
 	%FocusUpgradeButton.pressed.connect(func() -> void: familiar_upgrade_requested.emit("focus"))
 	%GuardUpgradeButton.pressed.connect(func() -> void: familiar_upgrade_requested.emit("guard"))
 	%ResumeButton.grab_focus()
+
+func apply_settings(settings: Dictionary) -> void:
+	var large_text := bool(settings.get("large_text", false))
+	var high_contrast := bool(settings.get("high_contrast", false))
+	var header_size := LARGE_HEADER_FONT_SIZE if large_text else DEFAULT_HEADER_FONT_SIZE
+	var header_label := get_node("Panel/MarginContainer/VBoxContainer/HeaderLabel") as Label
+	var panel := $Panel as Control
+	header_label.add_theme_font_size_override("font_size", header_size)
+	panel.modulate = Color(1.0, 1.0, 1.0, 1.0) if high_contrast else Color(1.0, 1.0, 1.0, 0.95)
 
 func set_familiar_status(status: Dictionary) -> void:
 	var familiar_level := int(status.get("level", 1))

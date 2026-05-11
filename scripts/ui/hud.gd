@@ -2,7 +2,10 @@ extends CanvasLayer
 class_name HUD
 
 const MapRegistry := preload("res://scripts/world/map_registry.gd")
+const DEFAULT_CONTROLS_HINT_FONT_SIZE := 11
+const LARGE_CONTROLS_HINT_FONT_SIZE := 15
 
+@onready var root_control: Control = $Root
 @onready var health_bar: ProgressBar = %HealthBar
 @onready var health_value_label: Label = %HealthValueLabel
 @onready var resource_bar: ProgressBar = %ResourceBar
@@ -22,6 +25,13 @@ var player: Player
 
 func _ready() -> void:
 	upgrade_toast_timer.timeout.connect(_on_upgrade_toast_timer_timeout)
+
+func apply_settings(settings: Dictionary) -> void:
+	var large_text := bool(settings.get("large_text", false))
+	var high_contrast := bool(settings.get("high_contrast", false))
+	var hint_size := LARGE_CONTROLS_HINT_FONT_SIZE if large_text else DEFAULT_CONTROLS_HINT_FONT_SIZE
+	%ControlsHintLabel.add_theme_font_size_override("font_size", hint_size)
+	root_control.modulate = Color(1.0, 1.0, 1.0, 1.0) if high_contrast else Color(1.0, 1.0, 1.0, 0.92)
 
 func bind_player(next_player: Player) -> void:
 	if player != null and player.stats_changed.is_connected(_on_player_stats_changed):

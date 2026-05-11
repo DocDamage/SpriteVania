@@ -65,6 +65,7 @@ var hud: CanvasLayer
 var pause_menu: Control
 var is_transitioning_rooms := false
 var hazard_cooldowns: Dictionary = {}
+var _applied_settings: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -82,6 +83,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			open_pause_menu()
 		get_viewport().set_input_as_handled()
+
+func apply_settings(settings: Dictionary) -> void:
+	_applied_settings = settings.duplicate(true)
+	if hud != null and hud.has_method("apply_settings"):
+		hud.call("apply_settings", _applied_settings)
+	if pause_menu != null and is_instance_valid(pause_menu) and pause_menu.has_method("apply_settings"):
+		pause_menu.call("apply_settings", _applied_settings)
 
 func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
@@ -107,6 +115,8 @@ func continue_game_from_slot(slot_id: String) -> void:
 func _continue_from_loaded_state() -> void:
 	if state == null:
 		state = GameStateScript.new()
+	else:
+		apply_settings(state.settings)
 
 	_ensure_valid_selected_class()
 	_ensure_valid_world_position()
@@ -159,6 +169,8 @@ func open_pause_menu() -> void:
 		return
 	pause_menu = PAUSE_MENU_SCENE.instantiate() as Control
 	add_child(pause_menu)
+	if pause_menu.has_method("apply_settings"):
+		pause_menu.call("apply_settings", _applied_settings)
 	pause_menu.resume_requested.connect(close_pause_menu)
 	pause_menu.settings_requested.connect(_on_pause_settings_requested)
 	pause_menu.save_requested.connect(save_from_pause)
@@ -472,6 +484,8 @@ func _ensure_hud() -> void:
 		return
 	hud = HUD_SCENE.instantiate() as CanvasLayer
 	add_child(hud)
+	if hud.has_method("apply_settings"):
+		hud.call("apply_settings", _applied_settings)
 
 func _bind_hud_to_player() -> void:
 	_ensure_hud()

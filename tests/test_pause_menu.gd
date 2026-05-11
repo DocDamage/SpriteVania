@@ -19,6 +19,9 @@ func _run() -> void:
 	await _assert_pause_menu_exposes_map_status()
 	if _failed:
 		return
+	await _assert_pause_menu_applies_accessibility_settings()
+	if _failed:
+		return
 	await _assert_game_world_toggles_pause_and_saves()
 	if _failed:
 		return
@@ -119,6 +122,28 @@ func _assert_pause_menu_exposes_map_status() -> void:
 	menu.queue_free()
 	await process_frame
 
+func _assert_pause_menu_applies_accessibility_settings() -> void:
+	var menu := PAUSE_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	if not menu.has_method("apply_settings"):
+		_fail("Pause menu should expose apply_settings().")
+		return
+	menu.call("apply_settings", {
+		"large_text": true,
+		"high_contrast": true,
+	})
+	if int(menu.get_node("Panel/MarginContainer/VBoxContainer/HeaderLabel").get_theme_font_size("font_size")) < 40:
+		_fail("Pause menu large text should increase header size.")
+		return
+	if menu.get_node("Panel").modulate != Color(1.0, 1.0, 1.0, 1.0):
+		_fail("Pause menu high contrast should force full opacity.")
+		return
+
+	menu.queue_free()
+	await process_frame
+
 func _assert_game_world_toggles_pause_and_saves() -> void:
 	var save_manager := root.get_node("SaveManager")
 	save_manager.save_path = "user://test_pause_menu_save.json"
@@ -135,6 +160,15 @@ func _assert_game_world_toggles_pause_and_saves() -> void:
 	state.current_room = "RoomCheckpoint"
 	state.current_health = 21
 	world.set("state", state)
+	world.call("apply_settings", {
+		"large_text": true,
+		"high_contrast": true,
+	})
+
+	var hud := world.get("hud") as CanvasLayer
+	if hud == null or int(hud.get_node("%ControlsHintLabel").get_theme_font_size("font_size")) < 14:
+		_fail("GameWorld should apply accessibility settings to HUD.")
+		return
 
 	var pause_event := InputEventAction.new()
 	pause_event.action = "pause"
@@ -151,6 +185,9 @@ func _assert_game_world_toggles_pause_and_saves() -> void:
 	var menu := world.get("pause_menu") as Control
 	if menu == null or menu.get_node("%MapCurrentRoomLabel").text.find("Shrine Hollow") == -1:
 		_fail("Opening pause should populate map status from the current world state.")
+		return
+	if int(menu.get_node("Panel/MarginContainer/VBoxContainer/HeaderLabel").get_theme_font_size("font_size")) < 40:
+		_fail("GameWorld should apply accessibility settings to the pause menu.")
 		return
 
 	world.call("save_from_pause")
