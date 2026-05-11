@@ -4,15 +4,27 @@ This document records the first repository asset audit for The Black Keep. It is
 
 ## Audit Status
 
-Status: first-pass folder and filename audit complete.
+Status: first-pass folder, filename, and ImageMagick dimension audit complete.
 
 Not complete yet:
 
-- Visual inspection for every candidate.
+- Final visual inspection decisions from contact sheets.
 - Sprite sheet slicing checks.
-- Frame-size normalization checks.
 - In-engine animation tests.
 - Final playable character decisions.
+
+## Contact Sheets
+
+ImageMagick contact sheets were generated for the current top candidates:
+
+- [player_generic_frames.png](contact_sheets/player_generic_frames.png)
+- [samurai_frames.png](contact_sheets/samurai_frames.png)
+- [magic_cliffs_frames.png](contact_sheets/magic_cliffs_frames.png)
+- [witch_3_sheets.png](contact_sheets/witch_3_sheets.png)
+- [swat_1_sheets.png](contact_sheets/swat_1_sheets.png)
+- [scientists_1_sheets.png](contact_sheets/scientists_1_sheets.png)
+
+These sheets are for planning review only. Final selection still requires in-engine import, animation timing, collision scale, and style checks.
 
 ## Repository Asset Summary
 
@@ -95,10 +107,36 @@ These candidates have the strongest animation-folder evidence from the scan. The
 
 | Candidate path | Possible Black Keep role | Evidence | Missing/risk notes | First-pass decision |
 |---|---|---|---|---|
-| `SpriteVania Assets/player/player_generic` | Iron Knight / fallback full playable template | 145 PNGs; folders include Attacks, Climb, Dead, Hit, Idle, Jump, Roll, Run, Shield Block | Needs visual role check; may be more generic than final identity | Strongest animation-completeness candidate |
-| `SpriteVania Assets/player/samurai` | The Ronin | 152 PNGs; frame sequence folders and Feudal Japan role fit | Filenames are frame-number based; needs sheet/slice mapping and missing animation check | Strongest Ronin candidate |
-| `SpriteVania Assets/player/magic_cliffs_player` | Agile starter fallback / Shadow movement reference | 54 PNGs plus spritesheets; attack, crouch-attack, death, fall, hurt, idle, jump, jump-attack, run | No obvious dash/slide/special; visual role may not fit Shadow exactly | Good animation reference or fallback playable |
-| `SpriteVania Assets/player/Adventure Character` | Explorer / Ronin fallback / generic hero | 68 PNGs; Air Damage, Falling, Idle, Jumping, Main Attack, Main Attack Air, Walking | Needs run/dash/slide check; style compatibility unknown | Secondary candidate |
+| `SpriteVania Assets/player/player_generic` | Iron Knight / fallback full playable template | 145 PNGs; folders include Attacks, Climb, Dead, Hit, Idle, Jump, Roll, Run, Shield Block; mostly `128x96` frames with Dead at `128x128` | Needs visual role check; may be more generic than final identity | Strongest animation-completeness candidate |
+| `SpriteVania Assets/player/samurai` | The Ronin | 152 PNGs; two `120x120` frame folders plus a `720x1560` sheet; Feudal Japan role fit | Filenames are frame-number based; animation labels need mapping before import | Strongest Ronin candidate |
+| `SpriteVania Assets/player/magic_cliffs_player` | Shadow movement reference / agile fallback | 54 PNGs plus spritesheets; individual frames are mostly `128x96`; attack, crouch-attack, death, fall, hurt, idle, jump, jump-attack, run | No obvious dash/slide/special; visual role may not fit Shadow exactly | Good animation reference or fallback playable |
+| `SpriteVania Assets/player/Adventure Character` | Explorer / generic fallback | 68 PNGs; mixed small individual frames and sheets: `32x32`, `62x41`, `65x58`, `1116x41`, etc. | Scale is much smaller and inconsistent versus main candidates | Lower priority unless style proves useful |
+
+## ImageMagick Dimension and Coverage Pass
+
+Top `player` folder candidates:
+
+| Candidate | Frame/sheet sizes found | Coverage notes | Integration risk |
+|---|---|---|---|
+| `player_generic` | 128x96 for most folders; 128x128 for death | Attacks 38, Climb 16, Dead 6, Hit 16, Idle 12, Jump 14, Roll 14, Run 12, Shield Block 6 | Best immediate technical fit; needs identity art decision |
+| `samurai` | 120x120 individual frames; 720x1560 sheet | 78 color-2 frames, 72 base frames | Strong Ronin fit; needs animation-name mapping |
+| `magic_cliffs_player` | 128x96 individual frames; sheets from 256x96 to 1024x96 | Attack 8, crouch-attack 5, death 8, fall 2, hurt 1, idle 4, jump 3, jump-attack 5, run 8 | Useful agile reference; limited hurt/fall and no clear dash/slide |
+| `Adventure Character` | Mixed small frames/sheets from 26x30 through 1116x41 | Good basic platformer set but small scale | Lower priority; likely needs scaling/cleanup |
+
+Top CraftPix-style candidates are generally 128px-tall horizontal sheets. Estimated frame counts are width divided by 128 unless noted.
+
+| Candidate | Strong sheets | Coverage notes | Integration risk |
+|---|---|---|---|
+| `Witch_1` | Attack, Dead, Hurt, Idle, Jump, Run, Special, Walk | Strong complete Witch set; Special has 13 frames | Needs slicing into 128x128 frames |
+| `Witch_2` | Attack, Dead, Hurt, Idle, Jump, Run, Spear, Special, Walk | Best if spear identity is desired | Needs slicing; compare silhouette to Witch_3 |
+| `Witch_3` | Attack, Charge, Dead, Hurt, Idle, Jump, Run, Special, Walk | Best ash-mage candidate on coverage; Special has 14 frames; Charge is 576x64 | Charge sheet uses 64px height, requiring special handling |
+| `SWAT_1` | Dead, Hurt, Idle, Jump, Recharge, Run, Shot, Special, Walk | Strong Arc-Gunner candidate; Run/Walk have 12 frames | Needs slicing and gun/projectile hookup |
+| `SWAT_2` | Dead, Hurt, Idle, Jump, Recharge, Run, Shot, Walk | Similar Arc-Gunner variant; lacks Special sheet in scan | Needs slicing; weaker than SWAT_1 for special attacks |
+| `SWAT_3` | Dead, Hurt, Idle, Jump, Recharge, Run, Shot, Walk | Strong Shot variants; no Special sheet in scan | Needs slicing; good backup/variant |
+| `Scientists_1` | Dead, Hurt, Idle, Run, Special, Walk | Strong Gadgeteer/NPC base; Special has 14 frames | No jump/attack sheet in scan; needs custom combat solution |
+| `Policewoman` | Attack, Dead, Hurt, Idle, Jump, Recharge, Run, Shot, Walk | Strong modern ranged character or NPC | Needs slicing; could compete with SWAT for Arc-Gunner |
+| `Lightning Mage` | Attack, Charge, Dead, Hurt, Idle, Jump, Light_ball, Light_charge, Run, Walk | Strong mage/boss candidate | Needs role decision; may overlap Witch |
+| `Wanderer Magican` | Attack, Charge, Dead, Hurt, Idle, Jump, Magic_arrow, Magic_sphere, Run, Walk | Strong mage/boss/NPC candidate | One charge sheet has non-integer 128px frame estimate; needs slice review |
 
 ## CraftPix Character Candidate Pool
 
@@ -228,12 +266,12 @@ Transitions include 1,214 PNGs across many mask styles: iris, dissolve, slash, c
 
 | Black Keep role | Recommended candidate pool | Confidence |
 |---|---|---|
-| The Ronin | `player/samurai`; Feudal Japan stage characters as backup | High |
-| The Arc-Gunner | `craft pix characters/SWAT_*`; Policewoman/Patrolman backup | Medium-high |
-| The Iron Knight | `player/player_generic`; `player/Knight`; `player/Special Knight` backup | Medium |
-| The Black Witch of Ash | `craft pix characters/Witch_3`, Witch_1/2 backup | Medium-high |
-| The Shadow | `player/magic_cliffs_player` as movement base; needs visual role review | Medium-low |
-| The Gadgeteer | `craft pix characters/Scientists_*` | Medium |
+| The Ronin | `player/samurai`; Feudal Japan stage characters as backup | High, pending animation-name mapping |
+| The Arc-Gunner | `craft pix characters/SWAT_1` first, SWAT_3/Policewoman backup | High for sheet coverage, pending style/scale review |
+| The Iron Knight | `player/player_generic`; `player/Knight`; `player/Special Knight` backup | Medium-high for technical coverage, medium for visual role |
+| The Black Witch of Ash | `craft pix characters/Witch_3`, Witch_1/2 backup | High for sheet coverage, pending silhouette choice |
+| The Shadow | `player/magic_cliffs_player` as movement base; needs visual role review or custom art | Medium-low |
+| The Gadgeteer | `craft pix characters/Scientists_1`; Scientists_2/3 backup | Medium; lacks obvious attack/jump coverage |
 | The Blood-Marked | Demon/Gladiator/monstrous pool | Medium-low |
 | The Yokai-Bound | Demon/Satyr/Dragon/Minotaur pool | Medium-low |
 | Harune / shrine NPCs | `Priests_*`, Queen, Girl variants | Medium |
@@ -253,16 +291,17 @@ Transitions include 1,214 PNGs across many mask styles: iris, dissolve, slash, c
 
 - Which candidate sprites look best after visual inspection.
 - Whether CraftPix character scale matches the current player scale.
-- Whether `player/samurai` has cleanly identifiable idle/run/jump/fall/attack/hurt/death/special/dash/slide groups.
+- How `player/samurai` frame numbers map to idle/run/jump/fall/attack/hurt/death/special/dash/slide.
 - Whether Arc-Gunner should use SWAT sheets directly or a cleaned/customized derivative.
 - Whether The Shadow needs new art instead of reusing available movement-rich sprites.
 - Whether Final Tower and Monster Belly packs need additional parallax and enemy art.
 
 ## Implementation Notes
 
-- Next pass should generate contact sheets for candidate playable sprites.
+- Next pass should review generated contact sheets and select import-test candidates.
 - Test the top 4 playable candidates in Godot before locking the roster.
+- Prefer direct import tests for `player_generic`, `player/samurai`, `Witch_3`, and `SWAT_1`.
+- CraftPix-style sheets need a slicing convention, likely 128x128, with explicit exceptions for 64px-high charge/projectile sheets.
 - Use fallback categories aggressively; a failed playable candidate can still become an NPC, enemy, boss, shopkeeper, or hub character.
 - Any generated/painted edits should be cleaned and normalized before becoming production sprites.
 - Avoid changing game code until playable selections are made and documented.
-
