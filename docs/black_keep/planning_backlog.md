@@ -1,0 +1,57 @@
+# Planning Backlog
+
+This backlog orders the Black Keep planning work needed before large production implementation. The master plan remains the overview; these items turn it into buildable specs.
+
+## Recommended Order
+
+1. Asset audit.
+2. Playable character selection.
+3. First milestone production spec.
+4. Party/Momentum technical spec.
+5. Samurai Castle Wing room plan.
+6. Sakuramori Court hub plan.
+7. Traversal seals.
+8. Zone manifest.
+9. World Break state plan.
+10. Final dungeon spec.
+
+## Planning Documents
+
+| Priority | Document | Purpose | Status |
+|---|---|---|---|
+| 1 | [Asset Audit Results](asset_audit_results.md) | Classify real assets and choose playable candidates. | Outline |
+| 2 | [First Milestone Production Spec](first_milestone_production_spec.md) | Convert the milestone route into room-by-room build scope. | Outline |
+| 3 | [Character Creation Spec](character_creation_spec.md) | Define starter select, naming, confirmation, save data, and opening variants. | Outline |
+| 4 | [Party System Technical Spec](party_system_technical_spec.md) | Define roster, party state, names, HP/resources, Momentum, tag attacks, and hub management. | Outline |
+| 5 | [Momentum Tuning](momentum_tuning.md) | Set first-pass numbers for swapping, combo refunds, cooldowns, and difficulty presets. | Outline |
+| 6 | [Samurai Castle Wing Spec](samurai_castle_wing_spec.md) | Define first identity dungeon, stealth/rescue, Masakiro, and Rising Torii Seal. | Outline |
+| 7 | [Sakuramori Court Spec](sakuramori_court_spec.md) | Define first hub layout, services, NPC schedules, and World Break variant. | Outline |
+| 8 | [Traversal Seals](traversal_seals.md) | Plan major traversal categories and character-specific expressions. | Outline |
+| 9 | [Zone Manifest](zone_manifest.md) | List candidate zones and tie them to asset support. | Outline |
+| 10 | [World Break State Plan](world_break_state_plan.md) | Define pre-break, break event, and post-break content state model. | Outline |
+| 11 | [Final Dungeon Spec](final_dungeon_spec.md) | Define Final Tower, Monster Belly, Core, bosses, and endings. | Outline |
+
+## Locked Decisions
+
+- The project direction is The Black Keep.
+- The SpriteVania vertical slice remains the implementation foundation.
+- The first starter choices are The Ronin, The Arc-Gunner, and The Iron Knight.
+- The Black Witch of Ash is not starter-selectable.
+- The first required party is starter, Witch, Shadow.
+- The first seal is Rising Torii Seal, which unlocks vertical ascent.
+- Do not write final dialogue during planning specs.
+
+## Open Questions
+
+- Which actual sprites become the 8 playable characters.
+- Which assets support the final zone list.
+- Which asset folders have enough tile, parallax, enemy, boss, and UI coverage for production.
+- Whether the first milestone should ship all three starter variants or one starter-first implementation pass.
+- How much of the global settings split should happen before party-system implementation.
+
+## Implementation Notes
+
+- Each planning doc should become a task source for implementation tickets.
+- Asset audit results should be treated as a dependency for playable roster, zone manifest, and production art scope.
+- Specs should use stable IDs for rooms, characters, abilities, seals, zones, and state flags before code work begins.
+

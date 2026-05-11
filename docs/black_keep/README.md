@@ -13,6 +13,21 @@ The current implementation foundation is still the SpriteVania vertical slice. T
 - [Asset Classification](asset_classification.md): asset sorting plan and criteria for playable, NPC, enemy, boss, terrain, UI, VFX, and fallback usage.
 - [Story Outline](story_outline.md): premise, early zones, hubs, traversal seals, Feudal Japan fragments, Masakiro, World Break, and final dungeon.
 
+## Production Planning Specs
+
+- [Planning Backlog](planning_backlog.md): ordered planning tasks and dependencies.
+- [Asset Audit Results](asset_audit_results.md): asset classification and playable candidate audit template.
+- [First Milestone Production Spec](first_milestone_production_spec.md): room-by-room build scope for the first Black Keep milestone.
+- [Character Creation Spec](character_creation_spec.md): starter selection, naming, confirmation, save fields, and opening variants.
+- [Party System Technical Spec](party_system_technical_spec.md): implementation-level party roster, active party, names, tag attacks, KO behavior, reserve XP, and affinity planning.
+- [Momentum Tuning](momentum_tuning.md): first-pass values for Momentum, swaps, combo refunds, tag cooldowns, and difficulty presets.
+- [Sakuramori Court Spec](sakuramori_court_spec.md): first hub layout, services, NPC schedules, and World Break variant.
+- [Samurai Castle Wing Spec](samurai_castle_wing_spec.md): first identity dungeon, stealth/rescue, Shadow recruitment, Masakiro, and seal reward.
+- [World Break State Plan](world_break_state_plan.md): pre-break, break event, post-break state, variants, and data-model notes.
+- [Traversal Seals](traversal_seals.md): traversal categories and character-specific expressions.
+- [Zone Manifest](zone_manifest.md): candidate zone list and asset-support acceptance criteria.
+- [Final Dungeon Spec](final_dungeon_spec.md): Final Tower, Monster Belly, Core, boss gauntlet, and ending-choice outline.
+
 ## Canon Direction
 
 Use older Chroma's Edge / Orion material only as inspiration for structure and systems. The Black Keep replaces Orion, the Lattice, Nix, Dominion, ATB combat, and the fixed 13-character party with a new world, new cast, real-time tag combat, player-named heroes, and Black Keep traversal seals.
@@ -28,4 +43,3 @@ The repo already has a working Godot vertical slice foundation:
 - Swamp Outskirts route and Castle Gate groundwork.
 - HUD feedback for health, resource, XP, level, upgrades, current room, and map discovery.
 - Familiar progression.
-
