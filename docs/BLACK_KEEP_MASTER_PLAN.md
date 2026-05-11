@@ -6,6 +6,16 @@
 **Document purpose:** GitHub-ready master design plan for the reimagined castle/portal game.  
 **Status:** Planning document. Not final implementation code.
 
+## Focused Subdocuments
+
+- [Black Keep docs index](black_keep/README.md)
+- [First milestone](black_keep/first_milestone.md)
+- [Party and combat](black_keep/party_and_combat.md)
+- [Menu and settings plan](black_keep/menu_settings_plan.md)
+- [Art pipeline](black_keep/art_pipeline.md)
+- [Asset classification](black_keep/asset_classification.md)
+- [Story outline](black_keep/story_outline.md)
+
 ---
 
 ## 1. Project Identity
@@ -834,4 +844,3 @@ The Black Keep should become the repo’s main game identity:
 - Final Tower → Monster Belly → Core as final dungeon.
 - Old Chroma’s Edge docs are inspiration, not canon.
 - Current repo systems are the implementation foundation.
-
