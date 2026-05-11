@@ -6,6 +6,7 @@ signal settings_changed(settings: Dictionary)
 
 const MIN_VOLUME_LINEAR := 0.001
 const GameStateScript := preload("res://scripts/core/game_state.gd")
+const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
 const REBINDABLE_ACTIONS := [
 	"move_left",
 	"move_right",
@@ -17,23 +18,12 @@ const REBINDABLE_ACTIONS := [
 	"interact",
 	"pause",
 ]
-const COLORBLIND_MODES := ["Off", "Deuteranopia", "Protanopia", "Tritanopia"]
+const COLORBLIND_MODES := GlobalSettingsScript.COLORBLIND_MODES
 
-var _settings := {
-	"master_volume": 1.0,
-	"music_volume": 1.0,
-	"sfx_volume": 1.0,
-	"fullscreen": false,
-	"vsync": false,
-	"screen_shake": 1.0,
-	"text_speed": 0.65,
-	"reduced_motion": false,
-	"high_contrast": false,
-	"large_text": false,
-	"colorblind_mode": "Off",
-}
+var _settings := GlobalSettingsScript.default_settings()
 var _save_manager: Node
 var _default_action_events: Dictionary = {}
+var _global_settings_path := GlobalSettingsScript.DEFAULT_SETTINGS_PATH
 
 func _ready() -> void:
 	_capture_default_action_events()
@@ -62,6 +52,13 @@ func set_save_manager(save_manager: Node) -> void:
 	_load_persisted_settings()
 	_apply_all_settings()
 	_sync_controls()
+
+func set_global_settings_path(path: String) -> void:
+	_global_settings_path = path
+	if is_node_ready():
+		_load_persisted_settings()
+		_apply_all_settings()
+		_sync_controls()
 
 func set_master_volume(value: float) -> void:
 	_settings.master_volume = clampf(value, 0.0, 1.0)
@@ -184,17 +181,7 @@ func reset_all_bindings() -> bool:
 	return true
 
 func reset_settings_to_defaults() -> void:
-	_settings.master_volume = 1.0
-	_settings.music_volume = 1.0
-	_settings.sfx_volume = 1.0
-	_settings.fullscreen = false
-	_settings.vsync = false
-	_settings.screen_shake = 1.0
-	_settings.text_speed = 0.65
-	_settings.reduced_motion = false
-	_settings.high_contrast = false
-	_settings.large_text = false
-	_settings.colorblind_mode = "Off"
+	_settings = GlobalSettingsScript.default_settings()
 	_apply_all_settings()
 	_sync_controls()
 	_persist_settings()
@@ -247,29 +234,18 @@ func _on_colorblind_mode_selected(index: int) -> void:
 		set_colorblind_mode(COLORBLIND_MODES[index])
 
 func _load_persisted_settings() -> void:
+	if GlobalSettingsScript.has_settings(_global_settings_path):
+		_settings = GlobalSettingsScript.load_settings(_global_settings_path)
+		return
 	if _save_manager == null or not _save_manager.has_method("load_game"):
 		return
 	var state := _save_manager.call("load_game") as GameStateScript
 	if state == null:
 		return
-	var loaded_settings := state.settings
-	for key: String in _settings.keys():
-		if not loaded_settings.has(key):
-			continue
-		var loaded_value: Variant = loaded_settings[key]
-		match key:
-			"master_volume", "music_volume", "sfx_volume":
-				_settings[key] = clampf(float(loaded_value), 0.0, 1.0)
-			"screen_shake":
-				_settings[key] = clampf(float(loaded_value), 0.0, 1.0)
-			"text_speed":
-				_settings[key] = clampf(float(loaded_value), 0.25, 1.0)
-			"colorblind_mode":
-				_settings[key] = str(loaded_value) if COLORBLIND_MODES.has(str(loaded_value)) else "Off"
-			_:
-				_settings[key] = bool(loaded_value)
+	_settings = GlobalSettingsScript.normalize_settings(state.settings)
 
 func _persist_settings() -> void:
+	GlobalSettingsScript.save_settings(_settings, _global_settings_path)
 	if _save_manager == null or not _save_manager.has_method("save_game"):
 		return
 	if _save_manager.has_method("has_save") and not bool(_save_manager.call("has_save")):

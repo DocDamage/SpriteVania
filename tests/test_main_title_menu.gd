@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameState := preload("res://scripts/core/game_state.gd")
+const GlobalSettings := preload("res://scripts/core/global_settings.gd")
 const MAIN_SCENE := preload("res://scenes/Main.tscn")
 
 var _failed := false
@@ -16,6 +17,9 @@ func _run() -> void:
 	if _failed:
 		return
 	await _assert_extras_and_credits_are_real_screens()
+	if _failed:
+		return
+	await _assert_main_applies_global_settings_without_game_save()
 	if _failed:
 		return
 	await _assert_title_applies_persisted_reduced_motion()
@@ -137,7 +141,46 @@ func _assert_extras_and_credits_are_real_screens() -> void:
 		main.queue_free()
 		await process_frame
 
+func _assert_main_applies_global_settings_without_game_save() -> void:
+	var global_backup := _backup_global_settings_file()
+	_delete_global_settings_file()
+
+	var master_bus_index := AudioServer.get_bus_index("Master")
+	var original_volume_db := AudioServer.get_bus_volume_db(master_bus_index)
+	AudioServer.set_bus_volume_db(master_bus_index, 0.0)
+
+	if not GlobalSettings.save_settings({
+		"master_volume": 0.3,
+		"reduced_motion": true,
+	}, GlobalSettings.DEFAULT_SETTINGS_PATH):
+		_fail("Main title menu test could not create global settings.")
+		return
+
+	var main := MAIN_SCENE.instantiate() as Main
+	root.add_child(main)
+	await process_frame
+
+	var title := main.get("current_screen") as TitleScreen
+	if title == null:
+		_fail("Main should start on the title screen for global settings.")
+		return
+	if bool(title.get("parallax_enabled")):
+		_fail("Title screen should disable parallax from global reduced motion.")
+		return
+	var expected_db := linear_to_db(0.3)
+	var actual_db := AudioServer.get_bus_volume_db(master_bus_index)
+	if not is_equal_approx(actual_db, expected_db):
+		_fail("Main should apply global master volume on startup.")
+		return
+
+	main.queue_free()
+	AudioServer.set_bus_volume_db(master_bus_index, original_volume_db)
+	_restore_global_settings_file(global_backup)
+	await process_frame
+
 func _assert_title_applies_persisted_reduced_motion() -> void:
+	var global_backup := _backup_global_settings_file()
+	_delete_global_settings_file()
 	var save_manager := root.get_node("SaveManager")
 	save_manager.save_path = "user://test_main_title_reduced_motion_save.json"
 	save_manager.delete_save()
@@ -162,9 +205,12 @@ func _assert_title_applies_persisted_reduced_motion() -> void:
 
 	main.queue_free()
 	save_manager.delete_save()
+	_restore_global_settings_file(global_backup)
 	await process_frame
 
 func _assert_main_applies_persisted_runtime_settings() -> void:
+	var global_backup := _backup_global_settings_file()
+	_delete_global_settings_file()
 	var save_manager := root.get_node("SaveManager")
 	save_manager.save_path = "user://test_main_runtime_settings_save.json"
 	save_manager.delete_save()
@@ -192,9 +238,33 @@ func _assert_main_applies_persisted_runtime_settings() -> void:
 	main.queue_free()
 	save_manager.delete_save()
 	AudioServer.set_bus_volume_db(master_bus_index, original_volume_db)
+	_restore_global_settings_file(global_backup)
 	await process_frame
 
 func _fail(message: String) -> void:
 	_failed = true
 	push_error(message)
 	quit(1)
+
+func _backup_global_settings_file() -> Dictionary:
+	var path := GlobalSettings.DEFAULT_SETTINGS_PATH
+	if not FileAccess.file_exists(path):
+		return {"exists": false, "content": ""}
+	return {
+		"exists": true,
+		"content": FileAccess.get_file_as_string(path),
+	}
+
+func _restore_global_settings_file(backup: Dictionary) -> void:
+	var path := GlobalSettings.DEFAULT_SETTINGS_PATH
+	_delete_global_settings_file()
+	if not bool(backup.get("exists", false)):
+		return
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file != null:
+		file.store_string(str(backup.get("content", "")))
+
+func _delete_global_settings_file() -> void:
+	var path := GlobalSettings.DEFAULT_SETTINGS_PATH
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)

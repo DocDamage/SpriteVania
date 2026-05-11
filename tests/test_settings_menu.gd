@@ -10,6 +10,12 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	await _assert_settings_menu_persists_global_settings_without_game_save()
+	if _failed:
+		return
+	await _assert_settings_menu_clamps_invalid_global_settings()
+	if _failed:
+		return
 	await _assert_settings_menu_persists_updates()
 	if _failed:
 		return
@@ -43,10 +49,110 @@ func _run() -> void:
 	print("PASS: settings menu")
 	quit(0)
 
+func _assert_settings_menu_persists_global_settings_without_game_save() -> void:
+	var save_manager := SaveManager.new()
+	save_manager.save_path = "user://test_settings_menu_global_save.json"
+	save_manager.delete_save()
+	var global_settings_path := "user://test_black_keep_settings.json"
+	_delete_user_file(global_settings_path)
+
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+
+	if not menu.has_method("set_global_settings_path"):
+		_fail("Settings menu should expose set_global_settings_path().")
+		return
+	menu.call("set_global_settings_path", global_settings_path)
+	menu.call("set_save_manager", save_manager)
+	menu.call("set_master_volume", 0.42)
+	menu.call("set_reduced_motion_enabled", true)
+
+	if save_manager.has_save():
+		_fail("Global settings should persist without creating a game save.")
+		return
+	if not FileAccess.file_exists(global_settings_path):
+		_fail("Global settings should write a settings file.")
+		return
+
+	var second_menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(second_menu)
+	await process_frame
+	second_menu.call("set_global_settings_path", global_settings_path)
+	second_menu.call("set_save_manager", save_manager)
+	var settings := second_menu.call("get_settings_state") as Dictionary
+	if not is_equal_approx(float(settings.master_volume), 0.42):
+		_fail("Global settings should reload persisted master volume.")
+		return
+	if not bool(settings.reduced_motion):
+		_fail("Global settings should reload persisted reduced motion.")
+		return
+
+	menu.queue_free()
+	second_menu.queue_free()
+	_delete_user_file(global_settings_path)
+	save_manager.free()
+	await process_frame
+
+func _assert_settings_menu_clamps_invalid_global_settings() -> void:
+	var global_settings_path := "user://test_black_keep_invalid_settings.json"
+	_delete_user_file(global_settings_path)
+	var file := FileAccess.open(global_settings_path, FileAccess.WRITE)
+	if file == null:
+		_fail("Test could not create invalid global settings file.")
+		return
+	file.store_string(JSON.stringify({
+		"master_volume": 9.0,
+		"music_volume": -4.0,
+		"sfx_volume": 2.0,
+		"screen_shake": -1.0,
+		"text_speed": 8.0,
+		"colorblind_mode": "NotARealMode",
+		"large_text": true,
+	}))
+	file = null
+
+	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
+	root.add_child(menu)
+	await process_frame
+	menu.call("set_global_settings_path", global_settings_path)
+	var save_manager := SaveManager.new()
+	menu.call("set_save_manager", save_manager)
+
+	var settings := menu.call("get_settings_state") as Dictionary
+	if not is_equal_approx(float(settings.master_volume), 1.0):
+		_fail("Global master volume should clamp high.")
+		return
+	if not is_equal_approx(float(settings.music_volume), 0.0):
+		_fail("Global music volume should clamp low.")
+		return
+	if not is_equal_approx(float(settings.sfx_volume), 1.0):
+		_fail("Global SFX volume should clamp high.")
+		return
+	if not is_equal_approx(float(settings.screen_shake), 0.0):
+		_fail("Global screen shake should clamp low.")
+		return
+	if not is_equal_approx(float(settings.text_speed), 1.0):
+		_fail("Global text speed should clamp high.")
+		return
+	if str(settings.colorblind_mode) != "Off":
+		_fail("Global colorblind mode should fall back to Off.")
+		return
+	if not bool(settings.large_text):
+		_fail("Valid global booleans should still load.")
+		return
+
+	menu.queue_free()
+	_delete_user_file(global_settings_path)
+	save_manager.free()
+	await process_frame
+
 func _assert_settings_menu_persists_updates() -> void:
 	var save_manager := SaveManager.new()
 	save_manager.save_path = "user://test_settings_menu_save.json"
 	save_manager.delete_save()
+	var global_settings_path := "user://test_settings_menu_legacy_global.json"
+	_delete_user_file(global_settings_path)
 
 	var seeded_state := GameState.new()
 	seeded_state.selected_class = "warden"
@@ -60,6 +166,7 @@ func _assert_settings_menu_persists_updates() -> void:
 	if not menu.has_method("set_save_manager"):
 		_fail("Settings menu should expose set_save_manager().")
 		return
+	menu.call("set_global_settings_path", global_settings_path)
 	menu.call("set_save_manager", save_manager)
 
 	var changes: Array[Dictionary] = []
@@ -97,6 +204,7 @@ func _assert_settings_menu_persists_updates() -> void:
 
 	menu.queue_free()
 	save_manager.delete_save()
+	_delete_user_file(global_settings_path)
 	save_manager.free()
 	await process_frame
 	await process_frame
@@ -106,10 +214,13 @@ func _assert_settings_menu_does_not_create_blank_save() -> void:
 	var save_manager := SaveManager.new()
 	save_manager.save_path = "user://test_settings_menu_empty_save.json"
 	save_manager.delete_save()
+	var global_settings_path := "user://test_settings_menu_empty_global.json"
+	_delete_user_file(global_settings_path)
 
 	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
 	root.add_child(menu)
 	await process_frame
+	menu.call("set_global_settings_path", global_settings_path)
 	menu.call("set_save_manager", save_manager)
 	menu.call("set_master_volume", 0.5)
 
@@ -118,6 +229,7 @@ func _assert_settings_menu_does_not_create_blank_save() -> void:
 		return
 
 	menu.queue_free()
+	_delete_user_file(global_settings_path)
 	save_manager.free()
 	await process_frame
 	await process_frame
@@ -260,6 +372,8 @@ func _assert_expanded_settings_persist_updates() -> void:
 	var save_manager := SaveManager.new()
 	save_manager.save_path = "user://test_settings_menu_expanded_save.json"
 	save_manager.delete_save()
+	var global_settings_path := "user://test_settings_menu_expanded_global.json"
+	_delete_user_file(global_settings_path)
 
 	var seeded_state := GameState.new()
 	seeded_state.selected_class = "warden"
@@ -269,6 +383,7 @@ func _assert_expanded_settings_persist_updates() -> void:
 	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
 	root.add_child(menu)
 	await process_frame
+	menu.call("set_global_settings_path", global_settings_path)
 	menu.call("set_save_manager", save_manager)
 
 	menu.call("set_music_volume", 0.25)
@@ -308,6 +423,7 @@ func _assert_expanded_settings_persist_updates() -> void:
 
 	menu.queue_free()
 	save_manager.delete_save()
+	_delete_user_file(global_settings_path)
 	save_manager.free()
 	await process_frame
 
@@ -343,6 +459,8 @@ func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
 	var save_manager := SaveManager.new()
 	save_manager.save_path = "user://test_settings_menu_invalid_save.json"
 	save_manager.delete_save()
+	var global_settings_path := "user://test_settings_menu_invalid_legacy_global.json"
+	_delete_user_file(global_settings_path)
 
 	var seeded_state := GameState.new()
 	seeded_state.settings = {
@@ -359,6 +477,7 @@ func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
 	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
 	root.add_child(menu)
 	await process_frame
+	menu.call("set_global_settings_path", global_settings_path)
 	menu.call("set_save_manager", save_manager)
 
 	var settings := menu.call("get_settings_state") as Dictionary
@@ -386,6 +505,7 @@ func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
 
 	menu.queue_free()
 	save_manager.delete_save()
+	_delete_user_file(global_settings_path)
 	save_manager.free()
 	await process_frame
 
@@ -393,12 +513,15 @@ func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
 	var save_manager := SaveManager.new()
 	save_manager.save_path = "user://test_settings_menu_reset_defaults_save.json"
 	save_manager.delete_save()
+	var global_settings_path := "user://test_settings_menu_reset_defaults_global.json"
+	_delete_user_file(global_settings_path)
 	var seeded_state := GameState.new()
 	save_manager.save_game(seeded_state)
 
 	var menu := SETTINGS_MENU_SCENE.instantiate() as Control
 	root.add_child(menu)
 	await process_frame
+	menu.call("set_global_settings_path", global_settings_path)
 	menu.call("set_save_manager", save_manager)
 
 	menu.call("set_music_volume", 0.2)
@@ -430,6 +553,7 @@ func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
 
 	menu.queue_free()
 	save_manager.delete_save()
+	_delete_user_file(global_settings_path)
 	save_manager.free()
 	await process_frame
 
@@ -437,3 +561,7 @@ func _fail(message: String) -> void:
 	_failed = true
 	push_error(message)
 	quit(1)
+
+func _delete_user_file(path: String) -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)

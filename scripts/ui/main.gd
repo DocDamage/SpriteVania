@@ -6,6 +6,7 @@ const CHARACTER_SELECT_PATH := "res://scenes/ui/CharacterSelect.tscn"
 const SETTINGS_MENU_PATH := "res://scenes/ui/SettingsMenu.tscn"
 const GAME_WORLD_PATH := "res://scenes/world/GameWorld.tscn"
 const MIN_VOLUME_LINEAR := 0.0001
+const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
 const LOAD_SLOTS := [
 	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
 	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
@@ -223,14 +224,16 @@ func _get_save_manager() -> Node:
 
 
 func _get_persisted_settings() -> Dictionary:
+	if GlobalSettingsScript.has_settings():
+		return GlobalSettingsScript.load_settings()
 	var save_manager := _get_save_manager()
 	if save_manager == null or not save_manager.has_method("load_game"):
-		return {}
+		return GlobalSettingsScript.default_settings()
 	var state: Variant = save_manager.call("load_game")
 	if state == null:
-		return {}
+		return GlobalSettingsScript.default_settings()
 	var settings: Variant = state.get("settings")
-	return settings if settings is Dictionary else {}
+	return GlobalSettingsScript.normalize_settings(settings) if settings is Dictionary else GlobalSettingsScript.default_settings()
 
 
 func _apply_persisted_settings_to_screen(screen: Node) -> void:
