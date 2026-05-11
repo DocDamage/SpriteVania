@@ -1,115 +1,199 @@
-# Menu and Settings Plan
+# Menu And Settings Plan
 
-This document tracks the Black Keep title/menu/settings direction. The current implementation already has a functional title flow and a tabbed settings menu, but the final game needs a stronger production UI pass and global settings storage.
+This document tracks the Black Keep title, menu, settings, load-game, credits,
+extras, and accessibility direction. The current implementation already has a
+functional title flow and a tabbed settings menu, but the final game needs a
+stronger production UI pass and global settings storage.
+
+## Goals
+
+- Make Continue, New Game, Load Game, Settings, Accessibility, Extras, Credits,
+  and Quit behave predictably.
+- Keep settings available before any save exists.
+- Support controller-first navigation.
+- Separate global settings from save-specific settings.
+- Make accessibility reachable before gameplay starts.
+- Keep placeholder screens safe and clear until final content exists.
 
 ## Title Screen
-
-Use the castle/cherry-blossom pixel-art title image as the production identity.
 
 Current title-screen state:
 
 - Game title: `THE BLACK KEEP`.
-- Menu stack: Continue, New Game, Load Game, Settings, Accessibility, Extras, Credits, Quit.
-- Visual layers: background image, Moon Sky overlay, weather layer, polish layer, vignette, dark left gradient, build/version label.
+- Menu stack: Continue, New Game, Load Game, Settings, Accessibility, Extras,
+  Credits, Quit.
+- Visual layers: background image, Moon Sky overlay, weather layer, polish
+  layer, vignette, dark left gradient, build/version label.
 - Motion options: title parallax, stars, rain, fog, petals.
 - Reduced motion disables or reduces parallax, weather, and polish layers.
 
+Production requirements:
+
+- Continue is disabled or visually dimmed when no valid save exists.
+- Load Game opens save slots.
+- Accessibility opens Settings on the Accessibility tab.
+- Extras and Credits open real screens or safe placeholder screens.
+- Quit asks for confirmation on platforms where accidental quit is likely.
+
 ## Main Menu Routing
 
-Expected menu behavior:
+Continue:
 
-- Continue loads the default save.
-- New Game opens character creation.
-- Load Game opens the save-slot screen.
-- Settings opens the settings menu.
-- Accessibility opens the Accessibility tab inside Settings.
-- Extras opens a real Extras screen.
-- Credits opens a real Credits screen.
-- Quit exits the game.
+- Load most recent valid save.
+- If latest save is invalid, show load error and offer Load Game.
 
-## Load Game Screen
+New Game:
 
-Production save-slot cards should show:
+- Open character creation.
+- If save slots exist, ask for slot selection before final confirmation.
+
+Load Game:
+
+- Open save-slot screen.
+- Never silently behave like Continue in production.
+
+Settings:
+
+- Open settings at last selected tab or General.
+
+Accessibility:
+
+- Open settings directly to Accessibility.
+
+Extras:
+
+- Open Extras screen.
+- Show locked content if no unlocks exist.
+
+Credits:
+
+- Open Credits screen.
+- Credits content must come from real project sources.
+
+Quit:
+
+- Exit game or return to platform shell.
+
+## Save Slot Screen
+
+Save slot card fields:
 
 - Slot label.
-- Chapter/progress label.
+- Current chapter or progress label.
 - Current zone or hub.
 - Active starter title and player-given name.
-- Party icons once party data exists.
+- Active party names or icons.
+- Familiar level and evolution.
 - Play time.
 - Last saved timestamp.
-- Difficulty/combo timing preset.
+- Difficulty or combo timing preset.
 - Completion percentage or discovered-room count.
-- Empty-slot state.
-- Delete/copy/backup actions, gated behind confirmation.
+- Thumbnail, room icon, or placeholder image.
+
+Actions:
+
+- Load.
+- Start New Game in empty slot.
+- Delete.
+- Copy, later.
+- Backup/export, later.
 
 Controller behavior:
 
-- D-pad/left stick moves between cards.
-- Confirm loads.
+- D-pad or left stick moves between cards.
+- Confirm loads or selects.
 - Secondary action opens slot options.
 - Back returns to title.
+- Delete requires hold or confirmation.
 
-## Current Settings Tabs
+Corrupt slot behavior:
 
-- General
-- Audio
-- Video
-- Gameplay
-- Controls
-- Accessibility
+- Show slot as damaged.
+- Allow delete.
+- Do not crash title screen.
+- Do not offer Continue into the damaged slot.
 
-## Future Expanded Settings Tabs
+## Settings Tabs
 
-- Gameplay
-- Combat
-- Controls
-- Display
-- Audio
-- Interface
-- Accessibility
-- Language/Text
-- Save & Data
+Current tabs:
 
-## Current Persistence
+- General.
+- Audio.
+- Video.
+- Gameplay.
+- Controls.
+- Accessibility.
 
-Current settings are saved into existing save data and must not create a blank save. Runtime settings already include audio, display, reduced motion, high contrast, large text, colorblind mode, screen shake, and text speed.
+Final target tabs:
 
-## Global Settings File Plan
+- Gameplay.
+- Combat.
+- Controls.
+- Display.
+- Audio.
+- Interface.
+- Accessibility.
+- Language and Text.
+- Save and Data.
 
-Future work should split settings into:
+## Global Settings
 
-- Global settings file: `user://black_keep_settings.json`
-- Save-specific settings inside save files.
+Global settings file:
 
-This allows settings to persist before any save exists.
+- `user://black_keep_settings.json`
 
-Global settings candidates:
+Global settings should include:
 
-- Master/music/SFX volume.
-- Fullscreen/window mode.
+- Master volume.
+- Music volume.
+- SFX volume.
+- Fullscreen or window mode.
 - VSync.
-- Resolution/display scale.
+- Resolution or display scale.
 - Input bindings.
 - Controller glyph style.
+- Stick dead zones.
 - Colorblind mode.
-- Font scale / large text.
+- Font scale.
+- Large text.
 - Screen shake.
 - Particle intensity.
+- Reduced motion.
+- Flash intensity.
 - Subtitles.
 - Dialogue log setting.
-- Minimap display preferences.
+- Language.
+- Minimap display preference.
 
-Save-specific settings candidates:
+Global settings rules:
 
-- Combo timing preset.
+- Can be saved without game save data.
+- Missing values use defaults.
+- Invalid values clamp to valid ranges.
+- Input conflicts show warnings.
+- Settings writes should use a temp file then replace.
+
+## Save-Specific Settings
+
+Save-specific settings include:
+
 - Difficulty.
+- Combo timing preset.
 - Auto-swap on KO.
 - Enemy HP bars.
 - Damage numbers.
-- Character/party-specific tutorial completion.
+- Character tutorial completion.
+- Party-specific accessibility overrides, if ever needed.
 
-## Combat Settings To Add
+Rules:
+
+- Save-specific settings travel with the save file.
+- Global settings still affect presentation.
+- Save-specific settings should not create a save before New Game confirmation.
+
+## Combat Settings
+
+Required:
 
 - Combo Timing: Story, Normal, Technical, Expert.
 - Momentum refill feedback.
@@ -121,67 +205,79 @@ Save-specific settings candidates:
 - Aim assist.
 - Swap input style.
 
-## Interface and Language/Text Settings
+Swap input styles:
 
-Interface settings to add:
+- Cycle left/right.
+- Direct slot buttons.
+- Hold radial, later if needed.
+
+## Interface Settings
+
+Interface settings:
 
 - HUD scale.
 - Minimap size.
-- Minimap rotation/fixed orientation.
+- Minimap fixed or rotating orientation.
 - Objective tracker visibility.
 - Damage number visibility.
 - Enemy HP bar visibility.
 - Controller glyph theme.
+- Interaction prompt size.
+- Familiar HUD visibility.
 
-Language/Text settings to add:
+## Language And Text Settings
 
+Language and text settings:
+
+- Language.
 - Subtitle toggle.
 - Subtitle size.
 - Dialogue text speed.
 - Dialogue auto-advance.
 - Dialogue log access.
 - Speaker name display.
+- Font scale.
 - Dyslexia-friendly font option, if a suitable font is approved.
 
-## Accessibility Prompt
+## Accessibility Settings
 
-First launch should offer an optional accessibility prompt before the title menu or on first Settings open.
-
-Prompt options:
+Accessibility settings:
 
 - Large text.
-- Reduced motion.
 - High contrast.
-- Screen shake off.
-- Subtitles on.
-- Colorblind mode shortcut.
-- Remap controls shortcut.
+- Reduced motion.
+- Screen shake amount.
+- Flash intensity.
+- Particle amount.
+- Colorblind mode.
+- Hold/toggle options for repeated inputs.
+- Controller remapping.
+- Aim assist.
+- Combat timing preset shortcut.
+- Subtitle defaults.
 
-The prompt should be skippable and available again from Accessibility settings.
+First launch prompt:
 
-## Credits Screen Content
+- Offer large text.
+- Offer reduced motion.
+- Offer high contrast.
+- Offer screen shake off.
+- Offer subtitles on.
+- Offer colorblind mode shortcut.
+- Offer remap controls shortcut.
 
-Credits should include:
+The prompt must be skippable and available again from Accessibility settings.
 
-- Project title and team credits.
-- Asset pack credits.
-- Engine and tool credits.
-- Plugin/library credits.
-- Special thanks.
-- License notes where required.
+## Extras Screen
 
-Do not invent final names or licenses; populate from actual project sources during production.
-
-## Extras Unlock Rules
-
-Potential Extras:
+Potential extras:
 
 - Bestiary.
 - Music player.
-- Concept art/gallery.
+- Concept art or gallery.
 - Boss rematch.
 - Time trial rooms.
-- Completed ending viewer.
+- Ending viewer.
 - Character profiles.
 - Lore archive.
 
@@ -194,13 +290,86 @@ Unlock sources:
 - Endings.
 - Optional seal completion.
 
-## Remaining Work
+Rules:
 
-- Finalize Load Game screen design and save-slot metadata.
-- Add real Extras and Credits screens.
-- Move long-term settings persistence into a global settings file.
-- Add combat-specific settings once Momentum and tag-swapping exist.
-- Add final UI art, fonts, audio feedback, and controller-focused navigation polish.
-- Define global/save-specific settings migration path.
-- Add first-time accessibility prompt.
-- Add Save & Data tab for deleting saves, exporting backups, and viewing save metadata.
+- Locked extras should show a clean locked state.
+- Unlock text should avoid spoilers unless already discovered.
+- Extras should not modify game saves except for explicit settings or records.
+
+## Credits Screen
+
+Credits should include:
+
+- Project title.
+- Team credits.
+- Asset pack credits.
+- Engine and tool credits.
+- Plugin or library credits.
+- Special thanks.
+- License notes where required.
+
+Rules:
+
+- Do not invent final names or licenses.
+- Populate from actual project sources during production.
+- Credits should be scrollable by keyboard, mouse, and controller.
+- Credits should allow back/cancel at any time.
+
+## Save And Data Tab
+
+Future Save and Data tab:
+
+- View save metadata.
+- Delete save slots.
+- Export backup.
+- Restore backup.
+- Reset settings.
+- Reset input bindings.
+- Clear extras unlocks, if supported.
+
+Safety:
+
+- Destructive actions require confirmation.
+- Delete actions should not be available from accidental focus state.
+- Backup and restore failures should show clear errors.
+
+## Tests
+
+Automated tests:
+
+- Continue disabled with no valid save.
+- Continue loads most recent valid save.
+- Load Game opens slot screen.
+- Accessibility opens Accessibility tab.
+- Settings save globally without game save.
+- Invalid setting values clamp.
+- Input conflicts are detected.
+- Corrupt save slot does not crash.
+- Extras screen opens.
+- Credits screen opens.
+
+Manual tests:
+
+- Keyboard title navigation.
+- Controller title navigation.
+- Mouse title navigation.
+- Create and load save slot.
+- Delete save slot with confirmation.
+- Change settings before New Game and verify persistence.
+- Use first-launch accessibility prompt.
+- Open and exit Extras and Credits.
+
+## Locked Decisions
+
+- Load Game should become a real save-slot screen.
+- Accessibility routes to Settings Accessibility tab.
+- Settings must split global and save-specific data.
+- Reduced motion affects title screen and gameplay VFX.
+
+## Open Questions
+
+- Exact visual design of save-slot cards.
+- Whether New Game asks for slot before or after character creation.
+- Which controller glyph set ships first.
+- Which final font supports accessibility best.
+- Whether Extras unlocks are profile-wide or save-specific.
