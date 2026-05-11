@@ -1,0 +1,13 @@
+[gd_resource type="SpriteFrames" load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/Hardcore Gandalf/GandalfHardcore character effects/Character effects stars.png" id="1_pulse"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/Hardcore Gandalf/GandalfHardcore character effects/Character effects lines yellow.png" id="2_pulse"]
+[ext_resource type="Texture2D" path="res://SpriteVania Assets/Hardcore Gandalf/GandalfHardcore character effects/Character effects buff red.png" id="3_pulse"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1_pulse")}, {"duration": 1.0, "texture": ExtResource("2_pulse")}, {"duration": 1.0, "texture": ExtResource("3_pulse")}],
+"loop": true,
+"name": &"pulse",
+"speed": 8.0
+}]

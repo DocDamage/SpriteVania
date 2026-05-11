@@ -6,6 +6,9 @@ const CHARACTER_SELECT_PATH := "res://scenes/ui/CharacterSelect.tscn"
 const SETTINGS_MENU_PATH := "res://scenes/ui/SettingsMenu.tscn"
 const GAME_WORLD_PATH := "res://scenes/world/GameWorld.tscn"
 const MIN_VOLUME_LINEAR := 0.0001
+const GameStateScript := preload("res://scripts/core/game_state.gd")
+const CharacterRegistry := preload("res://scripts/characters/character_registry.gd")
+const PartyManager := preload("res://scripts/core/party_manager.gd")
 const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
 const LOAD_SLOTS := [
 	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
@@ -83,14 +86,16 @@ func show_load_game() -> void:
 	var screen := _create_panel_screen("LoadGameScreen", "Load Game")
 	var stack := screen.get_node("Panel/MarginContainer/VBoxContainer") as VBoxContainer
 	var save_manager := _get_save_manager()
+	var slot_metadata := _save_slot_metadata(save_manager)
 	for slot_data: Dictionary in LOAD_SLOTS:
 		var slot_id := str(slot_data.id)
+		var metadata := slot_metadata.get(slot_id, {}) as Dictionary
 		var button := Button.new()
 		button.name = str(slot_data.button)
 		button.unique_name_in_owner = true
 		button.custom_minimum_size = Vector2(260, 40)
-		button.text = "%s - %s" % [slot_data.label, _slot_status_text(save_manager, slot_id)]
-		button.disabled = not _has_slot_save(save_manager, slot_id)
+		button.text = "%s - %s" % [slot_data.label, _slot_status_text(metadata)]
+		button.disabled = not bool(metadata.get("valid", false))
 		button.pressed.connect(func() -> void: _load_game_from_slot(slot_id))
 		stack.add_child(button)
 		stack.move_child(button, max(1, stack.get_child_count() - 2))
@@ -114,11 +119,16 @@ func show_credits() -> void:
 	_show_info_menu("CreditsScreen", "Credits", "SpriteVania is built from the project asset library, Godot, and custom game code.")
 
 
-func _start_new_game(class_id: String, sprite_id: String) -> void:
+func _start_new_game(starter_id: String, character_name: String) -> void:
+	var initial_state := _initial_state_for_starter(starter_id, character_name)
+	var save_manager := _get_save_manager()
+	if save_manager != null and save_manager.has_method("save_game"):
+		save_manager.call("save_game", initial_state)
+
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
-	if world.has_method("start_new_game"):
-		world.start_new_game(class_id, sprite_id)
+	if world.has_method("continue_game"):
+		world.continue_game()
 
 
 func _continue_game() -> void:
@@ -130,10 +140,10 @@ func _continue_game() -> void:
 func _load_game_from_slot(slot_id: String) -> void:
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
-	if slot_id == "default" and world.has_method("continue_game"):
-		world.continue_game()
-	elif world.has_method("continue_game_from_slot"):
+	if world.has_method("continue_game_from_slot"):
 		world.continue_game_from_slot(slot_id)
+	elif slot_id == "default" and world.has_method("continue_game"):
+		world.continue_game()
 
 func _show_info_menu(screen_name: String, title_text: String, body_text: String) -> void:
 	var screen := _create_panel_screen(screen_name, title_text, body_text)
@@ -203,14 +213,48 @@ func _create_panel_screen(screen_name: String, title_text: String, body_text := 
 func _has_slot_save(save_manager: Node, slot_id: String) -> bool:
 	if save_manager == null:
 		return false
+	if save_manager.has_method("read_save_slot_metadata"):
+		return bool((save_manager.call("read_save_slot_metadata", slot_id) as Dictionary).get("valid", false))
 	if slot_id == "default" and save_manager.has_method("has_save"):
 		return bool(save_manager.call("has_save"))
 	if save_manager.has_method("has_save_in_slot"):
 		return bool(save_manager.call("has_save_in_slot", slot_id))
 	return false
 
-func _slot_status_text(save_manager: Node, slot_id: String) -> String:
-	return "Saved" if _has_slot_save(save_manager, slot_id) else "Empty"
+func _save_slot_metadata(save_manager: Node) -> Dictionary:
+	var metadata_by_slot := {}
+	if save_manager != null and save_manager.has_method("scan_save_slots"):
+		var slot_ids: Array[String] = []
+		for slot_data: Dictionary in LOAD_SLOTS:
+			slot_ids.append(str(slot_data.id))
+		for metadata: Dictionary in save_manager.call("scan_save_slots", slot_ids):
+			metadata_by_slot[str(metadata.get("slot_id", ""))] = metadata
+		return metadata_by_slot
+	for slot_data: Dictionary in LOAD_SLOTS:
+		var slot_id := str(slot_data.id)
+		metadata_by_slot[slot_id] = {
+			"slot_id": slot_id,
+			"valid": _has_slot_save(save_manager, slot_id),
+			"status": "Saved" if _has_slot_save(save_manager, slot_id) else "Empty",
+		}
+	return metadata_by_slot
+
+func _slot_status_text(metadata: Dictionary) -> String:
+	if not bool(metadata.get("exists", false)):
+		return "Empty"
+	if not bool(metadata.get("valid", false)):
+		return str(metadata.get("status", "Corrupt"))
+	var summary: Array[String] = []
+	var selected_class := str(metadata.get("selected_class", ""))
+	var current_room := str(metadata.get("current_room", ""))
+	var level := int(metadata.get("level", 0))
+	if not selected_class.is_empty():
+		summary.append(selected_class)
+	if level > 0:
+		summary.append("Lv %d" % level)
+	if not current_room.is_empty():
+		summary.append(current_room)
+	return "Saved" if summary.is_empty() else "Saved: " + " / ".join(summary)
 
 func _connect_world_navigation(world: Node) -> void:
 	_apply_persisted_settings_to_screen(world)
@@ -221,6 +265,22 @@ func _connect_world_navigation(world: Node) -> void:
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
+
+func _initial_state_for_starter(starter_id: String, character_name: String) -> GameStateScript:
+	var definition := CharacterRegistry.get_definition(starter_id)
+	var state := GameStateScript.new()
+	state.selected_starter_id = starter_id
+	state.player_name = character_name.strip_edges()
+	state.selected_class = str(definition.get("class_id")) if definition != null else "warden"
+	state.selected_sprite = ""
+	state.current_area = "swamp_outskirts"
+	state.current_room = "RoomStart"
+	state.level = 1
+	state.learned_attack_skills = _string_array(definition.get("baseline_skills")) if definition != null else []
+	state.mark_room_discovered(state.current_room)
+	var party_manager := PartyManager.new()
+	party_manager.initialize_starter(state, starter_id, state.player_name)
+	return state
 
 
 func _get_persisted_settings() -> Dictionary:
@@ -278,3 +338,10 @@ func _apply_vsync_enabled(enabled: bool) -> void:
 
 func _quit_game() -> void:
 	get_tree().quit()
+
+func _string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if value is Array:
+		for item: Variant in value:
+			result.append(str(item))
+	return result

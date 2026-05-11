@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character_definition.gd" id="1_character_definition"]
+
+[resource]
+script = ExtResource("1_character_definition")
+character_id = "black_witch"
+display_name = "The Black Witch of Ash"
+role_summary = "Required caster recruit built around ash magic, pull effects, enemy marking, and ritual utility."
+default_name = "Mira"
+combat_role = "caster"
+starter_selectable = false
+recruitable = true
+class_id = "hexbinder"
+preview_asset_path = "res://SpriteVania Assets/craft pix characters/Witch_3"
+baseline_skills = Array[String](["ashen_hexburst", "ashbrand"])

@@ -7,6 +7,10 @@ func _init() -> void:
 	var manager := SaveManager.new()
 	manager.save_path = "user://test_spritevania_save.json"
 	manager.delete_save()
+	for stale_slot_id: String in ["slot_a", "slot_b", "slot_c"]:
+		var stale_slot_path := manager.call("_slot_save_path", stale_slot_id) as String
+		if FileAccess.file_exists(stale_slot_path):
+			DirAccess.remove_absolute(stale_slot_path)
 
 	var state := GameState.new()
 	state.selected_class = "warden"
@@ -32,6 +36,21 @@ func _init() -> void:
 			"sting": 2,
 		},
 	}
+	state.party_roster = {
+		"ronin": {
+			"character_id": "ronin",
+			"character_name": "Akio",
+			"class_id": "warden",
+		},
+		"black_witch": {
+			"character_id": "black_witch",
+			"character_name": "Mira",
+			"class_id": "hexbinder",
+		},
+	}
+	state.active_party_ids = ["ronin", "black_witch"]
+	state.active_party_index = 1
+	state.momentum = 75
 	state.settings = {
 		"master_volume": 0.4,
 		"fullscreen": false,
@@ -107,9 +126,26 @@ func _init() -> void:
 		push_error("Familiar evolution did not persist")
 		quit(1)
 		return
+	if int(loaded.familiar_state.get("ability_points", -1)) != 1:
+		push_error("Familiar ability points did not persist")
+		quit(1)
+		return
 	var ability_levels := loaded.familiar_state.get("ability_levels", {}) as Dictionary
 	if int(ability_levels.get("sting", 0)) != 2:
 		push_error("Familiar ability levels did not persist")
+		quit(1)
+		return
+	if loaded.active_party_ids != ["ronin", "black_witch"]:
+		push_error("Active party ids did not persist")
+		quit(1)
+		return
+	if int(loaded.active_party_index) != 1 or int(loaded.momentum) != 75:
+		push_error("Active party index or Momentum did not persist")
+		quit(1)
+		return
+	var loaded_witch := loaded.party_roster.get("black_witch", {}) as Dictionary
+	if str(loaded_witch.get("character_name", "")) != "Mira" or str(loaded_witch.get("class_id", "")) != "hexbinder":
+		push_error("Party roster state did not persist")
 		quit(1)
 		return
 	if loaded.settings.get("master_volume", -1.0) != 0.4:
@@ -136,6 +172,72 @@ func _init() -> void:
 	var loaded_slot: GameState = manager.load_game_from_slot("slot_a")
 	if loaded_slot == null or loaded_slot.selected_class != "gunslinger" or loaded_slot.level != 5:
 		push_error("Slot load did not return the requested slot state")
+		quit(1)
+		return
+	for method_name: String in ["scan_save_slots", "read_save_slot_metadata", "resolve_latest_valid_save_slot", "load_latest_valid_game"]:
+		if not manager.has_method(method_name):
+			push_error("Save manager should expose %s()" % method_name)
+			quit(1)
+			return
+	var slot_metadata: Array = manager.call("scan_save_slots", ["default", "slot_a", "slot_b"])
+	if slot_metadata.size() != 3:
+		push_error("Save manager should scan requested save slots")
+		quit(1)
+		return
+	var default_metadata := slot_metadata[0] as Dictionary
+	var slot_a_metadata := slot_metadata[1] as Dictionary
+	var slot_b_metadata := slot_metadata[2] as Dictionary
+	if not bool(default_metadata.get("valid", false)) or str(default_metadata.get("slot_id", "")) != "default":
+		push_error("Default save metadata should report a valid default slot")
+		quit(1)
+		return
+	if str(default_metadata.get("selected_class", "")) != "warden" or int(default_metadata.get("level", 0)) != 3:
+		push_error("Default save metadata should include summary fields")
+		quit(1)
+		return
+	if not bool(slot_a_metadata.get("valid", false)) or str(slot_a_metadata.get("selected_class", "")) != "gunslinger":
+		push_error("Slot metadata should include valid slot summary fields")
+		quit(1)
+		return
+	if bool(slot_b_metadata.get("exists", true)) or bool(slot_b_metadata.get("valid", true)):
+		push_error("Missing slot metadata should be empty and invalid")
+		quit(1)
+		return
+
+	var corrupt_path := manager.call("_slot_save_path", "slot_b") as String
+	var corrupt_file := FileAccess.open(corrupt_path, FileAccess.WRITE)
+	if corrupt_file == null:
+		push_error("Could not write corrupt test save")
+		quit(1)
+		return
+	corrupt_file.store_string("{not valid json")
+	corrupt_file = null
+	var corrupt_metadata := (manager.call("read_save_slot_metadata", "slot_b") as Dictionary)
+	if not bool(corrupt_metadata.get("exists", false)) or bool(corrupt_metadata.get("valid", true)):
+		push_error("Corrupt slot metadata should exist but be invalid")
+		quit(1)
+		return
+	if str(corrupt_metadata.get("status", "")) != "Corrupt":
+		push_error("Corrupt slot metadata should expose corrupt status")
+		quit(1)
+		return
+
+	var latest_state := GameState.new()
+	latest_state.selected_class = "hexbinder"
+	latest_state.current_room = "RoomMiniBoss"
+	latest_state.level = 7
+	if not manager.save_game_to_slot("slot_c", latest_state):
+		push_error("Latest slot save failed")
+		quit(1)
+		return
+	var latest_slot := str(manager.call("resolve_latest_valid_save_slot", ["default", "slot_a", "slot_b", "slot_c"]))
+	if latest_slot != "slot_c":
+		push_error("Latest valid slot resolver should skip corrupt slots and pick the newest valid slot")
+		quit(1)
+		return
+	var latest_loaded: GameState = manager.call("load_latest_valid_game", ["default", "slot_a", "slot_b", "slot_c"])
+	if latest_loaded == null or latest_loaded.selected_class != "hexbinder":
+		push_error("Latest valid save load should return the newest valid state")
 		quit(1)
 		return
 	var default_loaded := manager.load_game()

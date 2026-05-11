@@ -62,6 +62,7 @@ const SKILL_COOLDOWNS := {
 @export var hit_flash_duration := 0.12
 @export var knockback_strength := 220.0
 @export var max_air_jumps := 1
+@export var max_air_dashes := 1
 @export var dash_cooldown := 0.28
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
@@ -90,6 +91,7 @@ var _hit_flash_time_remaining := 0.0
 var _attack_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
+var _air_dashes_remaining := 1
 var _dash_cooldown_remaining := 0.0
 var _dash_time_remaining := 0.0
 var _dash_direction := 1.0
@@ -152,6 +154,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = direction * _move_speed()
 	if is_on_floor():
 		_air_jumps_remaining = max_air_jumps
+		_air_dashes_remaining = max_air_dashes
 		_stop_wall_hang()
 	elif not is_dashing and not is_sliding and _should_wall_hang(direction):
 		start_wall_hang(signf(direction))
@@ -245,6 +248,10 @@ func perform_jump() -> void:
 func perform_dash() -> void:
 	if _dash_cooldown_remaining > 0.0:
 		return
+	if not is_on_floor():
+		if _air_dashes_remaining <= 0:
+			return
+		_air_dashes_remaining -= 1
 	_start_dash(BASE_DASH_DISTANCE, dash_cooldown)
 
 func set_traversal_unlocks(unlocks: Array[String]) -> void:

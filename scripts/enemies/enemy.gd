@@ -15,6 +15,7 @@ signal dropped(enemy_id: String, drop_id: String, drop_amount: int)
 const HURT_FLASH_DURATION := 0.12
 
 var current_health: int
+var enemy_state := "idle"
 var _is_dead := false
 var _contact_hitbox: Area2D
 var _hurt_flash: ColorRect
@@ -37,9 +38,11 @@ func take_damage(amount: int) -> void:
 		return
 
 	current_health -= amount
+	enemy_state = "hurt"
 	_show_hurt_flash()
 	if current_health <= 0:
 		_is_dead = true
+		enemy_state = "dead"
 		_emit_drop_if_configured()
 		died.emit(enemy_id, xp_reward)
 		queue_free()

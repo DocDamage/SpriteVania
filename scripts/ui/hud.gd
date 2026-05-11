@@ -4,6 +4,8 @@ class_name HUD
 const MapRegistry := preload("res://scripts/world/map_registry.gd")
 const DEFAULT_CONTROLS_HINT_FONT_SIZE := 11
 const LARGE_CONTROLS_HINT_FONT_SIZE := 15
+const DEFAULT_CONTROLS_HINT_TEXT := "Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B"
+const ATTACK_PROMPT_TEXT := "Attack J / X  Tap for combo  Hold Down+Attack to dive"
 
 @onready var root_control: Control = $Root
 @onready var health_bar: ProgressBar = %HealthBar
@@ -12,6 +14,7 @@ const LARGE_CONTROLS_HINT_FONT_SIZE := 15
 @onready var resource_value_label: Label = %ResourceValueLabel
 @onready var level_label: Label = %LevelLabel
 @onready var familiar_label: Label = %FamiliarLabel
+@onready var party_label: Label = %PartyLabel
 @onready var room_label: Label = %RoomLabel
 @onready var discovery_label: Label = %DiscoveryLabel
 @onready var xp_bar: ProgressBar = %XPBar
@@ -48,6 +51,12 @@ func bind_player(next_player: Player) -> void:
 	if familiar != null and familiar.has_method("get_status"):
 		set_familiar_status(familiar.call("get_status"))
 
+func show_attack_prompt() -> void:
+	%ControlsHintLabel.text = ATTACK_PROMPT_TEXT
+
+func clear_controls_prompt() -> void:
+	%ControlsHintLabel.text = DEFAULT_CONTROLS_HINT_TEXT
+
 func _on_player_stats_changed(stats: Dictionary) -> void:
 	var health: int = int(stats.get("health", 0))
 	var max_health: int = max(1, int(stats.get("max_health", 1)))
@@ -74,6 +83,16 @@ func set_familiar_status(status: Dictionary) -> void:
 	var familiar_level := int(status.get("level", 1))
 	var evolution_stage := str(status.get("evolution_stage", "spark")).capitalize()
 	familiar_label.text = "Familiar Lv %d - %s" % [familiar_level, evolution_stage]
+
+func set_party_status(status: Dictionary) -> void:
+	var active_ids: Array = status.get("active_party_ids", []) as Array
+	var active_index := int(status.get("active_party_index", 0))
+	var momentum := int(status.get("momentum", 0))
+	var labels: Array[String] = []
+	for index: int in active_ids.size():
+		var marker := "*" if index == active_index else ""
+		labels.append("%s%s" % [marker, str(active_ids[index]).replace("_", " ").capitalize()])
+	party_label.text = "Party %s  Momentum %d" % [" / ".join(labels), momentum]
 
 func show_upgrade_feedback(title: String, detail: String) -> void:
 	upgrade_title_label.text = title

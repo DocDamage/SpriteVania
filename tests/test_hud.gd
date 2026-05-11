@@ -37,6 +37,17 @@ func _run() -> void:
 	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should make attack, combo, dive, and dash controls visible during play.")
 	if _failed:
 		return
+	if not hud.has_method("show_attack_prompt"):
+		_fail("HUD should expose show_attack_prompt so rooms can trigger an attack tutorial hook.")
+		return
+	hud.call("show_attack_prompt")
+	_assert_equal("Attack J / X  Tap for combo  Hold Down+Attack to dive", hud.get_node("%ControlsHintLabel").text, "Attack prompt hook should surface melee combo and dive input.")
+	if _failed:
+		return
+	hud.call("clear_controls_prompt")
+	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should restore its default controls prompt.")
+	if _failed:
+		return
 	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")
 	if _failed:
 		return

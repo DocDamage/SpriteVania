@@ -1,5 +1,7 @@
 extends SceneTree
 
+const GAME_WORLD_SCENE := preload("res://scenes/world/GameWorld.tscn")
+
 const SWAMP_ROOM_SCENES := [
 	"res://scenes/world/swamp_outskirts/RoomStart.tscn",
 	"res://scenes/world/swamp_outskirts/RoomMovement.tscn",
@@ -27,8 +29,35 @@ const POLISHED_PRESENTATION_SCENES := [
 	"res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn",
 ]
 
-func _init() -> void:
+const MILESTONE_VISUAL_ROOMS := [
+	"CastleGate_Causeway",
+	"SamuraiCastle_MasakiroArena",
+	"SakuramoriCourt_Entrance",
+]
+
+const DERIVED_FRAME_RESOURCES := {
+	"res://resources/animations/black_keep/ronin_prototype_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/arc_gunner_prototype_frames.tres": {"idle": 1, "attack": 1, "projectile": 1},
+	"res://resources/animations/black_keep/iron_knight_prototype_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/witch_ash_prototype_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/shadow_prototype_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/enemy_cursed_samurai_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/enemy_oni_brute_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/boss_masakiro_phase1_frames.tres": {"idle": 1, "attack": 1, "hurt": 1},
+	"res://resources/animations/black_keep/boss_masakiro_oni_overlay_frames.tres": {"aura": 1},
+}
+
+const VFX_FRAME_RESOURCES := {
+	"res://resources/vfx/hit_spark_frames.tres": {"burst": 3},
+	"res://resources/vfx/rising_torii_seal_frames.tres": {"pulse": 3},
+}
+
+func _initialize() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
 	_assert_resource("res://resources/tilesets/swamp_tileset.tres", TileSet)
+	_assert_resource("res://resources/tilesets/black_keep_blockout_tileset.tres", TileSet)
 	_assert_sprite_frames("res://resources/animations/player_swamp_frames.tres", {
 		"idle": 6,
 		"run": 14,
@@ -40,8 +69,15 @@ func _init() -> void:
 	_assert_sprite_frames("res://resources/animations/swamp_spider_frames.tres", {"walk": 4})
 	_assert_sprite_frames("res://resources/animations/swamp_thing_frames.tres", {"walk": 4})
 	_assert_sprite_frames("res://resources/animations/swamp_fire_frames.tres", {"burn": 2})
+	for frames_path: String in DERIVED_FRAME_RESOURCES:
+		_assert_sprite_frames(frames_path, DERIVED_FRAME_RESOURCES[frames_path])
+	for frames_path: String in VFX_FRAME_RESOURCES:
+		_assert_sprite_frames(frames_path, VFX_FRAME_RESOURCES[frames_path])
 	_assert_player_animated_collision()
 	_assert_dialogue_resource()
+	_assert_masakiro_uses_derived_assets()
+	for room_id: String in MILESTONE_VISUAL_ROOMS:
+		await _assert_milestone_room_has_zone_art(room_id)
 	for scene_path: String in SWAMP_ROOM_SCENES:
 		_assert_swamp_room(scene_path)
 	for scene_path: String in POLISHED_PRESENTATION_SCENES:
@@ -141,6 +177,46 @@ func _assert_swamp_room(path: String) -> void:
 		_assert_wall_jump_practice_shaft(room, path)
 	_assert_no_hidden_collision_body(room, path)
 	room.free()
+
+func _assert_masakiro_uses_derived_assets() -> void:
+	var scene := load("res://scenes/enemies/Masakiro.tscn") as PackedScene
+	if scene == null:
+		push_error("Masakiro scene did not load")
+		quit(1)
+	var masakiro := scene.instantiate()
+	var sprite := masakiro.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite == null:
+		push_error("Masakiro should use AnimatedSprite2D with derived boss frames.")
+		masakiro.free()
+		quit(1)
+		return
+	if sprite.sprite_frames == null or sprite.sprite_frames.resource_path != "res://resources/animations/black_keep/boss_masakiro_phase1_frames.tres":
+		push_error("Masakiro AnimatedSprite2D should use boss_masakiro_phase1_frames.")
+		masakiro.free()
+		quit(1)
+		return
+	var overlay := masakiro.get_node_or_null("OniOverlay") as AnimatedSprite2D
+	if overlay == null or overlay.sprite_frames == null:
+		push_error("Masakiro should include an OniOverlay VFX sprite.")
+		masakiro.free()
+		quit(1)
+		return
+	masakiro.free()
+
+func _assert_milestone_room_has_zone_art(room_id: String) -> void:
+	var world := GAME_WORLD_SCENE.instantiate() as Node2D
+	root.add_child(world)
+	world.call("start_new_game", "warden", "")
+	world.call("load_room", room_id)
+	await process_frame
+	var room := world.get("current_room") as Node2D
+	var zone_art := room.get_node_or_null("ZoneArt") as Sprite2D
+	if zone_art == null or zone_art.texture == null:
+		push_error(room_id + " should instantiate a ZoneArt sprite with a real texture.")
+		world.free()
+		quit(1)
+		return
+	world.free()
 
 func _has_no_placeholder_texture(path: String) -> bool:
 	var source := FileAccess.get_file_as_string(path)

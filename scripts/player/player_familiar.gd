@@ -5,6 +5,7 @@ signal stats_changed(status: Dictionary)
 
 @export var follow_offset := Vector2(-28, -30)
 @export var follow_speed := 8.0
+@export var max_follow_distance := 180.0
 @export var bob_amplitude := 3.0
 @export var bob_speed := 4.0
 @export var attack_range := 96.0
@@ -43,6 +44,8 @@ func _physics_process(delta: float) -> void:
 	_bob_time += delta * bob_speed
 	var bob := Vector2(0.0, sin(_bob_time) * bob_amplitude)
 	var desired_position := target.global_position + _oriented_offset() + bob
+	if global_position.distance_to(target.global_position) > max_follow_distance:
+		global_position = target.global_position + _oriented_offset()
 	var weight := clampf(follow_speed * delta, 0.0, 1.0)
 	global_position = global_position.lerp(desired_position, weight)
 	try_attack()

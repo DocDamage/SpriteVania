@@ -11,6 +11,7 @@ const UPGRADE_PICKUP_SCRIPT := preload("res://scripts/world/upgrade_pickup.gd")
 const PLAYER_SCRIPT := preload("res://scripts/player/player.gd")
 const FAMILIAR_SCRIPT := preload("res://scripts/player/player_familiar.gd")
 const MapRegistry := preload("res://scripts/world/map_registry.gd")
+const PartyManager := preload("res://scripts/core/party_manager.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 const HUD_SCENE := preload("res://scenes/ui/HUD.tscn")
 const PAUSE_MENU_SCENE := preload("res://scenes/ui/PauseMenu.tscn")
@@ -37,8 +38,29 @@ const ROOM_SCENES := {
 	"RoomUpgrade": preload("res://scenes/world/swamp_outskirts/RoomUpgrade.tscn"),
 	"RoomShortcut": preload("res://scenes/world/swamp_outskirts/RoomShortcut.tscn"),
 	"RoomMiniBoss": preload("res://scenes/world/swamp_outskirts/RoomMiniBoss.tscn"),
+	"Swamp_CastleExit": preload("res://scenes/world/swamp_outskirts/Swamp_CastleExit.tscn"),
 	"CastleGateStart": preload("res://scenes/world/castle_gate/CastleGateStart.tscn"),
 	"CastleBattlements": preload("res://scenes/world/castle_gate/CastleBattlements.tscn"),
+	"CastleGate_Causeway": preload("res://scenes/world/castle_gate/CastleGate_Causeway.tscn"),
+	"CastleGate_BrokenPortcullis": preload("res://scenes/world/castle_gate/CastleGate_BrokenPortcullis.tscn"),
+	"CastleGate_DamagedShrineApproach": preload("res://scenes/world/castle_gate/CastleGate_DamagedShrineApproach.tscn"),
+	"CastleGate_DamagedShrine": preload("res://scenes/world/castle_gate/CastleGate_DamagedShrine.tscn"),
+	"CastleGate_TagTutorial": preload("res://scenes/world/castle_gate/CastleGate_TagTutorial.tscn"),
+	"SamuraiCastle_OuterWall": preload("res://scenes/world/samurai_castle/SamuraiCastle_OuterWall.tscn"),
+	"SamuraiCastle_PatrolHall": preload("res://scenes/world/samurai_castle/SamuraiCastle_PatrolHall.tscn"),
+	"SamuraiCastle_Watchpost": preload("res://scenes/world/samurai_castle/SamuraiCastle_Watchpost.tscn"),
+	"SamuraiCastle_PrisonApproach": preload("res://scenes/world/samurai_castle/SamuraiCastle_PrisonApproach.tscn"),
+	"SamuraiCastle_ShadowPrison": preload("res://scenes/world/samurai_castle/SamuraiCastle_ShadowPrison.tscn"),
+	"SamuraiCastle_AlarmEscape": preload("res://scenes/world/samurai_castle/SamuraiCastle_AlarmEscape.tscn"),
+	"SamuraiCastle_BossAntechamber": preload("res://scenes/world/samurai_castle/SamuraiCastle_BossAntechamber.tscn"),
+	"SamuraiCastle_MasakiroArena": preload("res://scenes/world/samurai_castle/SamuraiCastle_MasakiroArena.tscn"),
+	"SamuraiCastle_RisingToriiSeal": preload("res://scenes/world/samurai_castle/SamuraiCastle_RisingToriiSeal.tscn"),
+	"SamuraiCastle_AscentTest": preload("res://scenes/world/samurai_castle/SamuraiCastle_AscentTest.tscn"),
+	"SakuramoriCourt_Entrance": preload("res://scenes/world/sakuramori_court/SakuramoriCourt_Entrance.tscn"),
+	"SakuramoriCourt_SaveShrine": preload("res://scenes/world/sakuramori_court/SakuramoriCourt_SaveShrine.tscn"),
+	"SakuramoriCourt_PartyShrine": preload("res://scenes/world/sakuramori_court/SakuramoriCourt_PartyShrine.tscn"),
+	"SakuramoriCourt_TrainingYard": preload("res://scenes/world/sakuramori_court/SakuramoriCourt_TrainingYard.tscn"),
+	"SakuramoriCourt_MoonpetalPassage": preload("res://scenes/world/sakuramori_court/SakuramoriCourt_MoonpetalPassage.tscn"),
 }
 const ROOM_AREAS := {
 	"RoomStart": "swamp_outskirts",
@@ -49,8 +71,29 @@ const ROOM_AREAS := {
 	"RoomUpgrade": "swamp_outskirts",
 	"RoomShortcut": "swamp_outskirts",
 	"RoomMiniBoss": "swamp_outskirts",
+	"Swamp_CastleExit": "swamp_outskirts",
 	"CastleGateStart": "castle_gate",
 	"CastleBattlements": "castle_gate",
+	"CastleGate_Causeway": "castle_gate",
+	"CastleGate_BrokenPortcullis": "castle_gate",
+	"CastleGate_DamagedShrineApproach": "castle_gate",
+	"CastleGate_DamagedShrine": "castle_gate",
+	"CastleGate_TagTutorial": "castle_gate",
+	"SamuraiCastle_OuterWall": "samurai_castle",
+	"SamuraiCastle_PatrolHall": "samurai_castle",
+	"SamuraiCastle_Watchpost": "samurai_castle",
+	"SamuraiCastle_PrisonApproach": "samurai_castle",
+	"SamuraiCastle_ShadowPrison": "samurai_castle",
+	"SamuraiCastle_AlarmEscape": "samurai_castle",
+	"SamuraiCastle_BossAntechamber": "samurai_castle",
+	"SamuraiCastle_MasakiroArena": "samurai_castle",
+	"SamuraiCastle_RisingToriiSeal": "samurai_castle",
+	"SamuraiCastle_AscentTest": "samurai_castle",
+	"SakuramoriCourt_Entrance": "sakuramori_court",
+	"SakuramoriCourt_SaveShrine": "sakuramori_court",
+	"SakuramoriCourt_PartyShrine": "sakuramori_court",
+	"SakuramoriCourt_TrainingYard": "sakuramori_court",
+	"SakuramoriCourt_MoonpetalPassage": "sakuramori_court",
 }
 const CLASS_DATA := {
 	"warden": preload("res://data/classes/warden.tres"),
@@ -66,6 +109,7 @@ var pause_menu: Control
 var is_transitioning_rooms := false
 var hazard_cooldowns: Dictionary = {}
 var _applied_settings: Dictionary = {}
+var party_manager := PartyManager.new()
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -95,6 +139,7 @@ func start_new_game(class_id: String, sprite_id: String) -> void:
 	state = GameStateScript.new()
 	state.selected_class = _valid_class_id(class_id)
 	state.selected_sprite = _valid_sprite_id(state.selected_class, sprite_id)
+	party_manager.initialize_starter(state, state.selected_starter_id if not state.selected_starter_id.is_empty() else state.selected_class, state.player_name)
 	state.current_area = DEFAULT_AREA_ID
 	state.current_room = DEFAULT_ROOM_ID
 	load_room(state.current_room)
@@ -102,7 +147,9 @@ func start_new_game(class_id: String, sprite_id: String) -> void:
 
 func continue_game() -> void:
 	var manager := _get_save_manager()
-	if manager != null:
+	if manager != null and manager.has_method("load_latest_valid_game"):
+		state = manager.call("load_latest_valid_game") as GameStateScript
+	elif manager != null:
 		state = manager.call("load_game") as GameStateScript
 	_continue_from_loaded_state()
 
@@ -119,6 +166,7 @@ func _continue_from_loaded_state() -> void:
 		apply_settings(state.settings)
 
 	_ensure_valid_selected_class()
+	party_manager.ensure_legacy_party_state(state)
 	_ensure_valid_world_position()
 	var spawn_position := state.checkpoint_position
 	if spawn_position == Vector2.ZERO:
@@ -154,15 +202,78 @@ func load_room(room_id: String) -> Node2D:
 	register_room_exits_in(current_room)
 	register_hazards_in(current_room)
 	_apply_open_shortcuts(current_room)
+	_apply_room_constraints()
 	_update_hud_map_context()
 	_update_pause_menu_map_status()
 	return current_room
+
+func recruit_witch(character_name: String = "Mira") -> bool:
+	return _recruit_party_character("black_witch", character_name, "Witch recruited")
+
+func recruit_shadow(character_name: String = "Ren") -> bool:
+	return _recruit_party_character("shadow", character_name, "Shadow recruited")
+
+func _recruit_party_character(character_id: String, character_name: String, feedback_title: String) -> bool:
+	if state == null:
+		state = GameStateScript.new()
+		_ensure_valid_selected_class()
+	party_manager.ensure_legacy_party_state(state)
+	var recruited := party_manager.recruit_character(state, character_id, character_name)
+	if not recruited:
+		return false
+	_show_upgrade_feedback(feedback_title, character_name.strip_edges())
+	_update_party_hud()
+	_save_game_state()
+	return true
+
+func swap_active_party_slot(slot_index: int) -> bool:
+	if state == null or player == null:
+		return false
+	party_manager.ensure_legacy_party_state(state)
+	if not party_manager.can_swap_to(state, slot_index):
+		return false
+	var swap_position := player.global_position
+	_store_player_state()
+	if not party_manager.swap_to(state, slot_index):
+		return false
+	_ensure_valid_selected_class()
+	_spawn_player(swap_position)
+	if player != null:
+		player.velocity = Vector2.ZERO
+	_apply_room_constraints()
+	_update_party_hud()
+	_save_game_state()
+	return true
+
+func auto_switch_on_ko() -> bool:
+	if state == null or player == null:
+		return false
+	party_manager.ensure_legacy_party_state(state)
+	_store_player_state()
+	party_manager.mark_active_ko(state)
+	var next_slot := party_manager.next_living_slot(state)
+	if next_slot < 0:
+		return false
+	var swap_position := player.global_position
+	if not party_manager.force_swap_to(state, next_slot, 0):
+		return false
+	_ensure_valid_selected_class()
+	_spawn_player(swap_position)
+	if player != null:
+		player.velocity = Vector2.ZERO
+	_apply_room_constraints()
+	_update_party_hud()
+	_save_game_state()
+	return true
 
 func _process(delta: float) -> void:
 	if get_tree().paused and is_pause_menu_open():
 		return
 	for key: String in hazard_cooldowns.keys():
 		hazard_cooldowns[key] = max(0.0, float(hazard_cooldowns[key]) - delta)
+
+func _physics_process(_delta: float) -> void:
+	_apply_room_constraints()
 
 func open_pause_menu() -> void:
 	if is_pause_menu_open():
@@ -244,9 +355,10 @@ func register_enemies_in(root: Node) -> void:
 		register_enemies_in(child)
 
 func register_upgrade_pickup(pickup: Area2D) -> void:
-	if pickup == null or pickup.get_script() != UPGRADE_PICKUP_SCRIPT:
+	if pickup == null or not pickup.has_signal("upgrade_collected"):
 		return
-	if state != null and state.collected_pickups.has(pickup.pickup_id):
+	var pickup_id := str(pickup.get("pickup_id"))
+	if state != null and state.collected_pickups.has(pickup_id):
 		pickup.queue_free()
 		return
 
@@ -257,7 +369,7 @@ func register_upgrade_pickup(pickup: Area2D) -> void:
 func register_upgrade_pickups_in(root: Node) -> void:
 	if root == null:
 		return
-	if root is Area2D and root.get_script() == UPGRADE_PICKUP_SCRIPT:
+	if root is Area2D and root.has_signal("upgrade_collected"):
 		register_upgrade_pickup(root)
 	for child: Node in root.get_children():
 		register_upgrade_pickups_in(child)
@@ -315,6 +427,8 @@ func activate_checkpoint(checkpoint_id: String, checkpoint_position: Vector2) ->
 		state.current_resource = int(player.get("current_resource"))
 		state.level = int(player.get("level"))
 		state.xp = int(player.get("xp"))
+		party_manager.ensure_legacy_party_state(state)
+		party_manager.store_active_runtime(state, state.current_health, state.current_resource, state.level, state.xp)
 		var familiar := _get_active_familiar()
 		if familiar != null:
 			state.familiar_state = familiar.call("to_dictionary")
@@ -326,6 +440,7 @@ func _spawn_player(spawn_position: Vector2) -> void:
 		player = null
 
 	_ensure_valid_selected_class()
+	party_manager.ensure_legacy_party_state(state)
 	player = PLAYER_SCENE.instantiate() as CharacterBody2D
 	add_child(player)
 	player.global_position = spawn_position
@@ -345,6 +460,7 @@ func _spawn_player(spawn_position: Vector2) -> void:
 	_bind_hud_to_player()
 	if player.has_method("emit_stats_changed"):
 		player.call("emit_stats_changed")
+	_apply_room_constraints()
 
 func _on_player_died() -> void:
 	if state == null:
@@ -429,6 +545,7 @@ func _on_room_exit_body_entered(body: Node, exit: Area2D) -> void:
 	_update_shortcuts_for_room_entry(current_room, previous_room_id)
 	player.global_position = _resolve_room_spawn_position(previous_room_id, exit)
 	player.velocity = Vector2.ZERO
+	_apply_room_constraints()
 	if state != null:
 		_save_game_state()
 	await get_tree().physics_frame
@@ -472,6 +589,29 @@ func _get_rooms_container() -> Node2D:
 		add_child(rooms)
 	return rooms
 
+func _apply_room_constraints() -> void:
+	if player == null or current_room == null:
+		return
+	var bounds := _current_room_bounds()
+	if bounds.size == Vector2.ZERO:
+		return
+	player.global_position = Vector2(
+		clampf(player.global_position.x, bounds.position.x, bounds.position.x + bounds.size.x),
+		clampf(player.global_position.y, bounds.position.y, bounds.position.y + bounds.size.y)
+	)
+	var player_camera := player.get_node_or_null("Camera2D") as Camera2D
+	if player_camera == null:
+		return
+	player_camera.limit_left = int(bounds.position.x)
+	player_camera.limit_top = int(bounds.position.y)
+	player_camera.limit_right = int(bounds.position.x + bounds.size.x)
+	player_camera.limit_bottom = int(bounds.position.y + bounds.size.y)
+
+func _current_room_bounds() -> Rect2:
+	if current_room != null and current_room.has_method("get_room_bounds"):
+		return current_room.call("get_room_bounds") as Rect2
+	return Rect2(0, 0, 960, 540)
+
 func _respawn_room_id() -> String:
 	if state == null:
 		return DEFAULT_ROOM_ID
@@ -497,6 +637,7 @@ func _bind_hud_to_player() -> void:
 			if not familiar.is_connected("stats_changed", callback):
 				familiar.connect("stats_changed", callback)
 		_update_hud_map_context()
+		_update_party_hud()
 
 func _store_player_state() -> void:
 	if state == null or player == null:
@@ -505,6 +646,8 @@ func _store_player_state() -> void:
 	state.current_resource = int(player.get("current_resource"))
 	state.level = int(player.get("level"))
 	state.xp = int(player.get("xp"))
+	party_manager.ensure_legacy_party_state(state)
+	party_manager.store_active_runtime(state, state.current_health, state.current_resource, state.level, state.xp)
 	var familiar := _get_active_familiar()
 	if familiar != null:
 		state.familiar_state = familiar.call("to_dictionary")
@@ -558,6 +701,12 @@ func _update_hud_familiar_status() -> void:
 	var familiar := _get_active_familiar()
 	if familiar != null and familiar.has_method("get_status"):
 		hud.call("set_familiar_status", familiar.call("get_status"))
+
+func _update_party_hud() -> void:
+	_ensure_hud()
+	if hud == null or state == null or not hud.has_method("set_party_status"):
+		return
+	hud.call("set_party_status", party_manager.party_status(state))
 
 func _update_pause_menu_familiar_status() -> void:
 	if pause_menu == null or not is_instance_valid(pause_menu) or not pause_menu.has_method("set_familiar_status"):

@@ -136,6 +136,7 @@ func _assert_locked_attack_skills_do_not_fire() -> void:
 func _assert_warden_guard_counter_consumes_resource_and_cooldown() -> void:
 	var player := _spawn_player(WARDEN_DATA)
 	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	enemy.max_health = 60
 	root.add_child(enemy)
 	enemy.global_position = player.global_position + Vector2(26, 0)
 	player.set_learned_attack_skills(["guard_counter"])

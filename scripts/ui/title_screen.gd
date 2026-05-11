@@ -91,7 +91,12 @@ func apply_settings(settings: Dictionary) -> void:
 
 func refresh_continue_state() -> void:
 	var save_manager := get_tree().root.get_node_or_null("SaveManager")
-	continue_button.disabled = save_manager == null or not save_manager.has_save()
+	if save_manager == null:
+		continue_button.disabled = true
+	elif save_manager.has_method("has_any_valid_save"):
+		continue_button.disabled = not bool(save_manager.call("has_any_valid_save"))
+	else:
+		continue_button.disabled = not save_manager.has_save()
 
 
 func _on_new_game_pressed() -> void:

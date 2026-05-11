@@ -13,6 +13,9 @@ func _run() -> void:
 	await _assert_load_game_opens_slot_screen_and_loads_slots()
 	if _failed:
 		return
+	await _assert_load_game_marks_corrupt_slots_and_continue_uses_latest_valid()
+	if _failed:
+		return
 	await _assert_accessibility_routes_to_settings_tab()
 	if _failed:
 		return
@@ -75,6 +78,72 @@ func _assert_load_game_opens_slot_screen_and_loads_slots() -> void:
 
 	main.queue_free()
 	save_manager.delete_save()
+	await process_frame
+
+func _assert_load_game_marks_corrupt_slots_and_continue_uses_latest_valid() -> void:
+	var save_manager := root.get_node("SaveManager")
+	save_manager.save_path = "user://test_main_title_corrupt_slots.json"
+	save_manager.delete_save()
+
+	var corrupt_file := FileAccess.open(save_manager.save_path, FileAccess.WRITE)
+	if corrupt_file == null:
+		_fail("Main title menu test could not create corrupt default save.")
+		return
+	corrupt_file.store_string("{not valid json")
+	corrupt_file = null
+
+	var slot_b_state := GameState.new()
+	slot_b_state.selected_class = "hexbinder"
+	slot_b_state.current_room = "RoomMiniBoss"
+	slot_b_state.level = 6
+	if not save_manager.save_game_to_slot("slot_b", slot_b_state):
+		_fail("Main title menu test could not create valid fallback slot.")
+		return
+
+	var main := MAIN_SCENE.instantiate() as Main
+	root.add_child(main)
+	await process_frame
+
+	var title := main.get("current_screen") as TitleScreen
+	if title == null:
+		_fail("Main should start on title for corrupt slot test.")
+		return
+	var continue_button := title.get_node("%ContinueButton") as Button
+	if continue_button.disabled:
+		_fail("Continue should be enabled when any valid save slot exists.")
+		return
+	continue_button.pressed.emit()
+	await process_frame
+
+	var world := main.get("current_screen") as GameWorld
+	if world == null or world.state == null or world.state.selected_class != "hexbinder":
+		_fail("Continue should load the latest valid slot when the default save is corrupt.")
+		return
+
+	main.queue_free()
+	await process_frame
+
+	main = MAIN_SCENE.instantiate() as Main
+	root.add_child(main)
+	await process_frame
+	title = main.get("current_screen") as TitleScreen
+	title.get_node("%LoadGameButton").pressed.emit()
+	await process_frame
+	var load_screen := main.get("current_screen") as Control
+	var default_button := load_screen.get_node_or_null("Panel/MarginContainer/VBoxContainer/DefaultSlotButton") as Button
+	var slot_b_button := load_screen.get_node_or_null("Panel/MarginContainer/VBoxContainer/SlotBButton") as Button
+	if default_button == null or not default_button.disabled or default_button.text.find("Corrupt") == -1:
+		_fail("Load Game should show corrupt default saves as disabled corrupt slots.")
+		return
+	if slot_b_button == null or slot_b_button.disabled or slot_b_button.text.find("hexbinder") == -1:
+		_fail("Load Game should show valid slot metadata in the slot button.")
+		return
+
+	main.queue_free()
+	save_manager.delete_save()
+	var slot_b_path := save_manager.call("_slot_save_path", "slot_b") as String
+	if FileAccess.file_exists(slot_b_path):
+		DirAccess.remove_absolute(slot_b_path)
 	await process_frame
 
 func _assert_accessibility_routes_to_settings_tab() -> void:

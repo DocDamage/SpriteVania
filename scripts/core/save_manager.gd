@@ -1,6 +1,7 @@
 extends Node
 
 const GameStateScript := preload("res://scripts/core/game_state.gd")
+const DEFAULT_SLOT_IDS := ["default", "slot_a", "slot_b", "slot_c"]
 
 @export var save_path: String = "user://spritevania_save.json"
 
@@ -17,10 +18,70 @@ func save_game_to_slot(slot_id: String, state: GameStateScript) -> bool:
 	return _save_state_to_path(_slot_save_path(slot_id), state)
 
 func load_game_from_slot(slot_id: String) -> GameStateScript:
-	return _load_state_from_path(_slot_save_path(slot_id))
+	return _load_state_from_path(_path_for_slot_id(slot_id))
 
 func has_save_in_slot(slot_id: String) -> bool:
-	return FileAccess.file_exists(_slot_save_path(slot_id))
+	return FileAccess.file_exists(_path_for_slot_id(slot_id))
+
+func read_save_slot_metadata(slot_id: String) -> Dictionary:
+	var path := _path_for_slot_id(slot_id)
+	var metadata := {
+		"slot_id": _safe_slot_id(slot_id),
+		"path": path,
+		"exists": FileAccess.file_exists(path),
+		"valid": false,
+		"status": "Empty",
+		"modified_time": 0,
+		"selected_class": "",
+		"current_area": "",
+		"current_room": "",
+		"level": 0,
+	}
+	if not bool(metadata.exists):
+		return metadata
+
+	metadata.modified_time = FileAccess.get_modified_time(path)
+	var state := _load_state_from_path(path, false)
+	if state == null:
+		metadata.status = "Corrupt"
+		return metadata
+
+	metadata.valid = true
+	metadata.status = "Saved"
+	metadata.selected_class = state.selected_class
+	metadata.current_area = state.current_area
+	metadata.current_room = state.current_room
+	metadata.level = state.level
+	return metadata
+
+func scan_save_slots(slot_ids := DEFAULT_SLOT_IDS) -> Array[Dictionary]:
+	var slots: Array[Dictionary] = []
+	for slot_id: Variant in slot_ids:
+		slots.append(read_save_slot_metadata(str(slot_id)))
+	return slots
+
+func resolve_latest_valid_save_slot(slot_ids := DEFAULT_SLOT_IDS) -> String:
+	var latest_slot := ""
+	var latest_modified_time := -1
+	for metadata: Dictionary in scan_save_slots(slot_ids):
+		if not bool(metadata.get("valid", false)):
+			continue
+		var modified_time := int(metadata.get("modified_time", 0))
+		if modified_time >= latest_modified_time:
+			latest_modified_time = modified_time
+			latest_slot = str(metadata.get("slot_id", ""))
+	return latest_slot
+
+func has_any_valid_save(slot_ids := DEFAULT_SLOT_IDS) -> bool:
+	return not resolve_latest_valid_save_slot(slot_ids).is_empty()
+
+func load_latest_valid_game(slot_ids := DEFAULT_SLOT_IDS) -> GameStateScript:
+	var slot_id := resolve_latest_valid_save_slot(slot_ids)
+	if slot_id.is_empty():
+		return null
+	if slot_id == "default":
+		return load_game()
+	return load_game_from_slot(slot_id)
 
 func delete_save() -> void:
 	if has_save():
@@ -35,30 +96,48 @@ func _save_state_to_path(path: String, state: GameStateScript) -> bool:
 	file.store_string(JSON.stringify(state.to_dictionary()))
 	return true
 
-func _load_state_from_path(path: String) -> GameStateScript:
+func _load_state_from_path(path: String, report_errors := true) -> GameStateScript:
 	if not FileAccess.file_exists(path):
 		return null
 
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_error("Could not open save file for reading: %s" % path)
+		if report_errors:
+			push_error("Could not open save file for reading: %s" % path)
 		return null
 
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	var json := JSON.new()
+	var parse_error := json.parse(file.get_as_text())
+	if parse_error != OK:
+		if report_errors:
+			push_error("Save file is corrupt: %s" % path)
+		return null
+	var parsed: Variant = json.data
 	if not parsed is Dictionary:
-		push_error("Save file is corrupt: %s" % path)
+		if report_errors:
+			push_error("Save file is corrupt: %s" % path)
 		return null
 
 	return GameStateScript.from_dictionary(parsed)
 
-func _slot_save_path(slot_id: String) -> String:
-	var safe_slot_id := slot_id.strip_edges().replace("/", "_").replace("\\", "_")
-	if safe_slot_id.is_empty():
-		safe_slot_id = "default"
+func _path_for_slot_id(slot_id: String) -> String:
+	if _safe_slot_id(slot_id) == "default":
+		return save_path
+	return _slot_save_path(slot_id)
 
+func _slot_save_path(slot_id: String) -> String:
+	var safe_slot_id := _safe_slot_id(slot_id)
+	if safe_slot_id == "default":
+		safe_slot_id = "default"
 	var extension := save_path.get_extension()
 	var base_path := save_path
 	if not extension.is_empty():
 		base_path = save_path.substr(0, save_path.length() - extension.length() - 1)
 		return "%s_slot_%s.%s" % [base_path, safe_slot_id, extension]
 	return "%s_slot_%s" % [base_path, safe_slot_id]
+
+func _safe_slot_id(slot_id: String) -> String:
+	var safe_slot_id := slot_id.strip_edges().replace("/", "_").replace("\\", "_")
+	if safe_slot_id.is_empty():
+		safe_slot_id = "default"
+	return safe_slot_id

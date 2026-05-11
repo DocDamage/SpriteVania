@@ -2,6 +2,7 @@ extends SceneTree
 
 const CRAWLER_SCENE := preload("res://scenes/enemies/SwampCrawler.tscn")
 const MINIBOSS_SCENE := preload("res://scenes/enemies/SwampMiniBoss.tscn")
+const PatrolPathScript := preload("res://scripts/enemies/patrol_path.gd")
 
 var _failed := false
 
@@ -12,7 +13,13 @@ func _run() -> void:
 	await _assert_crawler_reverses_at_patrol_bounds()
 	if _failed:
 		return
+	await _assert_crawler_uses_patrol_path_nodes()
+	if _failed:
+		return
 	await _assert_crawler_aggro_stays_inside_patrol_route()
+	if _failed:
+		return
+	await _assert_crawler_alerts_before_chasing()
 	if _failed:
 		return
 	await _assert_crawler_attacks_nearby_player_then_returns_to_patrol()
@@ -75,6 +82,33 @@ func _assert_crawler_reverses_at_patrol_bounds() -> void:
 	crawler.queue_free()
 	await process_frame
 
+func _assert_crawler_uses_patrol_path_nodes() -> void:
+	var path := PatrolPathScript.new()
+	path.name = "PatrolPathProbe"
+	var left := Marker2D.new()
+	left.name = "Left"
+	left.position = Vector2(-42, 0)
+	var right := Marker2D.new()
+	right.name = "Right"
+	right.position = Vector2(58, 0)
+	path.add_child(left)
+	path.add_child(right)
+
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	crawler.global_position = Vector2(300, 100)
+	crawler.add_child(path)
+	crawler.set("patrol_path", NodePath("PatrolPathProbe"))
+	root.add_child(crawler)
+	await process_frame
+
+	var bounds: Vector2 = crawler.call("_get_patrol_bounds")
+	if not is_equal_approx(bounds.x, 258.0) or not is_equal_approx(bounds.y, 358.0):
+		_fail("Crawler should derive patrol bounds from PatrolPath marker children.")
+		return
+
+	crawler.queue_free()
+	await process_frame
+
 func _assert_crawler_aggro_stays_inside_patrol_route() -> void:
 	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
 	var player := Node2D.new()
@@ -92,14 +126,45 @@ func _assert_crawler_aggro_stays_inside_patrol_route() -> void:
 	crawler.global_position = Vector2(121, 100)
 	crawler.set("direction", 1.0)
 	crawler.call("_physics_process", 0.016)
+	if str(crawler.get("behavior_state")) != "alert":
+		_fail("Crawler should alert before attempting a chase at the edge of its route.")
+		return
+	crawler.call("_physics_process", float(crawler.get("alert_duration")) + 0.01)
 	if crawler.velocity.x > 0.0:
 		_fail("Crawler should not chase beyond its right patrol route.")
 		return
-	if str(crawler.get("behavior_state")) != "recover":
-		_fail("Crawler should pause in recover when aggro would pull it outside its route.")
+	if str(crawler.get("behavior_state")) != "attack_recovery":
+		_fail("Crawler should pause in attack_recovery when aggro would pull it outside its route.")
 		return
 	if not bool(crawler.get("is_aggro_alert")):
 		_fail("Crawler should expose aggro alert feedback while reacting to a blocked chase.")
+		return
+
+	crawler.queue_free()
+	player.queue_free()
+	await process_frame
+
+func _assert_crawler_alerts_before_chasing() -> void:
+	var crawler := CRAWLER_SCENE.instantiate() as CharacterBody2D
+	var player := Node2D.new()
+	player.name = "AlertProbe"
+	player.add_to_group("player")
+	crawler.global_position = Vector2(100, 100)
+	player.global_position = Vector2(180, 100)
+	root.add_child(crawler)
+	root.add_child(player)
+	await process_frame
+
+	crawler.call("_physics_process", 0.016)
+	if str(crawler.get("behavior_state")) != "alert":
+		_fail("Crawler should enter alert before chasing a player in aggro range.")
+		return
+	if crawler.velocity.x != 0.0:
+		_fail("Crawler alert should be a readable pause before chase movement.")
+		return
+	crawler.call("_physics_process", float(crawler.get("alert_duration")) + 0.01)
+	if str(crawler.get("behavior_state")) != "chase":
+		_fail("Crawler should chase after the alert window completes.")
 		return
 
 	crawler.queue_free()
@@ -118,20 +183,32 @@ func _assert_crawler_attacks_nearby_player_then_returns_to_patrol() -> void:
 	await process_frame
 
 	crawler.call("_physics_process", 0.016)
-	if str(crawler.get("behavior_state")) != "attack":
-		_fail("Crawler should enter an explicit attack window when a player is in attack range.")
+	if str(crawler.get("behavior_state")) != "attack_windup":
+		_fail("Crawler should enter an explicit attack windup when a player is in attack range.")
+		return
+	if bool(crawler.get("is_attack_active")):
+		_fail("Crawler attack should not be active during windup.")
+		return
+
+	crawler.call("_physics_process", float(crawler.get("attack_windup")) + 0.01)
+	if str(crawler.get("behavior_state")) != "attack_active":
+		_fail("Crawler should enter an active attack window after windup.")
 		return
 	if not bool(crawler.get("is_attack_active")):
-		_fail("Crawler attack window should be marked active.")
+		_fail("Crawler active attack window should be marked active.")
 		return
 
 	player.global_position = Vector2(400, 100)
 	crawler.call("_physics_process", float(crawler.get("attack_duration")) + 0.01)
-	if str(crawler.get("behavior_state")) != "patrol":
-		_fail("Crawler should return to patrol after its attack window when the player is gone.")
+	if str(crawler.get("behavior_state")) != "attack_recovery":
+		_fail("Crawler should enter attack recovery after its active attack window.")
 		return
 	if bool(crawler.get("is_attack_active")):
-		_fail("Crawler attack window should end before returning to patrol.")
+		_fail("Crawler attack window should end before recovery.")
+		return
+	crawler.call("_physics_process", float(crawler.get("attack_recovery")) + 0.01)
+	if str(crawler.get("behavior_state")) != "patrol":
+		_fail("Crawler should return to patrol after attack recovery when the player is gone.")
 		return
 
 	crawler.queue_free()
@@ -150,6 +227,10 @@ func _assert_crawler_attack_damages_player_without_body_overlap() -> void:
 	await process_frame
 
 	crawler.call("_physics_process", 0.016)
+	if player.damage_taken != 0:
+		_fail("Crawler attack should not damage during windup.")
+		return
+	crawler.call("_physics_process", float(crawler.get("attack_windup")) + 0.01)
 	if player.damage_taken <= 0:
 		_fail("Crawler attack should damage a nearby player during its explicit attack, not only on body overlap.")
 		return
@@ -180,11 +261,15 @@ func _assert_crawler_shows_aggro_feedback_while_chasing() -> void:
 		_fail("AggroIndicator should stay hidden while the crawler is not chasing.")
 		return
 	crawler.call("_physics_process", 0.016)
-	if str(crawler.get("behavior_state")) != "aggro":
-		_fail("Crawler should enter aggro state when a player is within chase range but outside attack range.")
+	if str(crawler.get("behavior_state")) != "alert":
+		_fail("Crawler should enter alert state when a player is within chase range but outside attack range.")
 		return
 	if not bool(crawler.get("is_aggro_alert")) or not aggro_indicator.visible:
-		_fail("AggroIndicator should show while the crawler is actively chasing.")
+		_fail("AggroIndicator should show while the crawler is alert or chasing.")
+		return
+	crawler.call("_physics_process", float(crawler.get("alert_duration")) + 0.01)
+	if str(crawler.get("behavior_state")) != "chase":
+		_fail("Crawler should enter chase state after alert feedback.")
 		return
 	player.global_position = Vector2(500, 100)
 	crawler.call("_physics_process", 0.016)
@@ -216,6 +301,10 @@ func _assert_crawler_shows_attack_window_feedback() -> void:
 	root.add_child(player)
 	await process_frame
 	crawler.call("_physics_process", 0.016)
+	if attack_flash.visible:
+		_fail("Crawler AttackFlash should stay hidden during attack windup.")
+		return
+	crawler.call("_physics_process", float(crawler.get("attack_windup")) + 0.01)
 	if not attack_flash.visible:
 		_fail("Crawler AttackFlash should show during the active attack window.")
 		return
@@ -241,6 +330,9 @@ func _assert_enemy_shows_hurt_feedback_when_damaged() -> void:
 		_fail("HurtFlash should stay hidden until the enemy takes damage.")
 		return
 	crawler.take_damage(1)
+	if str(crawler.get("enemy_state")) != "hurt":
+		_fail("Enemy base state should enter hurt when damaged.")
+		return
 	if not hurt_flash.visible:
 		_fail("HurtFlash should show immediately when the enemy takes damage.")
 		return
@@ -270,8 +362,10 @@ func _assert_enemy_death_keeps_xp_signal_and_exposes_drop() -> void:
 	)
 
 	crawler.take_damage(999)
+	if str(crawler.get("enemy_state")) != "dead":
+		_fail("Enemy base state should enter dead when health reaches zero.")
+		return
 	await process_frame
-
 	if died_payload != ["drop_test_crawler", 25]:
 		_fail("Enemy death should keep emitting died(enemy_id, xp_reward).")
 		return

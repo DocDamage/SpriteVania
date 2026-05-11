@@ -27,7 +27,7 @@ theme_override_constants/separation = 12
 [node name="HeaderLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "Choose Character"
+text = "Choose Starter"
 horizontal_alignment = 1
 
 [node name="ClassOption" type="OptionButton" parent="CenterContainer/VBoxContainer"]
@@ -44,11 +44,17 @@ custom_minimum_size = Vector2(420, 96)
 layout_mode = 2
 autowrap_mode = 3
 
+[node name="NameEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Name"
+max_length = 24
+
 [node name="ConfirmButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
-text = "Begin"
+text = "Confirm"
 
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

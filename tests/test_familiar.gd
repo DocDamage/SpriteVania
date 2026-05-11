@@ -45,6 +45,16 @@ func _assert_familiar_follows_player() -> void:
 	if familiar.global_position.x <= 40.0:
 		_fail("Familiar should move toward the player over time.")
 		return
+	if not ("max_follow_distance" in familiar):
+		_fail("Familiar should expose max_follow_distance to stabilize long-distance follow.")
+		return
+	familiar.global_position = Vector2(-1000, 100)
+	player.global_position = Vector2(200, 100)
+	familiar.call("_physics_process", 0.016)
+	var max_follow_distance := float(familiar.get("max_follow_distance"))
+	if familiar.global_position.distance_to(player.global_position) > max_follow_distance:
+		_fail("Familiar should snap back inside max_follow_distance when it falls too far behind.")
+		return
 
 	player.queue_free()
 	await process_frame
@@ -80,22 +90,32 @@ func _assert_familiar_levels_evolves_and_upgrades_abilities() -> void:
 func _assert_familiar_attacks_nearby_enemies() -> void:
 	var player := PLAYER_SCENE.instantiate() as Player
 	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	var far_enemy := CRAWLER_SCENE.instantiate() as Enemy
 	root.add_child(player)
+	await process_frame
+	var familiar := player.get_node("Familiar") as Node2D
+	familiar.set_physics_process(false)
 	root.add_child(enemy)
+	root.add_child(far_enemy)
 	player.global_position = Vector2(100, 100)
 	enemy.global_position = Vector2(132, 100)
+	far_enemy.global_position = Vector2(182, 100)
 	await process_frame
 
-	var familiar := player.get_node("Familiar") as Node2D
 	familiar.global_position = Vector2(110, 100)
 	var starting_health := enemy.current_health
+	var far_starting_health := far_enemy.current_health
 	familiar.call("try_attack")
 	if enemy.current_health >= starting_health:
 		_fail("Familiar should damage a nearby enemy when attacking.")
 		return
+	if far_enemy.current_health != far_starting_health:
+		_fail("Familiar target selection should attack the nearest enemy first.")
+		return
 
 	player.queue_free()
 	enemy.queue_free()
+	far_enemy.queue_free()
 	await process_frame
 
 func _assert_evolution_extends_familiar_attack_reach() -> void:

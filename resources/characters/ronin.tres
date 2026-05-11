@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character_definition.gd" id="1_character_definition"]
+
+[resource]
+script = ExtResource("1_character_definition")
+character_id = "ronin"
+display_name = "The Ronin"
+role_summary = "Sword-focused melee starter built around quick crossing slashes, precise movement, and clean duel pressure."
+default_name = "Akio"
+combat_role = "melee"
+starter_selectable = true
+recruitable = false
+class_id = "warden"
+preview_asset_path = "res://SpriteVania Assets/player/samurai"
+baseline_skills = Array[String](["quick_slash", "blade_step"])
