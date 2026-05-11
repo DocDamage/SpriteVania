@@ -17,6 +17,7 @@ The current implementation foundation is still the SpriteVania vertical slice. T
 
 - [Planning Backlog](planning_backlog.md): ordered planning tasks and dependencies.
 - [Asset Audit Results](asset_audit_results.md): asset classification and playable candidate audit template.
+- [Playable Import Test Plan](playable_import_test_plan.md): import-test order, slicing assumptions, acceptance criteria, and candidate-specific risks.
 - [First Milestone Production Spec](first_milestone_production_spec.md): room-by-room build scope for the first Black Keep milestone.
 - [Character Creation Spec](character_creation_spec.md): starter selection, naming, confirmation, save fields, and opening variants.
 - [Party System Technical Spec](party_system_technical_spec.md): implementation-level party roster, active party, names, tag attacks, KO behavior, reserve XP, and affinity planning.

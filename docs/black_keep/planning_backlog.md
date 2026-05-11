@@ -20,16 +20,17 @@ This backlog orders the Black Keep planning work needed before large production 
 | Priority | Document | Purpose | Status |
 |---|---|---|---|
 | 1 | [Asset Audit Results](asset_audit_results.md) | Classify real assets and choose playable candidates. | Contact-sheet review complete; import-test shortlist chosen |
-| 2 | [First Milestone Production Spec](first_milestone_production_spec.md) | Convert the milestone route into room-by-room build scope. | Outline |
-| 3 | [Character Creation Spec](character_creation_spec.md) | Define starter select, naming, confirmation, save data, and opening variants. | Outline |
-| 4 | [Party System Technical Spec](party_system_technical_spec.md) | Define roster, party state, names, HP/resources, Momentum, tag attacks, and hub management. | Outline |
-| 5 | [Momentum Tuning](momentum_tuning.md) | Set first-pass numbers for swapping, combo refunds, cooldowns, and difficulty presets. | Outline |
-| 6 | [Samurai Castle Wing Spec](samurai_castle_wing_spec.md) | Define first identity dungeon, stealth/rescue, Masakiro, and Rising Torii Seal. | Outline |
-| 7 | [Sakuramori Court Spec](sakuramori_court_spec.md) | Define first hub layout, services, NPC schedules, and World Break variant. | Outline |
-| 8 | [Traversal Seals](traversal_seals.md) | Plan major traversal categories and character-specific expressions. | Outline |
-| 9 | [Zone Manifest](zone_manifest.md) | List candidate zones and tie them to asset support. | Outline |
-| 10 | [World Break State Plan](world_break_state_plan.md) | Define pre-break, break event, and post-break content state model. | Outline |
-| 11 | [Final Dungeon Spec](final_dungeon_spec.md) | Define Final Tower, Monster Belly, Core, bosses, and endings. | Outline |
+| 2 | [Playable Import Test Plan](playable_import_test_plan.md) | Define import-test order, slicing assumptions, acceptance criteria, and candidate-specific risks. | Draft |
+| 3 | [First Milestone Production Spec](first_milestone_production_spec.md) | Convert the milestone route into room-by-room build scope. | Outline |
+| 4 | [Character Creation Spec](character_creation_spec.md) | Define starter select, naming, confirmation, save data, and opening variants. | Outline |
+| 5 | [Party System Technical Spec](party_system_technical_spec.md) | Define roster, party state, names, HP/resources, Momentum, tag attacks, and hub management. | Outline |
+| 6 | [Momentum Tuning](momentum_tuning.md) | Set first-pass numbers for swapping, combo refunds, cooldowns, and difficulty presets. | Outline |
+| 7 | [Samurai Castle Wing Spec](samurai_castle_wing_spec.md) | Define first identity dungeon, stealth/rescue, Masakiro, and Rising Torii Seal. | Outline |
+| 8 | [Sakuramori Court Spec](sakuramori_court_spec.md) | Define first hub layout, services, NPC schedules, and World Break variant. | Outline |
+| 9 | [Traversal Seals](traversal_seals.md) | Plan major traversal categories and character-specific expressions. | Outline |
+| 10 | [Zone Manifest](zone_manifest.md) | List candidate zones and tie them to asset support. | Outline |
+| 11 | [World Break State Plan](world_break_state_plan.md) | Define pre-break, break event, and post-break content state model. | Outline |
+| 12 | [Final Dungeon Spec](final_dungeon_spec.md) | Define Final Tower, Monster Belly, Core, bosses, and endings. | Outline |
 
 ## Locked Decisions
 

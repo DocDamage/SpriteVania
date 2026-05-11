@@ -44,6 +44,8 @@ Second-pass visual review from the generated contact sheets:
 
 ## Import-Test Shortlist
 
+See [Playable Import Test Plan](playable_import_test_plan.md) for the detailed test plan.
+
 Recommended first import-test order:
 
 1. `SWAT_1` as The Arc-Gunner.
