@@ -118,6 +118,9 @@ func _assert_familiar_attacks_nearby_enemies() -> void:
 	if enemy.current_health >= starting_health:
 		_fail("Familiar should damage a nearby enemy when attacking.")
 		return
+	if str(enemy.get("last_damage_source")) != "familiar":
+		_fail("Familiar attacks should record familiar damage ownership on the enemy.")
+		return
 	if far_enemy.current_health != far_starting_health:
 		_fail("Familiar target selection should attack the nearest enemy first.")
 		return

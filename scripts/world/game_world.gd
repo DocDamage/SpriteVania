@@ -733,7 +733,7 @@ func _trigger_tag_entry_attack(character_id: String, origin: Vector2) -> void:
 			continue
 		if enemy_2d.global_position.distance_to(origin) > radius:
 			continue
-		enemy_2d.call("take_damage", damage)
+		enemy_2d.call("take_damage", damage, "player")
 		hit_count += 1
 	if hit_count > 0:
 		_show_upgrade_feedback("Tag attack", str(config.get("label", skill_id)))

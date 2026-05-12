@@ -170,7 +170,7 @@ func try_attack() -> bool:
 	var enemy := _find_nearest_enemy()
 	if enemy == null:
 		return false
-	enemy.call("take_damage", attack_damage())
+	enemy.call("take_damage", attack_damage(), "familiar")
 	_spawn_attack_flash(enemy.global_position)
 	_attack_cooldown_remaining = attack_cooldown()
 	return true

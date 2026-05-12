@@ -29,8 +29,8 @@ func _physics_process(delta: float) -> void:
 	if is_slash_active or is_slam_active:
 		_try_apply_pattern_damage()
 
-func take_damage(amount: int) -> void:
-	super.take_damage(amount)
+func take_damage(amount: int, source_id := "") -> void:
+	super.take_damage(amount, source_id)
 	if not _is_dead:
 		_update_phase()
 

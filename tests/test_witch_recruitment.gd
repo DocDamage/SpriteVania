@@ -112,6 +112,9 @@ func _assert_game_world_recruits_and_swaps_witch() -> void:
 	if int(target.get("current_health")) >= target_health_before:
 		_fail("Witch tag entry should damage a nearby enemy with Ashen Hexburst.")
 		return
+	if str(target.get("last_damage_source")) != "player":
+		_fail("Witch tag entry damage should record player ownership.")
+		return
 	if int(state.get("momentum")) >= 100:
 		_fail("Party swap should spend Momentum.")
 		return

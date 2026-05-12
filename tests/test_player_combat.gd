@@ -41,6 +41,9 @@ func _assert_melee_attack_damages_enemy() -> void:
 	if enemy.current_health >= starting_health:
 		push_error("Melee attack should damage an enemy inside the attack box")
 		quit(1)
+	if str(enemy.get("last_damage_source")) != "player":
+		push_error("Melee attack should record player damage ownership on the enemy.")
+		quit(1)
 	if not attack_flash.visible:
 		push_error("Melee attack should briefly show AttackFlash after a hit.")
 		quit(1)
@@ -154,6 +157,9 @@ func _assert_projectile_attack_damages_enemy() -> void:
 		await physics_frame
 	if enemy.current_health >= starting_health:
 		push_error("Projectile attack should damage an enemy in front of the player")
+		quit(1)
+	if str(enemy.get("last_damage_source")) != "player":
+		push_error("Projectile attack should record player damage ownership on the enemy.")
 		quit(1)
 	player.free()
 	enemy.free()

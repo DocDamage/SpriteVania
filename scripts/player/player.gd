@@ -303,7 +303,7 @@ func perform_melee_attack(damage: int) -> void:
 	if not targets.is_empty():
 		_show_attack_flash(MELEE_OFFSET.x, MELEE_RANGE.y)
 	for target: Node in targets:
-		target.call("take_damage", combo_damage)
+		target.call("take_damage", combo_damage, "player")
 
 func perform_guard_counter() -> void:
 	if not _try_use_attack_skill("guard_counter"):
@@ -312,7 +312,7 @@ func perform_guard_counter() -> void:
 	is_invulnerable = true
 	_invulnerability_time_remaining = maxf(_invulnerability_time_remaining, 0.3)
 	for target: Node in _query_attack_targets(Vector2(62, 42), Vector2(34, -8)):
-		target.call("take_damage", class_data.base_attack * 2 if class_data != null else 20)
+		target.call("take_damage", class_data.base_attack * 2 if class_data != null else 20, "player")
 
 func apply_knockback(source_position: Vector2, strength := knockback_strength) -> void:
 	var knockback_direction := signf(global_position.x - source_position.x)
@@ -351,7 +351,7 @@ func perform_dash_strike() -> void:
 	if not targets.is_empty():
 		_show_attack_flash(68.0, DASH_STRIKE_RANGE.y)
 	for target: Node in targets:
-		target.call("take_damage", damage)
+		target.call("take_damage", damage, "player")
 
 func perform_dive_bomb(damage: int) -> void:
 	if damage <= 0:
@@ -364,7 +364,7 @@ func perform_dive_bomb(damage: int) -> void:
 	var dive_damage := int(roundi(float(damage) * 1.5))
 	_show_attack_flash(18.0, DIVE_BOMB_RANGE.y)
 	for target: Node in hit_targets:
-		target.call("take_damage", dive_damage)
+		target.call("take_damage", dive_damage, "player")
 	velocity.y = DIVE_BOMB_BOUNCE_VELOCITY
 	_air_jumps_remaining = max_air_jumps
 
@@ -404,7 +404,7 @@ func cast_binding_sigil() -> void:
 		return
 	_play_action_animation("shoot")
 	for target: Node in _query_attack_targets(Vector2(78, 48), Vector2(40, -8)):
-		target.call("take_damage", class_data.base_attack + 4 if class_data != null else 16)
+		target.call("take_damage", class_data.base_attack + 4 if class_data != null else 16, "player")
 
 func perform_blink() -> void:
 	if not has_traversal_unlock("blink"):

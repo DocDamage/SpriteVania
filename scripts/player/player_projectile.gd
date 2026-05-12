@@ -2,6 +2,7 @@ extends Area2D
 class_name PlayerProjectile
 
 @export var damage := 1
+@export var damage_source := "player"
 @export var speed := 420.0
 @export var lifetime := 1.1
 @export var direction := Vector2.RIGHT
@@ -24,6 +25,6 @@ func _on_body_entered(body: Node) -> void:
 		return
 	if body.has_method("take_damage"):
 		_hit_targets.append(body)
-		body.call("take_damage", damage)
+		body.call("take_damage", damage, damage_source)
 		if not piercing:
 			queue_free()

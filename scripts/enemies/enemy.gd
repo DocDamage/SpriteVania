@@ -16,6 +16,7 @@ const HURT_FLASH_DURATION := 0.12
 
 var current_health: int
 var enemy_state := "idle"
+var last_damage_source := ""
 var _is_dead := false
 var _contact_hitbox: Area2D
 var _hurt_flash: ColorRect
@@ -33,10 +34,11 @@ func _process(delta: float) -> void:
 	_tick_hurt_flash(delta)
 	_tick_contact_damage(delta)
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, source_id := "") -> void:
 	if amount <= 0 or _is_dead:
 		return
 
+	last_damage_source = source_id
 	current_health -= amount
 	enemy_state = "hurt"
 	_show_hurt_flash()

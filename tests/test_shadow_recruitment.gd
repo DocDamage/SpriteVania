@@ -93,6 +93,9 @@ func _assert_world_recruits_shadow_and_swaps_three_characters() -> void:
 	if int(target.get("current_health")) >= target_health_before:
 		_fail("Shadow tag entry should damage a nearby enemy with Silent Arrowfall.")
 		return
+	if str(target.get("last_damage_source")) != "player":
+		_fail("Shadow tag entry damage should record player ownership.")
+		return
 	state.momentum = 100
 	if not bool(world.call("swap_active_party_slot", 0)):
 		_fail("Three-character party should allow swapping back to slot 1.")
