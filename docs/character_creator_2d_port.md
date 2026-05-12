@@ -78,7 +78,9 @@ same manager-backed randomizer baseline as Character Studio, including required
 tag filtering and visible locked-slot input. Its part rows can also be filtered
 by search text and required tags using the same shared manager API as the
 external studio. Favorite part paths are stored on the recipe and can drive a
-favorites-only part list.
+favorites-only part list. Its preview state and visible labels now include
+accessibility, performance, compatibility, and equipment socket readiness from
+the same manager reports used by Character Studio and the export CLI.
 
 The shared `CC2DCreatorManager` is the core service for both the in-game creator
 and the separate Character Studio scene. It can:

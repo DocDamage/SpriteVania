@@ -345,6 +345,8 @@ Automated tests:
 - Confirmation writes initial party state.
 - Confirmation writes current room and checkpoint.
 - Confirmation persists character appearance recipe data.
+- In-game creator preview exposes accessibility, performance, compatibility, and
+  equipment socket readiness for the active recipe.
 - Generated or linked CharacterCreator2D `SpriteFrames` can be assigned to the spawned player.
 - Recipe migration preserves old saves when part IDs or content-pack versions change.
 - Back navigation preserves selected starter and name where expected.
