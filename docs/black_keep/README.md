@@ -120,12 +120,17 @@ combat, player-named heroes, and Black Keep traversal seals.
 
 The repo already has a working Godot vertical slice foundation:
 
-- Title, continue, settings, load game, and character selection flow.
+- Title, continue, settings, load game, and overwrite-safe character selection flow.
 - Three starter classes with movement and combat abilities.
 - Save and continue state.
 - Room transitions, traversal gates, shortcuts, hazards, enemies, checkpoint
   respawn, pause saving, and boss-gated exits.
 - Swamp Outskirts route and Castle Gate groundwork.
-- HUD feedback for health, resource, XP, level, upgrades, room, and map.
+- HUD feedback for health, resource, XP, level, upgrades, room, map, active
+  party, Momentum, and KO state.
 - Familiar progression.
-- CharacterCreator2D Base Fantasy source package import and Godot-native creator/exporter planning.
+- Witch/Shadow recruitment, tag-entry attacks, KO auto-switch, and Sakuramori
+  Court save/party/training service coverage.
+- CharacterCreator2D Base Fantasy source package import plus Godot-native
+  in-game creator, external Character Studio, CLI export, validation, readiness
+  report, and socket baselines.

@@ -35,6 +35,8 @@ New Game:
 
 - Opens character creation.
 - Warns before overwriting a selected occupied slot.
+- Binds overwrite confirmation to the current starter/name payload, so changing
+  character details requires a fresh warning.
 - Can create a save only after starter selection and name confirmation.
 
 Load Game:

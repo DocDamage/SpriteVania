@@ -135,6 +135,8 @@ Acceptance:
 
 - Opening and closing UI returns control cleanly.
 - Party state does not corrupt if player cancels.
+- Reorder and rename commits are atomic: invalid party IDs, missing recruits, or
+  blank rename requests fail without partially mutating party state.
 
 ### Market Walk
 

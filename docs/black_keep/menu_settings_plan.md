@@ -184,6 +184,8 @@ Save-specific settings include:
 - Damage numbers.
 - Character tutorial completion.
 - Party-specific accessibility overrides, if ever needed.
+- Controller glyph style is global and currently supports Generic, Xbox,
+  PlayStation, and Switch text-label prompts before final glyph art.
 
 Rules:
 
@@ -224,6 +226,7 @@ Interface settings:
 - Controller glyph theme.
 - Interaction prompt size.
 - Familiar HUD visibility.
+- Party KO state visibility.
 
 ## Language And Text Settings
 

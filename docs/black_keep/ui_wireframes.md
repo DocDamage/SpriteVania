@@ -203,6 +203,8 @@ Acceptance:
 - Current character is obvious.
 - KO state is visible.
 - Momentum state is readable without relying only on color.
+- HUD text fallback marks KO state for active party slots when final portraits
+  or glyphs are not yet available.
 
 ## Combat Feedback
 
@@ -240,6 +242,7 @@ Milestone behavior:
 Acceptance:
 
 - Canceling does not corrupt party state.
+- Invalid reorder/rename commits leave the roster unchanged.
 
 ## Save Shrine UI
 

@@ -110,18 +110,23 @@ abilities through their own animation style and lore.
 
 The current implementation foundation includes:
 
-- Title, continue, settings, load-game, and character-selection flow.
+- Title, continue, settings, load-game, and overwrite-safe character-selection flow.
 - Three starter classes with movement and combat abilities.
-- Save and continue state.
+- Save and continue state, including valid-slot fallback and corrupt-slot handling.
 - XP, leveling, HUD updates, and progression state.
 - Room transitions, traversal gates, shortcuts, hazards, enemies, checkpoints,
   pause saving, and boss-gated exits.
 - Swamp Outskirts route and Castle Gate groundwork.
 - Player damage, enemy contact damage, crawler attacks, and knockback.
 - Familiar progression with leveling, evolution, upgrades, and enemy attacks.
+- Active party management with Witch/Shadow recruitment, tag-entry attacks, KO
+  auto-switch, HUD KO state, and Sakuramori Court Party Shrine ordering/rename
+  safeguards.
 - Controller support groundwork and input-map tests.
 - Title-screen art, parallax, weather, polish layers, and expanded settings.
-- CharacterCreator2D Base Fantasy source import, complete animation inventory profiling, and Godot-native creator/tool roadmap.
+- CharacterCreator2D Base Fantasy source import, complete animation inventory
+  profiling, in-game creator readiness reports, external Character Studio, and
+  Godot-native export/tool roadmap.
 
 This foundation should be refined into the first Black Keep milestone rather
 than discarded.

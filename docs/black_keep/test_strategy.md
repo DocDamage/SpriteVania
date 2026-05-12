@@ -106,6 +106,7 @@ Party tests:
 - Swap changes visible character.
 - KO auto-switch selects living character.
 - Party order saves and loads.
+- Party Shrine invalid reorder/rename commits do not mutate party state.
 
 Familiar tests:
 
@@ -123,6 +124,14 @@ Settings tests:
 - Input conflicts are detected.
 - Reduced motion affects title and gameplay effects.
 - Controller glyph style can be set.
+
+Character creation and title tests:
+
+- Occupied saves require overwrite confirmation.
+- Changing starter or name after an overwrite warning requires a fresh
+  confirmation.
+- Continue skips corrupt saves and loads the latest valid slot.
+- Load Game disables corrupt slots while showing valid slot metadata.
 
 ## Dev Scene Requirements
 

@@ -112,6 +112,8 @@ Tests:
 - Active party expands to three.
 - Party order saves and loads.
 - KO auto-switch selects a living active character.
+- Party HUD displays KO state.
+- Party Shrine rejects invalid reorder/rename commits without mutating state.
 
 ### Familiar
 
@@ -132,6 +134,9 @@ Tests:
 - Continue is disabled without valid saves.
 - Continue loads the most recent valid save.
 - Load Game lists occupied slots.
+- Load Game disables corrupt slots while keeping valid slots loadable.
+- New Game overwrite confirmation is required again if starter/name changes
+  after the warning.
 - Corrupted save shows an error instead of crashing.
 - Legacy save migration fills new defaults.
 - Save after recruitment reloads correctly.

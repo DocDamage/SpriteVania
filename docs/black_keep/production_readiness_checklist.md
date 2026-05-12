@@ -74,6 +74,8 @@ Required:
 - Shadow is not starter-selectable.
 - Name input validates correctly.
 - Confirmation writes initial party state.
+- Occupied-save overwrite confirmation is bound to the current starter/name
+  choice.
 - Back navigation works.
 - Controller navigation works.
 
@@ -177,6 +179,8 @@ Required:
 - Three-character swap works.
 - KO auto-switch works.
 - Party order saves and loads.
+- Party Shrine reorder/rename commits are atomic; rejected payloads do not
+  mutate party state.
 
 Blockers:
 
@@ -255,6 +259,7 @@ Required:
 - Accessibility route works.
 - Character creation UI works.
 - Party HUD works.
+- Party HUD shows KO state for active party members.
 - Momentum rings are readable.
 - Familiar HUD is readable.
 - Controller prompts are accurate or safely generic.
@@ -278,6 +283,8 @@ Required:
 - Party tests pass.
 - Familiar tests pass.
 - Room graph tests pass.
+- Character creation overwrite tests pass.
+- Sakuramori service tests pass.
 
 Manual:
 

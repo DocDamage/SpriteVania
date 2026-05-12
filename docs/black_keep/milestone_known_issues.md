@@ -1,6 +1,6 @@
 # First Milestone Known Issues
 
-Date: 2026-05-11
+Date: 2026-05-12
 
 Verification completed:
 
@@ -10,6 +10,9 @@ Verification completed:
 - Automated reduced-motion title/world settings check.
 - Automated save/continue check from each current milestone checkpoint.
 - Asset integration and milestone visual checklist checks.
+- Focused checks for HUD party KO display, in-game creator readiness reports,
+  Party Shrine atomic rename/reorder commits, and overwrite-safe New Game
+  confirmation.
 
 Blocking status:
 
@@ -30,3 +33,4 @@ Commands used for this verification pass:
 - Full PowerShell loop over `tests/test_*.gd`.
 - `godot --headless --path . --quit`
 - `git diff --check`
+- `.\tools\run_tests.ps1 -Tests tests/test_hud.gd,tests/test_character_creation.gd,tests/test_main_title_menu.gd,tests/test_sakuramori_services.gd,tests/test_shadow_recruitment.gd,tests/test_witch_recruitment.gd -KeepGoing`

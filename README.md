@@ -5,10 +5,10 @@ Godot action RPG / Metroidvania prototype evolving into **The Black Keep**.
 The repo currently contains the playable SpriteVania systems foundation:
 
 - title, continue, load, settings, and character creation flow,
-- three starter classes,
+- three starter classes with player naming and overwrite-safe save creation,
 - room transitions, hazards, checkpoints, upgrades, enemies, shortcuts, and boss gates,
 - save/load state with migration coverage,
-- HUD, familiar progression, party groundwork, and headless tests.
+- HUD, familiar progression, active party swapping, KO auto-switch, hub party management, and headless tests.
 
 Primary planning docs live in [docs/black_keep/README.md](docs/black_keep/README.md).
 
@@ -28,7 +28,7 @@ Key docs:
 - [Character Creation Spec](docs/black_keep/character_creation_spec.md)
 - [Art Pipeline](docs/black_keep/art_pipeline.md)
 
-The target creator supports recipes, layered rigs, palettes, morphing, checklist-driven bulk animation export, direct `SpriteFrames` generation, validation reports, and reusable content packs.
+The target creator now has shared Godot-native coverage across the in-game creator, external Character Studio, and CLI: recipes, layered previews, palettes, safe morphs, randomization, favorites, compatibility/readiness reports, equipment sockets, checklist-driven bulk animation export, portrait/avatar/icon targets, direct `SpriteFrames` generation, validation reports, and reusable content packs.
 
 ## Tests
 
@@ -42,6 +42,8 @@ Use the tiered test runner for normal development:
 ```
 
 `fast` skips the slow CharacterCreator2D bake/visual tests. `creator-fast` runs the in-game creator, importer, and non-bake recipe slices. `creator` adds the heavier bake, studio, and visual regression coverage. Focused CC2D slices are also available as `creator-recipe`, `creator-manager`, `creator-bake`, `creator-studio`, and `creator-metadata`.
+
+Recent milestone-readiness checks also cover title/load slot behavior, New Game overwrite confirmation, Sakuramori Court save/party services, Witch/Shadow recruitment, HUD party KO state, and controller prompt style settings.
 
 To preview what a tier will run or execute specific files:
 

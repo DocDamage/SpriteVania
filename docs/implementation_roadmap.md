@@ -8,19 +8,19 @@ See the full creative and systems direction in [The Black Keep Master Plan](BLAC
 
 ## Current Vertical Slice
 
-- Title, continue, settings, and character selection flow.
+- Title, continue, load-game, settings, and overwrite-safe character selection flow.
 - Three distinct playable classes with class-specific traversal actions and learned attack skills.
-- Save and continue state, including checkpoint room, position, stats, upgrades, shortcuts, boss defeats, discovered rooms, settings, and area completion.
+- Save and continue state, including checkpoint room, position, stats, upgrades, shortcuts, boss defeats, discovered rooms, settings, valid-slot fallback, corrupt-slot handling, and area completion.
 - Save data now carries an explicit version while older unversioned saves remain loadable.
 - XP and leveling with HUD updates.
 - Room transitions, traversal gates, shortcuts, hazards, enemy contact damage, checkpoint respawn, pause saving, and boss-gated exits.
 - Swamp Outskirts route with start, movement, enemy, hazard, checkpoint, upgrade, shortcut, and miniboss rooms.
-- HUD feedback for health, resource, XP, level, upgrades, current room, and map discovery.
+- HUD feedback for health, resource, XP, level, upgrades, current room, map discovery, active party, Momentum, and KO state.
 - Integrated swamp tiles, player animation frames, starter enemy animations, and scene-instantiation coverage.
 - Familiar progression includes leveling, evolution, upgradable abilities, enemy attacks, guard mitigation, and evolution-based attack reach.
 - Combat reliability includes one-shot death handling and knockback from enemy contact and crawler attacks.
 - Full-game expansion groundwork has begun with a two-room Castle Gate route that loads after Swamp completion.
-- CharacterCreator2D source data has been imported for a Godot-native creator/tooling port. The project direction is an in-game creator plus a separate Godot Character Studio app, with Unity used only as source/reference data.
+- CharacterCreator2D source data has been imported for a Godot-native creator/tooling port. The project now has shared in-game creator, external Character Studio, and CLI coverage for recipes, previews, safe morphs, randomization, compatibility/readiness reports, sockets, export targets, and validation, with Unity used only as source/reference data.
 
 ## Remaining Full-Game Priorities
 
@@ -31,7 +31,7 @@ See the full creative and systems direction in [The Black Keep Master Plan](BLAC
 5. Finish asset/audio pass: more cut sprite sheets, VFX, UI art/fonts, room transitions, music, and sound effects.
 6. Replace the prototype map display with a full minimap screen, icons, and room-state markers.
 7. Harden production: export smoke tests, controller support playtests, performance pass, save migrations, and release checklist.
-8. Build the Godot-native CharacterCreator2D port: recipe data, layered rig preview, morph controls, checklist-driven bulk export, `SpriteFrames` baking, validation reports, and the separate Character Studio app shell.
+8. Continue hardening the Godot-native CharacterCreator2D port: broaden art/content coverage, improve final UI polish, keep bake/regression coverage fast, and move from prototype-safe reports toward production authoring quality.
 
 ## Vertical Slice Definition
 

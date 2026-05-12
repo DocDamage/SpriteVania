@@ -377,6 +377,8 @@ Phase 5: Hub management shell.
 - Add Sakuramori Court party shrine.
 - Add reorder UI placeholder.
 - Add rename hook if ready.
+- Reorder/rename commits must be atomic: invalid party IDs, missing recruits,
+  and blank rename requests fail before mutating roster state.
 
 ## Tests
 
@@ -396,6 +398,8 @@ Automated tests:
 - Full party KO triggers death/respawn.
 - Reserve XP is applied only to unlocked reserve characters.
 - Party order saves and loads.
+- Party Shrine rejects invalid reorder/rename payloads without partial state
+  changes.
 
 Manual tests:
 
@@ -405,6 +409,7 @@ Manual tests:
 - KO visible character and observe auto-switch.
 - Save and continue after each recruitment.
 - Open hub party shrine and return to gameplay.
+- Try invalid rename/reorder inputs and verify the previous party state remains.
 
 ## Locked Decisions
 
@@ -414,6 +419,7 @@ Manual tests:
 - Full roster changes happen at Cherry Blossom Court hubs.
 - Player-given names are stored separately from fixed titles.
 - KO auto-switches to another living active character when possible.
+- HUD displays KO state for active party members.
 - Reserve roster gains partial XP.
 
 ## Open Questions

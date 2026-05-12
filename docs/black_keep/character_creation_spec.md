@@ -211,6 +211,8 @@ Failure behavior:
 
 - If save write fails, show a non-crashing error and remain on confirmation.
 - If selected slot is occupied, require overwrite confirmation before writing.
+- If the player changes starter or name after an overwrite warning, require a
+  fresh overwrite confirmation before writing the changed character.
 
 ## Initial Party State
 
@@ -347,6 +349,8 @@ Automated tests:
 - Confirmation persists character appearance recipe data.
 - In-game creator preview exposes accessibility, performance, compatibility, and
   equipment socket readiness for the active recipe.
+- Overwrite confirmation is regression-tested against stale starter/name
+  approvals.
 - Generated or linked CharacterCreator2D `SpriteFrames` can be assigned to the spawned player.
 - Recipe migration preserves old saves when part IDs or content-pack versions change.
 - Back navigation preserves selected starter and name where expected.
