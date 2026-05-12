@@ -2,9 +2,12 @@ extends SceneTree
 
 const SCENE_PATHS := [
 	"res://scenes/Main.tscn",
+	"res://scenes/enemies/CursedSamurai.tscn",
 	"res://scenes/enemies/Masakiro.tscn",
+	"res://scenes/enemies/OniBrute.tscn",
 	"res://scenes/enemies/SwampCrawler.tscn",
 	"res://scenes/enemies/SwampMiniBoss.tscn",
+	"res://scenes/enemies/WatchSentinel.tscn",
 	"res://scenes/player/PlayerFamiliar.tscn",
 	"res://scenes/player/Player.tscn",
 	"res://scenes/player/FamiliarBolt.tscn",

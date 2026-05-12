@@ -3,6 +3,9 @@ class_name MilestoneRoomBlockout
 
 const CHECKPOINT_SCENE := preload("res://scenes/world/CheckpointShrine.tscn")
 const CRAWLER_SCENE := preload("res://scenes/enemies/SwampCrawler.tscn")
+const CURSED_SAMURAI_SCENE := preload("res://scenes/enemies/CursedSamurai.tscn")
+const WATCH_SENTINEL_SCENE := preload("res://scenes/enemies/WatchSentinel.tscn")
+const ONI_BRUTE_SCENE := preload("res://scenes/enemies/OniBrute.tscn")
 const MASAKIRO_SCENE := preload("res://scenes/enemies/Masakiro.tscn")
 const DAMAGED_SHRINE_SCENE := preload("res://scenes/world/DamagedShrine.tscn")
 const SHADOW_PRISON_SCENE := preload("res://scenes/world/ShadowPrison.tscn")
@@ -160,8 +163,14 @@ func _create_room_features() -> void:
 		"SamuraiCastle_AscentTest":
 			_set_exit_traversal_gate("RightEntrance", "vertical_ascent")
 
-	if room_id in ["SamuraiCastle_PatrolHall", "SamuraiCastle_AlarmEscape", "CastleGate_TagTutorial"]:
+	if room_id == "CastleGate_TagTutorial":
 		_add_enemy_spawn(room_id.to_snake_case() + "_crawler", Vector2(room_bounds.position.x + room_bounds.size.x * 0.62, _floor_y() - 40.0), CRAWLER_SCENE)
+	if room_id == "SamuraiCastle_PatrolHall":
+		_add_enemy_spawn("cursed_samurai_patrol", Vector2(room_bounds.position.x + room_bounds.size.x * 0.62, _floor_y()), CURSED_SAMURAI_SCENE)
+	if room_id == "SamuraiCastle_Watchpost":
+		_add_enemy_spawn("watch_sentinel", Vector2(room_bounds.position.x + room_bounds.size.x * 0.58, _floor_y()), WATCH_SENTINEL_SCENE)
+	if room_id == "SamuraiCastle_AlarmEscape":
+		_add_enemy_spawn("oni_brute_escape", Vector2(room_bounds.position.x + room_bounds.size.x * 0.62, _floor_y()), ONI_BRUTE_SCENE)
 	if room_id in ["SamuraiCastle_Watchpost", "SamuraiCastle_AlarmEscape"]:
 		_add_spike_hazard(Vector2(room_bounds.position.x + room_bounds.size.x * 0.45, _floor_y() - 12.0))
 	if room_id == "SamuraiCastle_BossAntechamber":

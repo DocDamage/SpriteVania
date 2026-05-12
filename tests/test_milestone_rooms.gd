@@ -25,6 +25,11 @@ const MILESTONE_ROUTE: Array[String] = [
 	"SakuramoriCourt_TrainingYard",
 	"SakuramoriCourt_MoonpetalPassage",
 ]
+const REQUIRED_ENEMY_SPAWNS := {
+	"SamuraiCastle_PatrolHall": ["cursed_samurai_patrol"],
+	"SamuraiCastle_Watchpost": ["watch_sentinel"],
+	"SamuraiCastle_AlarmEscape": ["oni_brute_escape"],
+}
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -62,6 +67,11 @@ func _run() -> void:
 		if _exit_targets(room).is_empty() and room_id != MILESTONE_ROUTE[MILESTONE_ROUTE.size() - 1]:
 			_fail(room_id + " should expose at least one room exit.")
 			return
+		if REQUIRED_ENEMY_SPAWNS.has(room_id):
+			for enemy_id: String in REQUIRED_ENEMY_SPAWNS[room_id]:
+				if _find_enemy_spawn(room, enemy_id) == null:
+					_fail("%s should include required prototype enemy spawn %s." % [room_id, enemy_id])
+					return
 
 	await _assert_route_exits_are_registered(world)
 	if not world.get("state").discovered_rooms.has("SakuramoriCourt_Entrance"):
@@ -97,6 +107,17 @@ func _exit_targets(root_node: Node) -> Array[String]:
 	for child: Node in root_node.get_children():
 		targets.append_array(_exit_targets(child))
 	return targets
+
+func _find_enemy_spawn(root_node: Node, enemy_id: String) -> Node:
+	if root_node == null:
+		return null
+	if str(root_node.get("enemy_id")) == enemy_id:
+		return root_node
+	for child: Node in root_node.get_children():
+		var match := _find_enemy_spawn(child, enemy_id)
+		if match != null:
+			return match
+	return null
 
 func _fail(message: String) -> void:
 	push_error(message)
