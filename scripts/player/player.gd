@@ -136,9 +136,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = _dash_direction * _dash_speed
 		velocity.y = 0.0
 		if _dash_time_remaining <= 0.0:
-			is_dashing = false
-			_update_dash_trail()
-			velocity.x = direction * _move_speed()
+			_finish_dash(direction)
 	elif not is_wall_hanging:
 		velocity.x = direction * _move_speed()
 	if is_on_floor():
@@ -159,6 +157,8 @@ func _physics_process(delta: float) -> void:
 		perform_dash()
 
 	move_and_slide()
+	if is_dashing and is_on_wall():
+		_finish_dash(direction)
 	_update_animation()
 
 	if class_controller == null:
@@ -512,6 +512,12 @@ func _start_dash(distance: float, cooldown: float) -> void:
 	velocity.y = 0.0
 	_dash_cooldown_remaining = cooldown
 	_update_dash_trail()
+
+func _finish_dash(input_direction: float) -> void:
+	is_dashing = false
+	_dash_time_remaining = 0.0
+	_update_dash_trail()
+	velocity.x = input_direction * _move_speed()
 
 func _combo_damage(base_damage: int) -> int:
 	var multiplier_index := mini(_combo_step, COMBO_MULTIPLIERS.size() - 1)
