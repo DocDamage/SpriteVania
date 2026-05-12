@@ -27,6 +27,7 @@ const LOAD_SLOTS := [
 var current_screen: Node
 var _last_new_game_error := ""
 var _pending_new_game_overwrite := false
+var _pending_new_game_overwrite_signature := ""
 
 
 func _ready() -> void:
@@ -74,6 +75,7 @@ func show_title() -> void:
 func show_character_select() -> void:
 	_last_new_game_error = ""
 	_pending_new_game_overwrite = false
+	_pending_new_game_overwrite_signature = ""
 	var select := _replace_screen(CHARACTER_SELECT_PATH)
 	_apply_persisted_settings_to_screen(select)
 	if select.has_signal("cancel_requested"):
@@ -133,6 +135,7 @@ func show_credits() -> void:
 
 func _start_new_game(starter_id: String, character_name: String) -> void:
 	_last_new_game_error = ""
+	var overwrite_signature := _new_game_overwrite_signature(starter_id, character_name)
 	var appearance := {}
 	if current_screen != null and current_screen.has_method("get_selected_appearance"):
 		appearance = current_screen.call("get_selected_appearance") as Dictionary
@@ -142,8 +145,10 @@ func _start_new_game(starter_id: String, character_name: String) -> void:
 	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance, selected_recipe)
 	var save_manager := _get_save_manager()
 	if save_manager != null and save_manager.has_method("save_game"):
-		if not _pending_new_game_overwrite and _default_save_exists(save_manager):
+		var overwrite_is_confirmed := _pending_new_game_overwrite and _pending_new_game_overwrite_signature == overwrite_signature
+		if not overwrite_is_confirmed and _default_save_exists(save_manager):
 			_pending_new_game_overwrite = true
+			_pending_new_game_overwrite_signature = overwrite_signature
 			_last_new_game_error = "overwrite_required"
 			if current_screen != null and current_screen.has_method("set_creator_error"):
 				current_screen.call("set_creator_error", _last_new_game_error)
@@ -154,6 +159,7 @@ func _start_new_game(starter_id: String, character_name: String) -> void:
 				current_screen.call("set_creator_error", _last_new_game_error)
 			return
 	_pending_new_game_overwrite = false
+	_pending_new_game_overwrite_signature = ""
 
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
@@ -162,6 +168,9 @@ func _start_new_game(starter_id: String, character_name: String) -> void:
 
 func get_last_new_game_error() -> String:
 	return _last_new_game_error
+
+func _new_game_overwrite_signature(starter_id: String, character_name: String) -> String:
+	return "%s:%s" % [starter_id, character_name.strip_edges()]
 
 func _default_save_exists(save_manager: Node) -> bool:
 	if save_manager == null:

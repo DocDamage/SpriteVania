@@ -413,13 +413,26 @@ func _assert_character_creation_requires_overwrite_confirmation() -> void:
 	if loaded_existing == null or loaded_existing.player_name != "Existing":
 		_fail("First overwrite prompt should not mutate the existing save.")
 		return
+
+	select.call("select_starter_by_id", "iron_knight")
+	select.call("set_character_name", "Rowan")
+	_confirm_character_select(select)
+	await process_frame
+	if not (main.get("current_screen") is CharacterSelect):
+		_fail("Changing character creation details after an overwrite prompt should require a fresh overwrite confirmation.")
+		return
+	loaded_existing = save_manager.load_game()
+	if loaded_existing == null or loaded_existing.player_name != "Existing":
+		_fail("Stale overwrite confirmation should not write a changed character.")
+		return
+
 	_confirm_character_select(select)
 	await process_frame
 	if not (main.get("current_screen") is GameWorld):
 		_fail("Second confirmation should overwrite the occupied save and enter the game.")
 		return
 	var overwritten: GameState = save_manager.load_game()
-	if overwritten == null or overwritten.selected_starter_id != "arc_gunner" or overwritten.player_name != "Vale":
+	if overwritten == null or overwritten.selected_starter_id != "iron_knight" or overwritten.player_name != "Rowan":
 		_fail("Overwrite confirmation should write the newly created character.")
 		return
 	main.queue_free()
