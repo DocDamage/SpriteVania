@@ -160,6 +160,14 @@ function Quote-CmdArg {
 	'"' + ($Value -replace '"', '""') + '"'
 }
 
+function Test-IsWindowsHost {
+	$isWindowsVariable = Get-Variable IsWindows -ErrorAction SilentlyContinue
+	if ($null -ne $isWindowsVariable) {
+		return [bool]$isWindowsVariable.Value
+	}
+	$env:OS -eq "Windows_NT"
+}
+
 $selectedSpecs = @(Resolve-SuiteSpecs)
 if ($selectedSpecs.Count -eq 0) {
 	throw "No tests selected for suite '$Suite'."
@@ -186,8 +194,12 @@ foreach ($spec in $selectedSpecs) {
 		} else {
 			$env:CC2D_RECIPE_TEST_SLICE = $spec.Slice
 		}
-		$commandLine = (Quote-CmdArg $Godot) + " --headless --path . --script " + (Quote-CmdArg $spec.Path)
-		$testOutput = & cmd /d /c $commandLine 2>&1
+		if (Test-IsWindowsHost) {
+			$commandLine = (Quote-CmdArg $Godot) + " --headless --path . --script " + (Quote-CmdArg $spec.Path)
+			$testOutput = & cmd /d /c $commandLine 2>&1
+		} else {
+			$testOutput = & $Godot --headless --path . --script $spec.Path 2>&1
+		}
 		foreach ($line in $testOutput) {
 			Write-Output $line
 		}
