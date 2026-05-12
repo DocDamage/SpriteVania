@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - temporary-full-assets
   workflow_dispatch:
     inputs:
       suite:
@@ -50,6 +49,10 @@ jobs:
       - name: Check whitespace
         shell: pwsh
         run: git diff --check
+
+      - name: Import Godot project
+        shell: pwsh
+        run: godot --headless --path . --import
 
       - name: Run test suite
         shell: pwsh
