@@ -86,12 +86,15 @@ func _assert_character_select_lists_only_starters_and_validates_name() -> void:
 	if recipe == null or str(recipe.get("recipe_id")) == "":
 		_fail("CharacterSelect should maintain a portable CharacterCreator2D recipe.")
 		return
-	if not select.has_method("get_preview_state") or not select.has_method("refresh_preview") or not select.has_method("accessibility_preview") or not select.has_method("performance_budget_report"):
+	if not select.has_method("get_preview_state") or not select.has_method("refresh_preview") or not select.has_method("accessibility_preview") or not select.has_method("performance_budget_report") or not select.has_method("compatibility_report") or not select.has_method("socket_report_for_recipe"):
 		_fail("CharacterSelect should expose in-game creator preview helpers.")
 		return
 	var preview_state: Dictionary = select.call("get_preview_state")
 	if int(preview_state.get("part_count", 0)) <= 0 or (preview_state.get("rendered_part_paths", []) as Array).size() < 3:
 		_fail("CharacterSelect should render a layered in-game creator preview.")
+		return
+	if (preview_state.get("constraints", {}) as Dictionary).is_empty() or int(preview_state.get("socket_count", 0)) < 5:
+		_fail("CharacterSelect preview state should include compatibility constraints and equipment socket count.")
 		return
 	var preview_layer := select.get_node_or_null("%LayeredPreview") as Control
 	if preview_layer == null or preview_layer.get_child_count() < 3:
@@ -99,12 +102,22 @@ func _assert_character_select_lists_only_starters_and_validates_name() -> void:
 		return
 	var accessibility_label := select.get_node_or_null("%AccessibilityPreviewLabel") as Label
 	var budget_label := select.get_node_or_null("%PerformanceBudgetLabel") as Label
-	if accessibility_label == null or accessibility_label.text.is_empty() or budget_label == null or budget_label.text.is_empty():
-		_fail("CharacterSelect should include visible accessibility and budget preview labels.")
+	var compatibility_label := select.get_node_or_null("%CompatibilityPreviewLabel") as Label
+	var socket_label := select.get_node_or_null("%SocketPreviewLabel") as Label
+	if accessibility_label == null or accessibility_label.text.is_empty() or budget_label == null or budget_label.text.is_empty() or compatibility_label == null or compatibility_label.text.is_empty() or socket_label == null or socket_label.text.is_empty():
+		_fail("CharacterSelect should include visible accessibility, budget, compatibility, and socket preview labels.")
 		return
 	var performance_report := select.call("performance_budget_report") as Dictionary
 	if not performance_report.has("ok") or (performance_report.get("targets", []) as Array).is_empty():
 		_fail("CharacterSelect should expose target performance budget reports.")
+		return
+	var compatibility_report := select.call("compatibility_report") as Dictionary
+	if not compatibility_report.has("frame_bounds") or not compatibility_report.has("hitbox_compatibility"):
+		_fail("CharacterSelect should expose compatibility reports for in-game creator readability.")
+		return
+	var socket_report := select.call("socket_report_for_recipe", "idle") as Dictionary
+	if ((socket_report.get("sockets", {}) as Dictionary).get("main_hand", {}) as Dictionary).is_empty():
+		_fail("CharacterSelect should expose equipment socket reports for the active recipe.")
 		return
 	if not select.has_method("set_palette_color") or not select.has_method("set_morph_value"):
 		_fail("CharacterSelect should expose lightweight palette and morph edit helpers.")

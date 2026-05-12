@@ -62,6 +62,18 @@ layout_mode = 2
 text = "Budget"
 horizontal_alignment = 1
 
+[node name="CompatibilityPreviewLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Compatibility"
+horizontal_alignment = 1
+
+[node name="SocketPreviewLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sockets"
+horizontal_alignment = 1
+
 [node name="LayeredPreview" type="Control" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(420, 160)

@@ -174,10 +174,20 @@ func performance_budget_report() -> Dictionary:
 	_ensure_creator_ready()
 	return _creator_manager.performance_budget_report(_current_recipe, "first_slice_player")
 
+func compatibility_report() -> Dictionary:
+	_ensure_creator_ready()
+	return _creator_manager.compatibility_report(_current_recipe, "first_slice_player")
+
+func socket_report_for_recipe(animation_id := "idle") -> Dictionary:
+	_ensure_creator_ready()
+	return _creator_manager.socket_report_for_recipe(_current_recipe, animation_id)
+
 func get_preview_state() -> Dictionary:
 	_ensure_creator_ready()
 	var accessibility_report := accessibility_preview()
 	var performance_report := performance_budget_report()
+	var compatibility := compatibility_report()
+	var socket_report := socket_report_for_recipe("idle")
 	return {
 		"recipe_id": _current_recipe.recipe_id,
 		"part_count": _current_recipe.parts.size(),
@@ -187,6 +197,8 @@ func get_preview_state() -> Dictionary:
 		"accessibility_summary": (accessibility_report.get("summary", {}) as Dictionary).duplicate(true),
 		"performance_ok": bool(performance_report.get("ok", false)),
 		"performance_summary": (performance_report.get("summary", {}) as Dictionary).duplicate(true),
+		"constraints": compatibility.duplicate(true),
+		"socket_count": (socket_report.get("sockets", {}) as Dictionary).size(),
 	}
 
 func get_appearance_slot_ids() -> Array[String]:
@@ -554,6 +566,32 @@ func _sync_performance_budget_label() -> void:
 		int(summary.get("estimated_frames", 0)),
 		float(summary.get("estimated_bytes", 0)) / 1048576.0,
 	]
+	_sync_compatibility_preview_label()
+
+func _sync_compatibility_preview_label() -> void:
+	var compatibility_label := get_node_or_null("%CompatibilityPreviewLabel") as Label
+	if compatibility_label == null or _current_recipe == null:
+		return
+	var report := compatibility_report()
+	var review_count := 0
+	for category_id: String in report.keys():
+		var category := report.get(category_id, {}) as Dictionary
+		var severity := str(category.get("severity", "ok"))
+		if severity != "ok" and severity != "low":
+			review_count += 1
+	compatibility_label.text = "Compatibility %s | Review categories %d" % [
+		"OK" if review_count == 0 else "Review",
+		review_count,
+	]
+	_sync_socket_preview_label()
+
+func _sync_socket_preview_label() -> void:
+	var socket_label := get_node_or_null("%SocketPreviewLabel") as Label
+	if socket_label == null or _current_recipe == null:
+		return
+	var report := socket_report_for_recipe("idle")
+	var sockets := report.get("sockets", {}) as Dictionary
+	socket_label.text = "Sockets %d | Idle anchors ready" % sockets.size()
 
 func _sync_appearance_buttons_to_recipe() -> void:
 	for slot_id: String in _appearance_buttons.keys():
@@ -707,6 +745,10 @@ func _apply_font_scale(font_scale: float) -> void:
 		"HeaderLabel": 36,
 		"DescriptionLabel": 16,
 		"PreviewLabel": 16,
+		"AccessibilityPreviewLabel": 14,
+		"PerformanceBudgetLabel": 14,
+		"CompatibilityPreviewLabel": 14,
+		"SocketPreviewLabel": 14,
 	}
 	for node_name: String in base_sizes.keys():
 		var label := find_child(node_name, true, false) as Label
