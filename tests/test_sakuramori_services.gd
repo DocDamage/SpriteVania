@@ -11,6 +11,7 @@ func _run() -> void:
 	await _assert_party_shrine_opens_and_cancels_without_mutation()
 	await _assert_party_shrine_commits_party_order_and_rename()
 	await _assert_party_shrine_rejects_invalid_commit_without_mutation()
+	await _assert_party_shrine_rejects_invalid_rename_without_mutation()
 	await _assert_training_dummy_takes_damage_without_progression_reward()
 	await _assert_moonpetal_passage_is_locked_placeholder()
 	print("PASS: sakuramori services")
@@ -148,6 +149,29 @@ func _assert_party_shrine_rejects_invalid_commit_without_mutation() -> void:
 		return
 	if state.to_dictionary() != before:
 		_fail("Rejected Party Shrine commits should not rename or reorder anything.")
+		return
+	await _free_world(world)
+
+func _assert_party_shrine_rejects_invalid_rename_without_mutation() -> void:
+	var world := _new_world_in_room("SakuramoriCourt_PartyShrine")
+	var state := world.get("state") as GameState
+	var manager := world.get("party_manager") as PartyManager
+	manager.recruit_character(state, "black_witch", "Mira")
+	manager.recruit_character(state, "shadow", "Ren")
+	var before := state.to_dictionary().duplicate(true)
+	var shrine := _find_node_with_method(world.get("current_room"), "commit_party_service")
+	shrine.call("open_party_service", world)
+	if bool(shrine.call("commit_party_service", world, ["warden", "black_witch", "shadow"], {"black_witch": ""})):
+		_fail("Party Shrine should reject blank rename requests.")
+		return
+	if state.to_dictionary() != before:
+		_fail("Rejected Party Shrine rename requests should not reorder or rename anything.")
+		return
+	if bool(shrine.call("commit_party_service", world, ["warden", "black_witch", "shadow"], {"missing_recruit": "Sable"})):
+		_fail("Party Shrine should reject rename requests for locked or missing characters.")
+		return
+	if state.to_dictionary() != before:
+		_fail("Rejected Party Shrine missing-character rename requests should not mutate party state.")
 		return
 	await _free_world(world)
 

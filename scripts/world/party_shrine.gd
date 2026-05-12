@@ -31,6 +31,9 @@ func commit_party_service(world: Node, active_party_ids: Array, rename_requests 
 		return false
 	if rename_requests is Dictionary:
 		for character_id: String in rename_requests.keys():
+			if not state.party_roster.has(character_id) or str(rename_requests[character_id]).strip_edges().is_empty():
+				return false
+		for character_id: String in rename_requests.keys():
 			manager.rename_character(state, character_id, str(rename_requests[character_id]))
 	if not manager.set_active_party(state, active_party_ids):
 		return false
