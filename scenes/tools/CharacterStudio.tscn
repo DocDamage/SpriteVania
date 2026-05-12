@@ -50,6 +50,16 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Validation pending"
 
+[node name="AccessibilityPreviewLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Accessibility pending"
+
+[node name="PerformanceBudgetLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Budget pending"
+
 [node name="RecipeFileRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -301,6 +311,59 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Save Export Set"
 
+[node name="ToolingRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ContentPackReportButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pack Report"
+
+[node name="EquipmentSocketEdit" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Socket"
+text = "main_hand"
+
+[node name="EquipmentTagEdit" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Equipment tags"
+text = "weapon,melee"
+
+[node name="EquipmentPreviewButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Preview Equip"
+
+[node name="FactionIdEdit" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Faction id"
+text = "ash_guard"
+
+[node name="FactionCountSpin" type="SpinBox" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+value = 3.0
+
+[node name="FactionBatchButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Batch"
+
+[node name="AnimationCoverageButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ToolingRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Coverage"
+
 [node name="BakeExportRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -348,6 +411,34 @@ text = "user://character_studio_validation_report.json"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Report"
+
+[node name="ContactSheetDiffRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ContactSheetLeftEdit" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ContactSheetDiffRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Left contact sheet"
+text = "user://character_studio_contact_sheet.png"
+
+[node name="ContactSheetRightEdit" type="LineEdit" parent="Panel/MarginContainer/VBoxContainer/ContactSheetDiffRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Right contact sheet"
+text = "user://character_studio_contact_sheet_compare.png"
+
+[node name="CompareContactSheetsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/ContactSheetDiffRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Diff"
+
+[node name="ContactSheetDiffLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/ContactSheetDiffRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No diff"
 
 [node name="EditorTabs" type="TabContainer" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -416,7 +507,12 @@ autowrap_mode = 3
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/RandomizerRow/RandomizeButton" to="." method="_on_randomize_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/FrameBoundsRow/ApplyPivotOverrideButton" to="." method="_on_apply_pivot_override_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/CustomExportSetRow/SaveCustomExportSetButton" to="." method="_on_save_custom_export_set_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/ToolingRow/ContentPackReportButton" to="." method="_on_content_pack_report_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/ToolingRow/EquipmentPreviewButton" to="." method="_on_equipment_preview_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/ToolingRow/FactionBatchButton" to="." method="_on_faction_batch_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/ToolingRow/AnimationCoverageButton" to="." method="_on_animation_coverage_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/BakeExportRow/BakeExportButton" to="." method="_on_bake_export_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/BakeExportRow/BakeSpriteFramesButton" to="." method="_on_bake_spriteframes_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/BakeExportRow/BakeContactSheetButton" to="." method="_on_bake_contact_sheet_button_pressed"]
 [connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/BakeExportRow/WriteValidationReportButton" to="." method="_on_write_validation_report_button_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/ContactSheetDiffRow/CompareContactSheetsButton" to="." method="_on_compare_contact_sheets_button_pressed"]

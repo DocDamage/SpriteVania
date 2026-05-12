@@ -2,7 +2,7 @@ extends SceneTree
 
 const CC2DRecipe := preload("res://scripts/character_creator/cc2d_recipe.gd")
 const CC2DCreatorManager := preload("res://scripts/character_creator/cc2d_creator_manager.gd")
-const DEFAULT_CONTACT_SHEET_SIGNATURE := "2048x2560:1604385:742947650"
+const DEFAULT_CONTACT_SHEET_SIGNATURE := "2048x2560:1604385:584919648"
 
 var _failed := false
 
@@ -20,6 +20,9 @@ func _assert_canonical_contact_sheet_signature_is_stable() -> void:
 		return
 	if not manager.has_method("bake_contact_sheet"):
 		_fail("Creator manager should expose bake_contact_sheet().")
+		return
+	if not manager.has_method("contact_sheet_signature"):
+		_fail("Creator manager should expose contact_sheet_signature().")
 		return
 
 	var first_recipe: CC2DRecipe = manager.default_recipe("visual_regression_default")
@@ -71,41 +74,11 @@ func _bake_contact_sheet_signature(manager: CC2DCreatorManager, recipe: CC2DReci
 	if not FileAccess.file_exists(path):
 		_fail("Contact sheet bake should write a PNG: " + path)
 		return ""
-	var image := Image.new()
-	if image.load(path) != OK:
-		_fail("Contact sheet PNG should load: " + path)
+	var signature := manager.contact_sheet_signature(path) as Dictionary
+	if not bool(signature.get("ok", false)):
+		_fail("Contact sheet signature should be available: " + str(signature.get("errors", [])))
 		return ""
-	if image.get_width() <= 0 or image.get_height() <= 0:
-		_fail("Contact sheet PNG should have non-zero dimensions.")
-		return ""
-	return _image_signature(image)
-
-func _image_signature(image: Image) -> String:
-	var width := image.get_width()
-	var height := image.get_height()
-	var opaque_count := 0
-	for y: int in height:
-		for x: int in width:
-			if image.get_pixel(x, y).a > 0.0:
-				opaque_count += 1
-	var sample_hash := 2166136261
-	for y: int in range(0, height, 17):
-		for x: int in range(0, width, 19):
-			sample_hash = _hash_color(sample_hash, image.get_pixel(x, y))
-	sample_hash = _hash_color(sample_hash, image.get_pixel(max(0, width / 2), max(0, height / 2)))
-	sample_hash = _hash_color(sample_hash, image.get_pixel(max(0, width - 1), max(0, height - 1)))
-	return "%dx%d:%d:%d" % [width, height, opaque_count, sample_hash]
-
-func _hash_color(hash_value: int, color: Color) -> int:
-	var channels := [
-		int(round(color.r * 255.0)),
-		int(round(color.g * 255.0)),
-		int(round(color.b * 255.0)),
-		int(round(color.a * 255.0)),
-	]
-	for channel: int in channels:
-		hash_value = int((hash_value ^ channel) * 16777619) & 0x7fffffff
-	return hash_value
+	return str(signature.get("signature", ""))
 
 func _fail(message: String) -> void:
 	_failed = true

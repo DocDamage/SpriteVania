@@ -50,11 +50,41 @@ layout_mode = 2
 text = "Preview"
 horizontal_alignment = 1
 
+[node name="AccessibilityPreviewLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Accessibility"
+horizontal_alignment = 1
+
+[node name="PerformanceBudgetLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Budget"
+horizontal_alignment = 1
+
 [node name="LayeredPreview" type="Control" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(420, 160)
 layout_mode = 2
 clip_contents = true
+
+[node name="PaletteLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Palette"
+
+[node name="PaletteControls" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MorphLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Morphs"
+
+[node name="MorphControls" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="RandomizerRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -115,6 +145,17 @@ unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Name"
 max_length = 24
+
+[node name="OnScreenKeyboard" type="GridContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 10
+
+[node name="ResetNameButton" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 36)
+layout_mode = 2
+text = "Reset Name"
 
 [node name="ConfirmButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

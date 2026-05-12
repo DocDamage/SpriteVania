@@ -1,7 +1,7 @@
 extends RefCounted
 class_name CC2DRecipe
 
-const SCHEMA_VERSION := 4
+const SCHEMA_VERSION := 5
 
 var schema_version: int = SCHEMA_VERSION
 var recipe_id: String = ""
@@ -18,6 +18,7 @@ var outfit_sets: Dictionary = {}
 var active_outfit_id: String = ""
 var custom_export_sets: Dictionary = {}
 var equipment_sockets: Dictionary = {}
+var pivot_overrides: Dictionary = {}
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -36,6 +37,7 @@ func to_dictionary() -> Dictionary:
 		"active_outfit_id": active_outfit_id,
 		"custom_export_sets": custom_export_sets,
 		"equipment_sockets": equipment_sockets,
+		"pivot_overrides": pivot_overrides,
 	}
 
 static func from_dictionary(data: Dictionary):
@@ -61,6 +63,8 @@ static func from_dictionary(data: Dictionary):
 	recipe.custom_export_sets = (loaded_custom_export_sets as Dictionary).duplicate(true) if loaded_custom_export_sets is Dictionary else {}
 	var loaded_equipment_sockets: Variant = data.get("equipment_sockets", {})
 	recipe.equipment_sockets = (loaded_equipment_sockets as Dictionary).duplicate(true) if loaded_equipment_sockets is Dictionary else {}
+	var loaded_pivot_overrides: Variant = data.get("pivot_overrides", {})
+	recipe.pivot_overrides = (loaded_pivot_overrides as Dictionary).duplicate(true) if loaded_pivot_overrides is Dictionary else {}
 	return recipe
 
 static func _string_array(value: Variant) -> Array[String]:

@@ -12,6 +12,11 @@ const PartyManager := preload("res://scripts/core/party_manager.gd")
 const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
 const CC2DCreatorManager := preload("res://scripts/character_creator/cc2d_creator_manager.gd")
 const CC2DRecipe := preload("res://scripts/character_creator/cc2d_recipe.gd")
+const CLASS_DATA_PATHS := {
+	"warden": "res://data/classes/warden.tres",
+	"gunslinger": "res://data/classes/gunslinger.tres",
+	"hexbinder": "res://data/classes/hexbinder.tres",
+}
 const LOAD_SLOTS := [
 	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
 	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
@@ -20,6 +25,8 @@ const LOAD_SLOTS := [
 ]
 
 var current_screen: Node
+var _last_new_game_error := ""
+var _pending_new_game_overwrite := false
 
 
 func _ready() -> void:
@@ -65,6 +72,8 @@ func show_title() -> void:
 
 
 func show_character_select() -> void:
+	_last_new_game_error = ""
+	_pending_new_game_overwrite = false
 	var select := _replace_screen(CHARACTER_SELECT_PATH)
 	_apply_persisted_settings_to_screen(select)
 	if select.has_signal("cancel_requested"):
@@ -123,6 +132,7 @@ func show_credits() -> void:
 
 
 func _start_new_game(starter_id: String, character_name: String) -> void:
+	_last_new_game_error = ""
 	var appearance := {}
 	if current_screen != null and current_screen.has_method("get_selected_appearance"):
 		appearance = current_screen.call("get_selected_appearance") as Dictionary
@@ -132,12 +142,35 @@ func _start_new_game(starter_id: String, character_name: String) -> void:
 	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance, selected_recipe)
 	var save_manager := _get_save_manager()
 	if save_manager != null and save_manager.has_method("save_game"):
-		save_manager.call("save_game", initial_state)
+		if not _pending_new_game_overwrite and _default_save_exists(save_manager):
+			_pending_new_game_overwrite = true
+			_last_new_game_error = "overwrite_required"
+			if current_screen != null and current_screen.has_method("set_creator_error"):
+				current_screen.call("set_creator_error", _last_new_game_error)
+			return
+		if not bool(save_manager.call("save_game", initial_state)):
+			_last_new_game_error = "save_failed"
+			if current_screen != null and current_screen.has_method("set_creator_error"):
+				current_screen.call("set_creator_error", _last_new_game_error)
+			return
+	_pending_new_game_overwrite = false
 
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
 	if world.has_method("continue_game"):
 		world.continue_game()
+
+func get_last_new_game_error() -> String:
+	return _last_new_game_error
+
+func _default_save_exists(save_manager: Node) -> bool:
+	if save_manager == null:
+		return false
+	if save_manager.has_method("read_save_slot_metadata"):
+		return bool((save_manager.call("read_save_slot_metadata", "default") as Dictionary).get("valid", false))
+	if save_manager.has_method("has_save"):
+		return bool(save_manager.call("has_save"))
+	return false
 
 
 func _continue_game() -> void:
@@ -280,7 +313,14 @@ func _initial_state_for_starter(starter_id: String, character_name: String, char
 	var state := GameStateScript.new()
 	state.selected_starter_id = starter_id
 	state.player_name = character_name.strip_edges()
+	state.player_character_names = {starter_id: state.player_name}
 	state.selected_class = str(definition.get("class_id")) if definition != null else "warden"
+	state.character_definitions_version = "black_keep_playable_v1"
+	state.character_creation_flags = {
+		"starter_selected": true,
+		"starter_named": true,
+		"new_game_committed": true,
+	}
 	state.character_appearance = character_appearance if character_appearance is Dictionary else {}
 	var creator_manager := CC2DCreatorManager.new()
 	creator_manager.load_content()
@@ -297,14 +337,29 @@ func _initial_state_for_starter(starter_id: String, character_name: String, char
 	if not recipe.generated_spriteframes_path.is_empty() and ResourceLoader.exists(recipe.generated_spriteframes_path):
 		state.character_spriteframes_path = recipe.generated_spriteframes_path
 	state.selected_sprite = ""
+	state.created_timestamp = int(Time.get_unix_time_from_system())
 	state.current_area = "swamp_outskirts"
 	state.current_room = "RoomStart"
+	state.checkpoint_id = "checkpoint_modern_start"
+	state.checkpoint_room = state.current_room
+	state.checkpoint_position = Vector2(96, 464)
 	state.level = 1
 	state.learned_attack_skills = _string_array(definition.get("baseline_skills")) if definition != null else []
 	state.mark_room_discovered(state.current_room)
 	var party_manager := PartyManager.new()
 	party_manager.initialize_starter(state, starter_id, state.player_name)
+	var class_data := _class_data_for_id(state.selected_class)
+	if class_data != null:
+		state.current_health = int(class_data.get("max_health"))
+		state.current_resource = int(class_data.get("max_resource"))
+		party_manager.store_active_runtime(state, state.current_health, state.current_resource, state.level, state.xp)
 	return state
+
+func _class_data_for_id(class_id: String) -> Resource:
+	var path := str(CLASS_DATA_PATHS.get(class_id, ""))
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	return load(path) as Resource
 
 
 func _get_persisted_settings() -> Dictionary:

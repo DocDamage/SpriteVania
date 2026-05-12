@@ -4,6 +4,7 @@ const GameStateScript := preload("res://scripts/core/game_state.gd")
 const DEFAULT_SLOT_IDS := ["default", "slot_a", "slot_b", "slot_c"]
 
 @export var save_path: String = "user://spritevania_save.json"
+@export var report_save_errors := true
 
 func has_save() -> bool:
 	return FileAccess.file_exists(save_path)
@@ -104,6 +105,10 @@ func delete_save() -> void:
 		DirAccess.remove_absolute(save_path)
 
 func _save_state_to_path(path: String, state: GameStateScript) -> bool:
+	var now := int(Time.get_unix_time_from_system())
+	if int(state.get("created_timestamp")) <= 0:
+		state.set("created_timestamp", now)
+	state.set("last_saved_timestamp", now)
 	var base_dir := path.get_base_dir()
 	if not base_dir.is_empty():
 		DirAccess.make_dir_recursive_absolute(base_dir)
@@ -111,7 +116,7 @@ func _save_state_to_path(path: String, state: GameStateScript) -> bool:
 	var temp_path := _temporary_save_path(path)
 	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
-		push_error("Could not open save file for writing: %s" % temp_path)
+		_report_save_error("Could not open save file for writing: %s" % temp_path)
 		return false
 
 	file.store_string(JSON.stringify(state.to_dictionary()))
@@ -121,14 +126,18 @@ func _save_state_to_path(path: String, state: GameStateScript) -> bool:
 		var remove_error := DirAccess.remove_absolute(path)
 		if remove_error != OK:
 			DirAccess.remove_absolute(temp_path)
-			push_error("Could not replace save file: %s" % path)
+			_report_save_error("Could not replace save file: %s" % path)
 			return false
 	var rename_error := DirAccess.rename_absolute(temp_path, path)
 	if rename_error != OK:
 		DirAccess.remove_absolute(temp_path)
-		push_error("Could not finalize save file: %s" % path)
+		_report_save_error("Could not finalize save file: %s" % path)
 		return false
 	return true
+
+func _report_save_error(message: String) -> void:
+	if report_save_errors:
+		push_error(message)
 
 func _load_state_from_path(path: String, report_errors := true) -> GameStateScript:
 	if not FileAccess.file_exists(path):

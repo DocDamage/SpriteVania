@@ -7,48 +7,83 @@ const CHARACTER_STUDIO_SCENE_PATH := "res://scenes/tools/CharacterStudio.tscn"
 const CC2D_EXPORT_CLI_PATH := "res://tools/cc2d_export_cli.gd"
 
 var _failed := false
+var _requested_slice := "all"
 
 func _init() -> void:
-	_assert_recipe_round_trips_with_schema_version()
-	_assert_recipe_round_trips_outfit_sets()
-	_assert_recipe_round_trips_custom_export_sets()
-	_assert_recipe_round_trips_equipment_sockets()
-	_assert_manager_builds_valid_default_recipe()
-	_assert_manager_saves_and_loads_recipe_files()
-	_assert_manager_exports_and_imports_recipe_bundles()
-	_assert_manager_applies_outfit_sets()
-	_assert_manager_creates_family_variants()
-	_assert_manager_reports_recipe_diffs()
-	_assert_manager_uses_recipe_custom_export_sets()
-	_assert_manager_repairs_missing_parts()
-	_assert_manager_reports_export_readiness()
-	_assert_manager_reports_equipment_sockets()
-	_assert_manager_reports_accessibility_and_budget_warnings()
-	_assert_manager_writes_validation_reports()
-	_assert_manager_bakes_export_sheet_source_spec()
-	_assert_manager_bakes_export_target_images()
-	_assert_manager_rotates_baked_parts()
-	_assert_manager_bakes_contact_sheet()
-	_assert_headless_export_cli_writes_batch_outputs()
-	_assert_manager_randomizes_recipes_with_locks_and_tags()
-	_assert_manager_filters_part_options_by_search_and_tags()
-	_assert_manager_parses_imported_clip_metadata()
-	_assert_manager_parses_part_sprite_metadata()
-	_assert_external_character_studio_shell_uses_manager()
-	_assert_external_character_studio_bakes_export_sheets()
-	_assert_external_character_studio_edits_recipe()
-	_assert_external_character_studio_filters_part_browser()
-	_assert_external_character_studio_saves_and_loads_recipe()
-	_assert_external_character_studio_randomizes_recipe()
-	_assert_external_character_studio_renders_layered_preview()
-	_assert_external_character_studio_animation_preview_controls()
-	_assert_external_character_studio_frame_metadata_preview()
-	_assert_game_state_preserves_recipe_payload()
+	_requested_slice = OS.get_environment("CC2D_RECIPE_TEST_SLICE").strip_edges().to_lower()
+	if _requested_slice.is_empty():
+		_requested_slice = "all"
+	if not _is_valid_slice(_requested_slice):
+		_fail("Unknown CC2D recipe test slice: " + _requested_slice)
+		return
+
+	if _should_run_slice("recipe"):
+		_assert_recipe_round_trips_with_schema_version()
+		_assert_recipe_round_trips_outfit_sets()
+		_assert_recipe_round_trips_custom_export_sets()
+		_assert_recipe_round_trips_equipment_sockets()
+		_assert_recipe_round_trips_pivot_overrides()
+		_assert_game_state_preserves_recipe_payload()
+
+	if _should_run_slice("manager"):
+		_assert_manager_builds_valid_default_recipe()
+		_assert_manager_saves_and_loads_recipe_files()
+		_assert_manager_exports_and_imports_recipe_bundles()
+		_assert_manager_applies_outfit_sets()
+		_assert_manager_creates_family_variants()
+		_assert_manager_reports_recipe_diffs()
+		_assert_manager_applies_morph_transforms()
+		_assert_manager_applies_palette_modulates()
+		_assert_manager_generates_deterministic_faction_batches()
+		_assert_manager_uses_recipe_custom_export_sets()
+		_assert_manager_repairs_missing_parts()
+		_assert_manager_migrates_recipe_content_versions()
+		_assert_manager_reports_export_readiness()
+		_assert_manager_reports_animation_coverage_heatmap()
+		_assert_manager_reports_equipment_sockets()
+		_assert_manager_previews_equipment_on_sockets()
+		_assert_manager_reports_accessibility_and_budget_warnings()
+		_assert_manager_writes_validation_reports()
+
+	if _should_run_slice("bake"):
+		_assert_manager_bakes_export_sheet_source_spec()
+		_assert_manager_bakes_export_target_images()
+		_assert_manager_rotates_baked_parts()
+		_assert_manager_bakes_contact_sheet()
+		_assert_headless_export_cli_writes_batch_outputs()
+
+	if _should_run_slice("metadata"):
+		_assert_manager_randomizes_recipes_with_locks_and_tags()
+		_assert_manager_filters_part_options_by_search_and_tags()
+		_assert_manager_parses_imported_clip_metadata()
+		_assert_manager_parses_part_sprite_metadata()
+
+	if _should_run_slice("studio"):
+		_assert_external_character_studio_shell_uses_manager()
+		_assert_external_character_studio_bakes_export_sheets()
+		_assert_external_character_studio_reports_operation_status()
+		_assert_external_character_studio_edits_recipe()
+		_assert_external_character_studio_reports_tooling_actions()
+		_assert_external_character_studio_filters_part_browser()
+		_assert_external_character_studio_saves_and_loads_recipe()
+		_assert_external_character_studio_randomizes_recipe()
+		_assert_external_character_studio_renders_layered_preview()
+		_assert_external_character_studio_animation_preview_controls()
+		_assert_external_character_studio_frame_metadata_preview()
 
 	if _failed:
 		return
-	print("PASS: character creator 2d recipe")
+	var slice_suffix := ""
+	if _requested_slice != "all":
+		slice_suffix = " " + _requested_slice
+	print("PASS: character creator 2d recipe" + slice_suffix)
 	quit(0)
+
+func _should_run_slice(slice_id: String) -> bool:
+	return _requested_slice == "all" or _requested_slice == slice_id
+
+func _is_valid_slice(slice_id: String) -> bool:
+	return ["all", "recipe", "manager", "bake", "metadata", "studio"].has(slice_id)
 
 func _assert_recipe_round_trips_with_schema_version() -> void:
 	var recipe := CC2DRecipe.new()
@@ -160,6 +195,24 @@ func _assert_recipe_round_trips_equipment_sockets() -> void:
 	var main_hand := sockets.get("main_hand", {}) as Dictionary
 	if str(main_hand.get("anchor", "")) != "hand_r" or not (main_hand.get("compatible_tags", []) as Array).has("melee"):
 		_fail("Recipe equipment socket metadata should survive dictionary round trip.")
+		return
+
+func _assert_recipe_round_trips_pivot_overrides() -> void:
+	var recipe := CC2DRecipe.new()
+	recipe.recipe_id = "pivot_recipe"
+	recipe.pivot_overrides = {
+		"run": {
+			"3": {
+				"x": 7.0,
+				"y": 9.0,
+			},
+		},
+	}
+	var loaded: CC2DRecipe = CC2DRecipe.from_dictionary(recipe.to_dictionary())
+	var run_overrides := loaded.pivot_overrides.get("run", {}) as Dictionary
+	var frame_override := run_overrides.get("3", {}) as Dictionary
+	if loaded.schema_version != CC2DRecipe.SCHEMA_VERSION or float(frame_override.get("x", 0.0)) != 7.0 or float(frame_override.get("y", 0.0)) != 9.0:
+		_fail("Recipe pivot overrides should survive dictionary round trip.")
 		return
 
 func _assert_manager_builds_valid_default_recipe() -> void:
@@ -308,6 +361,125 @@ func _assert_manager_reports_recipe_diffs() -> void:
 		_fail("Recipe diff should report added tags.")
 		return
 
+func _assert_manager_applies_morph_transforms() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("preview_transform_for_slot"):
+		_fail("Creator manager should expose preview_transform_for_slot() for shared morph previews.")
+		return
+	var recipe: CC2DRecipe = manager.default_recipe("morph_transform")
+	recipe.morphs["body_height"] = 0.75
+	recipe.morphs["body_width"] = -0.5
+	recipe.morphs["head_size"] = 0.5
+	recipe.morphs["weapon_scale"] = 0.4
+	var body_transform := manager.preview_transform_for_slot(recipe, "Base/Body Skin") as Dictionary
+	var body_scale := body_transform.get("scale", Vector2.ONE) as Vector2
+	var body_offset := body_transform.get("offset", Vector2.ZERO) as Vector2
+	if not bool(body_transform.get("uses_morph", false)) or body_scale.y <= 1.0 or body_scale.x >= 1.0 or body_offset.y >= 0.0:
+		_fail("Body morphs should apply height, width, and grounding offsets to body slots.")
+		return
+	var head_transform := manager.preview_transform_for_slot(recipe, "Base/Hair") as Dictionary
+	var head_scale := head_transform.get("scale", Vector2.ONE) as Vector2
+	if not bool(head_transform.get("uses_morph", false)) or head_scale.x <= 1.0 or head_scale.y <= 1.0:
+		_fail("Head morphs should scale hair/head slots in previews and bakes.")
+		return
+	var weapon_transform := manager.preview_transform_for_slot(recipe, "Weapon/Sword") as Dictionary
+	var weapon_scale := weapon_transform.get("scale", Vector2.ONE) as Vector2
+	if not bool(weapon_transform.get("uses_morph", false)) or weapon_scale.x <= 1.0 or weapon_scale.y <= 1.0:
+		_fail("Weapon morphs should scale weapon slots in previews and bakes.")
+		return
+
+func _assert_manager_applies_palette_modulates() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("palette_modulate_for_slot"):
+		_fail("Creator manager should expose palette_modulate_for_slot() for shared preview and bake colors.")
+		return
+	var recipe: CC2DRecipe = manager.default_recipe("palette_modulate")
+	recipe.palettes["hair"] = "ff3366ff"
+	recipe.palettes["skin"] = "d6a077ff"
+	recipe.palettes["metal"] = "8899aaff"
+	if manager.palette_modulate_for_slot(recipe, "Base/Hair") != Color.html("ff3366ff"):
+		_fail("Hair slots should use the hair palette color.")
+		return
+	if manager.palette_modulate_for_slot(recipe, "Base/Body Skin") != Color.html("d6a077ff"):
+		_fail("Body skin slots should use the skin palette color.")
+		return
+	if manager.palette_modulate_for_slot(recipe, "Fantasy/Weapon") != Color.html("8899aaff"):
+		_fail("Weapon slots should use the metal palette color.")
+		return
+
+func _assert_manager_generates_deterministic_faction_batches() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("generate_faction_batch"):
+		_fail("Creator manager should expose generate_faction_batch().")
+		return
+	var locked_hair := (manager.default_recipe("faction_lock").parts.get("Base/Hair", {}) as Dictionary).duplicate(true)
+	var rules := {
+		"seed": 4242,
+		"required_tags": ["starter_safe"],
+		"locked_slots": ["Base/Hair"],
+		"locked_parts": {"Base/Hair": locked_hair},
+		"palette_overrides": {
+			"hair": "222222ff",
+			"cloth_primary": "445566ff",
+		},
+		"palette_constraints": {
+			"skin": ["d8a070ff", "c58f62ff"],
+			"cloth_secondary": ["773344ff", "335577ff"],
+		},
+	}
+	var first := manager.call("generate_faction_batch", "ash_guard", 3, rules) as Dictionary
+	var second := manager.call("generate_faction_batch", "ash_guard", 3, rules) as Dictionary
+	if not bool(first.get("ok", false)) or not bool(second.get("ok", false)):
+		_fail("Faction batch generator should return ok reports: " + str(first.get("errors", [])))
+		return
+	var first_recipes := first.get("recipes", []) as Array
+	var second_recipes := second.get("recipes", []) as Array
+	if first_recipes.size() != 3 or second_recipes.size() != 3:
+		_fail("Faction batch generator should produce the requested recipe count.")
+		return
+	var provenance := first.get("provenance", {}) as Dictionary
+	if str(provenance.get("faction_id", "")) != "ash_guard" or int(provenance.get("seed", 0)) != 4242:
+		_fail("Faction batch report should include faction id and seed provenance.")
+		return
+	if not (provenance.get("required_tags", []) as Array).has("starter_safe") or not (provenance.get("locked_slots", []) as Array).has("Base/Hair"):
+		_fail("Faction batch provenance should include tag rules and locked slots.")
+		return
+	for index: int in first_recipes.size():
+		var recipe := first_recipes[index] as CC2DRecipe
+		var duplicate := second_recipes[index] as CC2DRecipe
+		if recipe == null or duplicate == null:
+			_fail("Faction batch entries should be CC2DRecipe instances.")
+			return
+		if recipe.recipe_id != "ash_guard_%02d" % [index + 1] or duplicate.recipe_id != recipe.recipe_id:
+			_fail("Faction batch recipes should use deterministic ids.")
+			return
+		if str(recipe.palettes.get("hair", "")) != "222222ff" or str(recipe.palettes.get("cloth_primary", "")) != "445566ff":
+			_fail("Faction batch recipes should apply palette overrides.")
+			return
+		if not (rules.palette_constraints.skin as Array).has(str(recipe.palettes.get("skin", ""))):
+			_fail("Faction batch recipes should choose skin colors from palette constraints.")
+			return
+		if str((recipe.parts.get("Base/Hair", {}) as Dictionary).get("path", "")) != str(locked_hair.get("path", "")):
+			_fail("Faction batch recipes should preserve locked slot selections.")
+			return
+		if not recipe.tags.has("faction:ash_guard") or not recipe.tags.has("starter_safe"):
+			_fail("Faction batch recipes should include faction and required tags.")
+			return
+		if recipe.to_dictionary() != duplicate.to_dictionary():
+			_fail("Faction batch generator should be deterministic for the same seed and rules.")
+			return
+	var third := manager.call("generate_faction_batch", "ash_guard", 3, rules.merged({"seed": 4243}, true)) as Dictionary
+	var third_recipes := third.get("recipes", []) as Array
+	if third_recipes.size() != 3:
+		_fail("Faction batch generator should produce recipes with alternate seeds.")
+		return
+	if (first_recipes[0] as CC2DRecipe).to_dictionary() == (third_recipes[0] as CC2DRecipe).to_dictionary():
+		_fail("Changing faction batch seed should change generated recipe output.")
+		return
+
 func _assert_manager_uses_recipe_custom_export_sets() -> void:
 	var manager := CC2DCreatorManager.new()
 	manager.load_content()
@@ -352,6 +524,67 @@ func _assert_manager_repairs_missing_parts() -> void:
 		_fail("Repair report should identify the repaired slot.")
 		return
 
+func _assert_manager_migrates_recipe_content_versions() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("migrate_recipe"):
+		_fail("Creator manager should expose migrate_recipe().")
+		return
+	var recipe: CC2DRecipe = manager.default_recipe("migration")
+	recipe.schema_version = 1
+	recipe.parts["Base/Hair"] = {
+		"path": "res://missing/hair.png",
+		"relative_path": "Sprites/Base/Hair/Missing.png",
+	}
+	recipe.equipment_sockets = {}
+	var report := manager.migrate_recipe(recipe, {"base_fantasy": "old_manifest:1"}) as Dictionary
+	if not bool(report.get("ok", false)) or not bool(report.get("changed", false)):
+		_fail("Recipe migration should report successful changes for stale recipes.")
+		return
+	var migrations := report.get("migrations", []) as Array
+	for expected: String in ["content_version_changed", "schema_version_upgraded", "repair_recipe"]:
+		if not migrations.has(expected):
+			_fail("Recipe migration should include migration step: " + expected)
+			return
+	if recipe.schema_version != CC2DRecipe.SCHEMA_VERSION:
+		_fail("Recipe migration should upgrade schema version.")
+		return
+	var hair := recipe.parts.get("Base/Hair", {}) as Dictionary
+	if not FileAccess.file_exists(str(hair.get("path", ""))):
+		_fail("Recipe migration should repair missing selected parts.")
+		return
+	if recipe.equipment_sockets.is_empty():
+		_fail("Recipe migration should backfill equipment sockets.")
+		return
+	var versions := report.get("content_versions", {}) as Dictionary
+	if str(versions.get("base_fantasy", "")) != manager.content_version():
+		_fail("Recipe migration should return current content versions for saves.")
+		return
+	var path := "user://test_cc2d_migration_recipe.json"
+	var saved_data := recipe.to_dictionary()
+	saved_data.schema_version = 1
+	saved_data.content_versions = {"base_fantasy": "old_manifest:1"}
+	saved_data.parts = {
+		"Base/Hair": {
+			"path": "res://missing/hair.png",
+			"relative_path": "Sprites/Base/Hair/Missing.png",
+		},
+	}
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		_fail("Migration test should be able to write an old recipe JSON.")
+		return
+	file.store_string(JSON.stringify(saved_data, "\t"))
+	file = null
+	var loaded := manager.load_recipe(path)
+	if loaded == null or loaded.schema_version != CC2DRecipe.SCHEMA_VERSION:
+		_fail("Loading old recipe files should run schema migration.")
+		return
+	var loaded_hair := loaded.parts.get("Base/Hair", {}) as Dictionary
+	if not FileAccess.file_exists(str(loaded_hair.get("path", ""))):
+		_fail("Loading old recipe files should repair missing parts.")
+		return
+
 func _assert_manager_reports_export_readiness() -> void:
 	var manager := CC2DCreatorManager.new()
 	manager.load_content()
@@ -368,6 +601,39 @@ func _assert_manager_reports_export_readiness() -> void:
 		return
 	if not plan.has("sockets"):
 		_fail("Export plan should include socket metadata for export consumers.")
+		return
+
+func _assert_manager_reports_animation_coverage_heatmap() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("animation_coverage_heatmap"):
+		_fail("Creator manager should expose animation_coverage_heatmap().")
+		return
+	var recipe: CC2DRecipe = manager.default_recipe("coverage_heatmap")
+	var report := manager.animation_coverage_heatmap(recipe, "movement") as Dictionary
+	if not bool(report.get("ok", false)):
+		_fail("Animation coverage heatmap should report ok for valid recipes.")
+		return
+	var rows := report.get("animations", []) as Array
+	if rows.is_empty():
+		_fail("Animation coverage heatmap should include animation rows.")
+		return
+	var first_row := rows[0] as Dictionary
+	for key: String in ["animation_id", "available", "frame_count", "severity", "messages", "part_count"]:
+		if not first_row.has(key):
+			_fail("Animation coverage heatmap rows should include: " + key)
+			return
+	if int((report.get("coverage", {}) as Dictionary).get("checked", 0)) <= 0:
+		_fail("Animation coverage heatmap should include checked animation totals.")
+		return
+	var custom_report := manager.save_custom_export_set(recipe, "broken_heatmap", ["missing_anim"], "Broken", "review")
+	if not bool(custom_report.get("ok", false)):
+		_fail("Heatmap test should save a custom broken export set.")
+		return
+	var broken_report := manager.animation_coverage_heatmap(recipe, "broken_heatmap") as Dictionary
+	var broken_rows := broken_report.get("animations", []) as Array
+	if broken_rows.is_empty() or str((broken_rows[0] as Dictionary).get("severity", "")) != "high":
+		_fail("Animation coverage heatmap should flag unavailable animations as high severity.")
 		return
 
 func _assert_manager_reports_equipment_sockets() -> void:
@@ -410,6 +676,62 @@ func _assert_manager_reports_equipment_sockets() -> void:
 		_fail("Socket report should preserve explicit partial socket metadata while backfilling defaults.")
 		return
 
+func _assert_manager_previews_equipment_on_sockets() -> void:
+	var manager := CC2DCreatorManager.new()
+	manager.load_content()
+	if not manager.has_method("preview_equipment_for_socket"):
+		_fail("Creator manager should expose preview_equipment_for_socket().")
+		return
+	var recipe: CC2DRecipe = manager.default_recipe("equipment_preview")
+	var original_weapon := (recipe.parts.get("Fantasy/Weapon", {}) as Dictionary).duplicate(true)
+	var candidate := {
+		"slot": "Fantasy/Weapon",
+		"path": "res://equipment/iron_sword.png",
+		"relative_path": "Equipment/Iron Sword.png",
+		"label": "Iron Sword",
+		"tags": ["weapon", "melee"],
+	}
+	var report := manager.call("preview_equipment_for_socket", recipe, "main_hand", candidate, "run") as Dictionary
+	if not bool(report.get("ok", false)):
+		_fail("Equipment preview should accept compatible equipment candidates: " + str(report.get("errors", [])))
+		return
+	if str(report.get("socket_id", "")) != "main_hand" or str(report.get("animation_id", "")) != "run":
+		_fail("Equipment preview should preserve socket and animation context.")
+		return
+	if str(report.get("target_slot", "")) != "Fantasy/Weapon":
+		_fail("Equipment preview should resolve the target recipe slot from socket metadata.")
+		return
+	if not bool(report.get("compatible", false)) or not report.has("socket") or not report.has("candidate"):
+		_fail("Equipment preview should report compatibility, socket metadata, and candidate metadata.")
+		return
+	var socket := report.get("socket", {}) as Dictionary
+	for key: String in ["anchor", "offset", "sampled_offset", "compatible_tags"]:
+		if not socket.has(key):
+			_fail("Equipment preview socket details should include " + key + ".")
+			return
+	var preview_part := report.get("preview_part", {}) as Dictionary
+	if str(preview_part.get("path", "")) != str(candidate.get("path", "")):
+		_fail("Equipment preview should include the candidate as the preview part.")
+		return
+	var current_weapon := recipe.parts.get("Fantasy/Weapon", {}) as Dictionary
+	if str(current_weapon.get("path", "")) != str(original_weapon.get("path", "")):
+		_fail("Equipment preview should not commit the candidate to the recipe.")
+		return
+	var bad_candidate := {
+		"slot": "Fantasy/Helmet",
+		"path": "res://equipment/silk_hat.png",
+		"relative_path": "Equipment/Silk Hat.png",
+		"label": "Silk Hat",
+		"tags": ["helmet"],
+	}
+	var bad_report := manager.call("preview_equipment_for_socket", recipe, "main_hand", bad_candidate, "idle") as Dictionary
+	if bool(bad_report.get("ok", true)) or bool(bad_report.get("compatible", true)):
+		_fail("Equipment preview should reject candidates without compatible socket tags.")
+		return
+	if (bad_report.get("errors", []) as Array).is_empty():
+		_fail("Rejected equipment previews should explain compatibility errors.")
+		return
+
 func _assert_manager_reports_accessibility_and_budget_warnings() -> void:
 	var manager := CC2DCreatorManager.new()
 	manager.load_content()
@@ -424,6 +746,45 @@ func _assert_manager_reports_accessibility_and_budget_warnings() -> void:
 	var budget := report.get("budget", {}) as Dictionary
 	if int(budget.get("estimated_pixels", 0)) <= 0 or int(budget.get("estimated_bytes", 0)) <= 0:
 		_fail("Validation should include export memory budget estimates.")
+		return
+	if not manager.has_method("accessibility_preview"):
+		_fail("Creator manager should expose accessibility_preview().")
+		return
+	var accessibility := manager.accessibility_preview(recipe, "movement") as Dictionary
+	if bool(accessibility.get("ok", true)):
+		_fail("Accessibility preview should require review for low-contrast palette choices.")
+		return
+	var pairs := accessibility.get("palette_pairs", []) as Array
+	if pairs.is_empty() or not (pairs[0] as Dictionary).has("contrast_ratio"):
+		_fail("Accessibility preview should report palette contrast pairs.")
+		return
+	var small_scale_targets := accessibility.get("small_scale_targets", []) as Array
+	if small_scale_targets.is_empty() or not (small_scale_targets[0] as Dictionary).has("severity"):
+		_fail("Accessibility preview should report small-scale readability targets.")
+		return
+	var accessibility_summary := accessibility.get("summary", {}) as Dictionary
+	if int(accessibility_summary.get("failing_palette_pairs", 0)) <= 0 or int(accessibility_summary.get("estimated_bytes", 0)) <= 0:
+		_fail("Accessibility preview summary should include failing contrast and memory estimates.")
+		return
+	if not manager.has_method("performance_budget_report"):
+		_fail("Creator manager should expose performance_budget_report().")
+		return
+	var performance := manager.performance_budget_report(recipe, "movement") as Dictionary
+	if not performance.has("ok") or not performance.has("summary"):
+		_fail("Performance budget report should expose ok state and summary.")
+		return
+	var targets := performance.get("targets", []) as Array
+	if targets.size() < 4:
+		_fail("Performance budget report should include gameplay and single-frame export targets.")
+		return
+	var gameplay_target := targets[0] as Dictionary
+	for key: String in ["target_id", "texture_width", "texture_height", "frame_count", "estimated_bytes", "max_texture_size", "max_frames", "severity", "messages"]:
+		if not gameplay_target.has(key):
+			_fail("Performance budget target should include: " + key)
+			return
+	var performance_summary := performance.get("summary", {}) as Dictionary
+	if int(performance_summary.get("estimated_frames", 0)) <= 0 or int(performance_summary.get("estimated_bytes", 0)) <= 0:
+		_fail("Performance budget summary should include frame and memory totals.")
 		return
 	if not manager.has_method("compatibility_report"):
 		_fail("Creator manager should expose compatibility_report().")
@@ -482,6 +843,14 @@ func _assert_manager_bakes_export_sheet_source_spec() -> void:
 		_fail("Creator manager should expose bake_export_sheets().")
 		return
 	var recipe: CC2DRecipe = manager.default_recipe("bake_ready")
+	recipe.pivot_overrides = {
+		"run": {
+			"1": {
+				"x": 31.0,
+				"y": 47.0,
+			},
+		},
+	}
 	var output_root := "user://test_cc2d_bake_manager"
 	var report := manager.bake_export_sheets(recipe, output_root, "movement", 2)
 	if not bool(report.get("ok", false)):
@@ -508,9 +877,42 @@ func _assert_manager_bakes_export_sheet_source_spec() -> void:
 	if not parsed is Dictionary or (parsed as Dictionary).get("animations", []) == []:
 		_fail("Baked source_spec.json should list exported animations.")
 		return
+	var source_spec := parsed as Dictionary
+	var provenance := source_spec.get("provenance", {}) as Dictionary
+	if str(provenance.get("recipe_id", "")) != recipe.recipe_id or str(provenance.get("content_pack_id", "")) != recipe.content_pack_id:
+		_fail("Baked source_spec.json should include recipe and content provenance.")
+		return
+	if not provenance.has("content_versions") or (provenance.get("content_versions", {}) as Dictionary).is_empty():
+		_fail("Baked source_spec.json should include content version provenance.")
+		return
+	if not source_spec.has("palettes") or not source_spec.has("morphs") or not source_spec.has("export_settings"):
+		_fail("Baked source_spec.json should include palettes, morphs, and export settings.")
+		return
+	if not provenance.has("pivot_overrides"):
+		_fail("Baked source_spec.json should include pivot override provenance.")
+		return
+	var source_parts := source_spec.get("source_parts", []) as Array
+	if source_parts.is_empty():
+		_fail("Baked source_spec.json should include selected source parts.")
+		return
+	var first_source_part := source_parts[0] as Dictionary
+	for key: String in ["slot_id", "path", "relative_path", "palette_id"]:
+		if not first_source_part.has(key):
+			_fail("Baked source part provenance should include: " + key)
+			return
 	var run_animation := _animation_report_by_id(animations, "run")
 	if run_animation.is_empty() or not bool(run_animation.get("uses_rig_motion", false)) or int(run_animation.get("rig_sample_count", 0)) <= 0:
 		_fail("Baked run report should include sampled imported rig motion.")
+		return
+	if int(run_animation.get("pivot_override_count", 0)) != 1:
+		_fail("Baked run report should count applied pivot overrides.")
+		return
+	var frame_pivots := run_animation.get("frame_pivots", []) as Array
+	if frame_pivots.size() < 2 or not bool((frame_pivots[1] as Dictionary).get("overridden", false)):
+		_fail("Baked run report should include per-frame pivot metadata.")
+		return
+	if float((frame_pivots[1] as Dictionary).get("x", 0.0)) != 31.0 or float((frame_pivots[1] as Dictionary).get("y", 0.0)) != 47.0:
+		_fail("Baked run report should include overridden pivot coordinates.")
 		return
 	if not bool(run_animation.get("uses_pixel_rotation", false)) or int(run_animation.get("pixel_rotation_count", 0)) <= 0:
 		_fail("Baked run report should include pixel-rotated rig parts.")
@@ -577,6 +979,45 @@ func _assert_manager_bakes_export_target_images() -> void:
 		if image.load(output_path) != OK or image.get_width() != int(targets[target_id]) or image.get_height() != int(targets[target_id]):
 			_fail("Baked %s export target should be a %dx%d PNG." % [target_id, int(targets[target_id]), int(targets[target_id])])
 			return
+	var baseline_path := "user://test_cc2d_morph_baseline.png"
+	var morphed_path := "user://test_cc2d_morph_changed.png"
+	var baseline_recipe: CC2DRecipe = manager.default_recipe("target_bake_baseline")
+	var morphed_recipe: CC2DRecipe = manager.default_recipe("target_bake_morphed")
+	morphed_recipe.morphs["body_height"] = 0.8
+	morphed_recipe.morphs["body_width"] = -0.7
+	morphed_recipe.morphs["head_size"] = 0.7
+	var baseline_report := manager.call("bake_export_target", baseline_recipe, baseline_path, "avatar") as Dictionary
+	var morphed_report := manager.call("bake_export_target", morphed_recipe, morphed_path, "avatar") as Dictionary
+	if not bool(baseline_report.get("ok", false)) or not bool(morphed_report.get("ok", false)):
+		_fail("Creator manager should bake baseline and morphed target images.")
+		return
+	var baseline_image := Image.new()
+	var morphed_image := Image.new()
+	if baseline_image.load(baseline_path) != OK or morphed_image.load(morphed_path) != OK:
+		_fail("Baseline and morphed target images should load for comparison.")
+		return
+	if baseline_image.get_data() == morphed_image.get_data():
+		_fail("Changing morph values should change baked target image pixels.")
+		return
+	var palette_baseline_path := "user://test_cc2d_palette_baseline.png"
+	var palette_changed_path := "user://test_cc2d_palette_changed.png"
+	var palette_recipe: CC2DRecipe = manager.default_recipe("target_bake_palette")
+	var palette_changed_recipe: CC2DRecipe = manager.default_recipe("target_bake_palette_changed")
+	palette_changed_recipe.palettes["hair"] = "ff0000ff"
+	palette_changed_recipe.palettes["skin"] = "00ff00ff"
+	var palette_baseline_report := manager.call("bake_export_target", palette_recipe, palette_baseline_path, "avatar") as Dictionary
+	var palette_changed_report := manager.call("bake_export_target", palette_changed_recipe, palette_changed_path, "avatar") as Dictionary
+	if not bool(palette_baseline_report.get("ok", false)) or not bool(palette_changed_report.get("ok", false)):
+		_fail("Creator manager should bake baseline and palette-changed target images.")
+		return
+	var palette_baseline_image := Image.new()
+	var palette_changed_image := Image.new()
+	if palette_baseline_image.load(palette_baseline_path) != OK or palette_changed_image.load(palette_changed_path) != OK:
+		_fail("Baseline and palette-changed target images should load for comparison.")
+		return
+	if palette_baseline_image.get_data() == palette_changed_image.get_data():
+		_fail("Changing palette values should change baked target image pixels.")
+		return
 
 func _assert_manager_rotates_baked_parts() -> void:
 	var manager := CC2DCreatorManager.new()
@@ -605,9 +1046,12 @@ func _assert_manager_bakes_contact_sheet() -> void:
 	if not manager.has_method("bake_contact_sheet"):
 		_fail("Creator manager should expose bake_contact_sheet().")
 		return
+	if not manager.has_method("contact_sheet_signature") or not manager.has_method("diff_contact_sheet_images"):
+		_fail("Creator manager should expose contact sheet signature and diff report helpers.")
+		return
 	var recipe: CC2DRecipe = manager.default_recipe("contact_sheet")
 	var contact_sheet_path := "user://test_cc2d_contact_sheet.png"
-	var report := manager.call("bake_contact_sheet", recipe, contact_sheet_path, "movement", 2) as Dictionary
+	var report := manager.call("bake_contact_sheet", recipe, contact_sheet_path, "movement", 1) as Dictionary
 	if not bool(report.get("ok", false)):
 		_fail("Creator manager should bake contact sheets: " + str(report.get("errors", [])))
 		return
@@ -620,6 +1064,26 @@ func _assert_manager_bakes_contact_sheet() -> void:
 		return
 	if int(report.get("frames", 0)) < 4:
 		_fail("Contact sheet report should count exported preview frames.")
+		return
+	var signature := manager.call("contact_sheet_signature", contact_sheet_path) as Dictionary
+	if not bool(signature.get("ok", false)) or str(signature.get("signature", "")).is_empty():
+		_fail("Contact sheet signature should summarize the generated PNG.")
+		return
+	var stable_diff := manager.call("diff_contact_sheet_images", contact_sheet_path, contact_sheet_path, 512, 512) as Dictionary
+	if not bool(stable_diff.get("ok", false)) or bool(stable_diff.get("different", true)) or int(stable_diff.get("changed_frame_count", -1)) != 0:
+		_fail("Contact sheet diff should report no changed frames for identical images.")
+		return
+	var changed_recipe: CC2DRecipe = manager.default_recipe("contact_sheet_changed")
+	changed_recipe.parts.erase("Base/Hair")
+	changed_recipe.palettes["skin"] = "00ff00ff"
+	var changed_path := "user://test_cc2d_contact_sheet_changed.png"
+	var changed_report := manager.call("bake_contact_sheet", changed_recipe, changed_path, "movement", 1) as Dictionary
+	if not bool(changed_report.get("ok", false)):
+		_fail("Creator manager should bake a changed contact sheet for diff checks.")
+		return
+	var changed_diff := manager.call("diff_contact_sheet_images", contact_sheet_path, changed_path, 512, 512) as Dictionary
+	if not bool(changed_diff.get("ok", false)) or not bool(changed_diff.get("different", false)) or int(changed_diff.get("changed_frame_count", 0)) <= 0:
+		_fail("Contact sheet diff should report changed frames for changed recipes.")
 		return
 
 func _assert_headless_export_cli_writes_batch_outputs() -> void:
@@ -864,7 +1328,7 @@ func _assert_external_character_studio_bakes_export_sheets() -> void:
 	var scene := load(CHARACTER_STUDIO_SCENE_PATH) as PackedScene
 	var studio := scene.instantiate() as Control
 	root.add_child(studio)
-	if not studio.has_method("bake_current_export") or not studio.has_method("bake_current_spriteframes") or not studio.has_method("bake_current_contact_sheet") or not studio.has_method("write_current_validation_report"):
+	if not studio.has_method("bake_current_export") or not studio.has_method("bake_current_spriteframes") or not studio.has_method("bake_current_contact_sheet") or not studio.has_method("write_current_validation_report") or not studio.has_method("compare_contact_sheets"):
 		_fail("External Character Studio should expose bake export helpers.")
 		return
 	var root_edit := studio.get_node_or_null("%ExportRootEdit") as LineEdit
@@ -873,9 +1337,13 @@ func _assert_external_character_studio_bakes_export_sheets() -> void:
 	var bake_frames_button := studio.get_node_or_null("%BakeSpriteFramesButton") as Button
 	var contact_sheet_edit := studio.get_node_or_null("%ContactSheetPathEdit") as LineEdit
 	var bake_contact_button := studio.get_node_or_null("%BakeContactSheetButton") as Button
+	var contact_left_edit := studio.get_node_or_null("%ContactSheetLeftEdit") as LineEdit
+	var contact_right_edit := studio.get_node_or_null("%ContactSheetRightEdit") as LineEdit
+	var contact_diff_button := studio.get_node_or_null("%CompareContactSheetsButton") as Button
+	var contact_diff_label := studio.get_node_or_null("%ContactSheetDiffLabel") as Label
 	var validation_report_edit := studio.get_node_or_null("%ValidationReportPathEdit") as LineEdit
 	var write_report_button := studio.get_node_or_null("%WriteValidationReportButton") as Button
-	if root_edit == null or bake_button == null or spriteframes_edit == null or bake_frames_button == null or contact_sheet_edit == null or bake_contact_button == null or validation_report_edit == null or write_report_button == null:
+	if root_edit == null or bake_button == null or spriteframes_edit == null or bake_frames_button == null or contact_sheet_edit == null or bake_contact_button == null or contact_left_edit == null or contact_right_edit == null or contact_diff_button == null or contact_diff_label == null or validation_report_edit == null or write_report_button == null:
 		_fail("External Character Studio should include visible bake export controls.")
 		return
 	var output_root := "user://test_cc2d_bake_studio"
@@ -906,9 +1374,19 @@ func _assert_external_character_studio_bakes_export_sheets() -> void:
 	if not FileAccess.file_exists(contact_sheet_path):
 		_fail("External Character Studio contact button should write a contact sheet PNG.")
 		return
-	var contact_report := studio.call("bake_current_contact_sheet", contact_sheet_path, "movement", 2) as Dictionary
-	if not bool(contact_report.get("ok", false)) or int(contact_report.get("frames", 0)) < 4:
+	var contact_report := studio.call("bake_current_contact_sheet", contact_sheet_path, "movement", 1) as Dictionary
+	if not bool(contact_report.get("ok", false)) or int(contact_report.get("frames", 0)) < 2:
 		_fail("External Character Studio should report contact sheet preview frames.")
+		return
+	contact_left_edit.text = contact_sheet_path
+	contact_right_edit.text = contact_sheet_path
+	contact_diff_button.pressed.emit()
+	var diff_report := studio.call("compare_contact_sheets", contact_sheet_path, contact_sheet_path, 512, 512) as Dictionary
+	if not bool(diff_report.get("ok", false)) or bool(diff_report.get("different", true)):
+		_fail("External Character Studio should compare matching contact sheets.")
+		return
+	if not contact_diff_label.text.contains("match"):
+		_fail("External Character Studio contact sheet diff label should summarize the comparison.")
 		return
 	var validation_report_path := "user://test_cc2d_bake_studio_validation.json"
 	validation_report_edit.text = validation_report_path
@@ -920,6 +1398,41 @@ func _assert_external_character_studio_bakes_export_sheets() -> void:
 	if not bool(validation_report.get("ok", false)) or not validation_report.has("validation"):
 		_fail("External Character Studio should report validation data.")
 		return
+	studio.queue_free()
+
+func _assert_external_character_studio_reports_operation_status() -> void:
+	var scene := load(CHARACTER_STUDIO_SCENE_PATH) as PackedScene
+	var studio := scene.instantiate() as Control
+	root.add_child(studio)
+	if not studio.has_method("get_last_operation_report"):
+		_fail("External Character Studio should expose last operation reports for UI error handling.")
+		return
+	var recipe_path_edit := studio.get_node_or_null("%RecipePathEdit") as LineEdit
+	var load_button := studio.get_node_or_null("%LoadRecipeButton") as Button
+	if recipe_path_edit == null or load_button == null:
+		_fail("External Character Studio should include visible load controls for status reporting.")
+		return
+	recipe_path_edit.text = "user://missing_character_studio_recipe.json"
+	load_button.pressed.emit()
+	var report := studio.call("get_last_operation_report") as Dictionary
+	if bool(report.get("ok", true)) or str(report.get("operation", "")) != "load_recipe":
+		_fail("Failed studio recipe loads should update the last operation report.")
+		return
+	var validation_label := studio.get_node_or_null("%ValidationLabel") as Label
+	if validation_label == null or not validation_label.text.contains("Load failed"):
+		_fail("Failed studio recipe loads should surface a visible error state.")
+		return
+	var save_button := studio.get_node_or_null("%SaveRecipeButton") as Button
+	recipe_path_edit.text = "user://test_character_studio_status_recipe.json"
+	save_button.pressed.emit()
+	report = studio.call("get_last_operation_report") as Dictionary
+	if not bool(report.get("ok", false)) or str(report.get("operation", "")) != "save_recipe":
+		_fail("Successful studio saves should update the last operation report.")
+		return
+	if validation_label.text.contains("Load failed"):
+		_fail("Successful studio operations should clear the previous visible error.")
+		return
+	DirAccess.remove_absolute("user://test_character_studio_status_recipe.json")
 	studio.queue_free()
 
 func _assert_external_character_studio_edits_recipe() -> void:
@@ -1017,6 +1530,64 @@ func _assert_external_character_studio_edits_recipe() -> void:
 	var validation_label := studio.get_node_or_null("%ValidationLabel") as Label
 	if validation_label == null or validation_label.text.is_empty():
 		_fail("External Character Studio should show validation status.")
+		return
+	studio.queue_free()
+
+func _assert_external_character_studio_reports_tooling_actions() -> void:
+	var scene := load(CHARACTER_STUDIO_SCENE_PATH) as PackedScene
+	var studio := scene.instantiate() as Control
+	root.add_child(studio)
+	for method_name: String in ["content_pack_report", "preview_equipment_for_socket", "generate_faction_batch", "animation_coverage_heatmap", "accessibility_preview", "performance_budget_report"]:
+		if not studio.has_method(method_name):
+			_fail("External Character Studio should expose tooling action: " + method_name)
+			return
+	var pack_button := studio.get_node_or_null("%ContentPackReportButton") as Button
+	var socket_edit := studio.get_node_or_null("%EquipmentSocketEdit") as LineEdit
+	var tag_edit := studio.get_node_or_null("%EquipmentTagEdit") as LineEdit
+	var equipment_button := studio.get_node_or_null("%EquipmentPreviewButton") as Button
+	var faction_edit := studio.get_node_or_null("%FactionIdEdit") as LineEdit
+	var faction_count := studio.get_node_or_null("%FactionCountSpin") as SpinBox
+	var faction_button := studio.get_node_or_null("%FactionBatchButton") as Button
+	var coverage_button := studio.get_node_or_null("%AnimationCoverageButton") as Button
+	var accessibility_label := studio.get_node_or_null("%AccessibilityPreviewLabel") as Label
+	var budget_label := studio.get_node_or_null("%PerformanceBudgetLabel") as Label
+	if pack_button == null or socket_edit == null or tag_edit == null or equipment_button == null or faction_edit == null or faction_count == null or faction_button == null or coverage_button == null or accessibility_label == null or budget_label == null:
+		_fail("External Character Studio should include visible pack, equipment, and faction tooling controls.")
+		return
+	var pack_report := studio.call("content_pack_report") as Dictionary
+	if str(pack_report.get("pack_id", "")) == "" or int((pack_report.get("asset_counts", {}) as Dictionary).get("entries", 0)) <= 0:
+		_fail("Studio content pack report should expose loaded pack metadata.")
+		return
+	socket_edit.text = "main_hand"
+	tag_edit.text = "weapon,melee"
+	equipment_button.pressed.emit()
+	var equipment_report := studio.call("preview_equipment_for_socket", "main_hand", ["weapon", "melee"], "Iron Blade", "idle") as Dictionary
+	if not bool(equipment_report.get("ok", false)) or str(equipment_report.get("target_slot", "")) != "Fantasy/Weapon":
+		_fail("Studio equipment preview should report compatible socket previews.")
+		return
+	faction_edit.text = "ash_guard"
+	faction_count.value = 2
+	faction_button.pressed.emit()
+	var faction_report := studio.call("generate_faction_batch", "ash_guard", 2, 99, ["starter_safe"], {"cloth_primary": "31384aff"}) as Dictionary
+	if not bool(faction_report.get("ok", false)) or (faction_report.get("recipes", []) as Array).size() != 2:
+		_fail("Studio faction batch action should generate requested recipes.")
+		return
+	coverage_button.pressed.emit()
+	var coverage_report := studio.call("animation_coverage_heatmap", "movement") as Dictionary
+	if not bool(coverage_report.get("ok", false)) or (coverage_report.get("animations", []) as Array).is_empty():
+		_fail("Studio animation coverage action should report export animation coverage.")
+		return
+	var accessibility_report := studio.call("accessibility_preview", "movement") as Dictionary
+	if (accessibility_report.get("palette_pairs", []) as Array).is_empty() or not accessibility_label.text.contains("Accessibility"):
+		_fail("Studio accessibility preview should expose palette contrast report data.")
+		return
+	var performance_report := studio.call("performance_budget_report", "movement") as Dictionary
+	if (performance_report.get("targets", []) as Array).is_empty() or not budget_label.text.contains("Budget"):
+		_fail("Studio performance budget report should expose target budget data.")
+		return
+	var operation_report := studio.call("get_last_operation_report") as Dictionary
+	if str(operation_report.get("operation", "")) != "animation_coverage_heatmap" or not bool(operation_report.get("ok", false)):
+		_fail("Studio tooling actions should update the last operation report.")
 		return
 	studio.queue_free()
 
@@ -1367,8 +1938,27 @@ func _assert_external_character_studio_frame_metadata_preview() -> void:
 	if pivot_preview.get("pivot") != Vector2(7, 9):
 		_fail("Applying a pivot override should update the active preview pivot.")
 		return
+	if not bool(pivot_preview.get("has_pivot_override", false)):
+		_fail("Applying a pivot override should mark the active frame as overridden.")
+		return
+	var pivot_recipe: CC2DRecipe = studio.call("get_current_recipe")
+	var animation_overrides := pivot_recipe.pivot_overrides.get("run", {}) as Dictionary
+	var frame_override := animation_overrides.get(str(int(pivot_preview.get("frame_index", 0))), {}) as Dictionary
+	if float(frame_override.get("x", 0.0)) != 7.0 or float(frame_override.get("y", 0.0)) != 9.0:
+		_fail("Applying a pivot override should persist it on the active recipe.")
+		return
 	if first_layer.pivot_offset != Vector2(7, 9):
 		_fail("Applying a pivot override should update rendered preview layer pivots.")
+		return
+	var saved_path := "user://test_character_studio_pivot_override_recipe.json"
+	if not bool(studio.call("save_current_recipe", saved_path)):
+		_fail("Studio should save recipes with pivot overrides.")
+		return
+	var loaded_recipe: CC2DRecipe = CC2DRecipe.from_dictionary(JSON.parse_string(FileAccess.get_file_as_string(saved_path)) as Dictionary)
+	var loaded_animation_overrides := loaded_recipe.pivot_overrides.get("run", {}) as Dictionary
+	var loaded_frame_override := loaded_animation_overrides.get(str(int(pivot_preview.get("frame_index", 0))), {}) as Dictionary
+	if float(loaded_frame_override.get("x", 0.0)) != 7.0 or float(loaded_frame_override.get("y", 0.0)) != 9.0:
+		_fail("Saved Studio recipes should preserve pivot overrides.")
 		return
 	var overridden_bounds := studio.call("inspect_current_frame_bounds") as Dictionary
 	if overridden_bounds.get("pivot") != Vector2(7, 9) or frame_bounds_label.text.is_empty():

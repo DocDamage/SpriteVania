@@ -14,6 +14,14 @@ func _init() -> void:
 
 	var state := GameState.new()
 	state.selected_class = "warden"
+	state.player_character_names = {"ronin": "Akio"}
+	state.character_creation_flags = {
+		"starter_selected": true,
+		"starter_named": true,
+		"new_game_committed": true,
+	}
+	state.character_definitions_version = "test_defs_v1"
+	state.created_timestamp = 1234
 	state.selected_sprite = "res://SpriteVania Assets/player/Knight/Knight_A.png"
 	state.current_area = "swamp_outskirts"
 	state.current_room = "RoomCheckpoint"
@@ -48,8 +56,12 @@ func _init() -> void:
 			"class_id": "hexbinder",
 		},
 	}
+	state.unlocked_character_ids = ["ronin", "black_witch", "shadow"]
 	state.active_party_ids = ["ronin", "black_witch"]
+	state.reserve_character_ids = ["shadow"]
 	state.active_party_index = 1
+	state.current_visible_character_id = "black_witch"
+	state.party_order_version = 3
 	state.momentum = 75
 	state.world_break_state = "post_break"
 	state.world_break_triggered = true
@@ -76,6 +88,22 @@ func _init() -> void:
 		return
 	if loaded.selected_class != "warden" or loaded.level != 3:
 		push_error("Loaded state does not match saved state")
+		quit(1)
+		return
+	if loaded.player_character_names.get("ronin", "") != "Akio":
+		push_error("Player character names did not persist")
+		quit(1)
+		return
+	if not bool(loaded.character_creation_flags.get("new_game_committed", false)):
+		push_error("Character creation flags did not persist")
+		quit(1)
+		return
+	if loaded.character_definitions_version != "test_defs_v1":
+		push_error("Character definitions version did not persist")
+		quit(1)
+		return
+	if loaded.created_timestamp != 1234 or loaded.last_saved_timestamp <= 0:
+		push_error("Created or last-saved timestamp did not persist")
 		quit(1)
 		return
 	var saved_dictionary := state.to_dictionary()
@@ -145,6 +173,12 @@ func _init() -> void:
 		return
 	if loaded.active_party_ids != ["ronin", "black_witch"]:
 		push_error("Active party ids did not persist")
+		quit(1)
+	if loaded.unlocked_character_ids != ["ronin", "black_witch", "shadow"] or loaded.reserve_character_ids != ["shadow"]:
+		push_error("Unlocked or reserve party ids did not persist")
+		quit(1)
+	if loaded.current_visible_character_id != "black_witch" or loaded.party_order_version != 3:
+		push_error("Visible party id or party order version did not persist")
 		quit(1)
 		return
 	if int(loaded.active_party_index) != 1 or int(loaded.momentum) != 75:

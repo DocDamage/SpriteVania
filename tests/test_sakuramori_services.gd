@@ -9,6 +9,8 @@ func _run() -> void:
 	await _assert_save_shrine_saves_heals_and_clears_ko()
 	await _assert_continue_from_hub_save_loads_safely()
 	await _assert_party_shrine_opens_and_cancels_without_mutation()
+	await _assert_party_shrine_commits_party_order_and_rename()
+	await _assert_party_shrine_rejects_invalid_commit_without_mutation()
 	await _assert_training_dummy_takes_damage_without_progression_reward()
 	await _assert_moonpetal_passage_is_locked_placeholder()
 	print("PASS: sakuramori services")
@@ -98,6 +100,54 @@ func _assert_party_shrine_opens_and_cancels_without_mutation() -> void:
 		return
 	if state.to_dictionary() != before:
 		_fail("Cancelling Party Shrine should not mutate party save state.")
+		return
+	await _free_world(world)
+
+func _assert_party_shrine_commits_party_order_and_rename() -> void:
+	var world := _new_world_in_room("SakuramoriCourt_PartyShrine")
+	var state := world.get("state") as GameState
+	var manager := world.get("party_manager") as PartyManager
+	manager.recruit_character(state, "black_witch", "Mira")
+	manager.recruit_character(state, "shadow", "Ren")
+	manager.unlock_character(state, "arc_gunner", "Vale")
+	var shrine := _find_node_with_method(world.get("current_room"), "commit_party_service")
+	if shrine == null:
+		_fail("Sakuramori Party Shrine should expose commit_party_service for hub roster management.")
+		return
+	if not bool(shrine.call("open_party_service", world)):
+		_fail("Sakuramori Party Shrine should open before committing party changes.")
+		return
+	if not bool(shrine.call("commit_party_service", world, ["black_witch", "shadow", "arc_gunner"], {"black_witch": "Sable"})):
+		_fail("Sakuramori Party Shrine should commit a valid active party reorder and rename.")
+		return
+	if state.active_party_ids != ["black_witch", "shadow", "arc_gunner"]:
+		_fail("Party Shrine should replace the active party with the committed unlocked order.")
+		return
+	if state.reserve_character_ids != ["warden"]:
+		_fail("Party Shrine should keep unlocked non-active characters in reserve order.")
+		return
+	var witch_runtime := state.party_roster.get("black_witch", {}) as Dictionary
+	if str(witch_runtime.get("character_name", "")) != "Sable":
+		_fail("Party Shrine should persist character rename requests.")
+		return
+	if bool(shrine.get("is_open")):
+		_fail("Party Shrine should close after a successful commit.")
+		return
+	await _free_world(world)
+
+func _assert_party_shrine_rejects_invalid_commit_without_mutation() -> void:
+	var world := _new_world_in_room("SakuramoriCourt_PartyShrine")
+	var state := world.get("state") as GameState
+	var manager := world.get("party_manager") as PartyManager
+	manager.recruit_character(state, "black_witch", "Mira")
+	var before := state.to_dictionary().duplicate(true)
+	var shrine := _find_node_with_method(world.get("current_room"), "commit_party_service")
+	shrine.call("open_party_service", world)
+	if bool(shrine.call("commit_party_service", world, ["black_witch", "missing_recruit"], {"black_witch": "Sable"})):
+		_fail("Party Shrine should reject a party containing locked or missing characters.")
+		return
+	if state.to_dictionary() != before:
+		_fail("Rejected Party Shrine commits should not rename or reorder anything.")
 		return
 	await _free_world(world)
 

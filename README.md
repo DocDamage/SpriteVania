@@ -32,13 +32,22 @@ The target creator supports recipes, layered rigs, palettes, morphing, checklist
 
 ## Tests
 
-Focused headless checks used during current development:
+Use the tiered test runner for normal development:
 
 ```powershell
-godot --headless --path . --script tests/test_character_creator2d_import.gd
-godot --headless --path . --script tests/test_character_creation.gd
-godot --headless --path . --script tests/test_player_combat.gd
-godot --headless --path . --script tests/test_save_manager.gd
+.\tools\run_tests.ps1 -Suite fast
+.\tools\run_tests.ps1 -Suite creator-fast
+.\tools\run_tests.ps1 -Suite creator
+.\tools\run_tests.ps1 -Suite full
+```
+
+`fast` skips the slow CharacterCreator2D bake/visual tests. `creator-fast` runs the in-game creator, importer, and non-bake recipe slices. `creator` adds the heavier bake, studio, and visual regression coverage. Focused CC2D slices are also available as `creator-recipe`, `creator-manager`, `creator-bake`, `creator-studio`, and `creator-metadata`.
+
+To preview what a tier will run or execute specific files:
+
+```powershell
+.\tools\run_tests.ps1 -Suite creator-fast -List
+.\tools\run_tests.ps1 -Tests tests/test_character_creation.gd,tests/test_save_manager.gd
 ```
 
 Python tooling syntax check:

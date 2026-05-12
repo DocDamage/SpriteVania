@@ -26,6 +26,7 @@ var _recipe_file_controls_wired := false
 var _part_filter_query := ""
 var _part_filter_tags: Array[String] = []
 var _part_filter_favorites_only := false
+var _last_operation_report: Dictionary = {}
 
 func _enter_tree() -> void:
 	_wire_recipe_file_controls()
@@ -38,6 +39,9 @@ func _ready() -> void:
 func get_current_recipe() -> CC2DRecipe:
 	_ensure_ready()
 	return _current_recipe
+
+func get_last_operation_report() -> Dictionary:
+	return _last_operation_report.duplicate(true)
 
 func set_current_recipe(recipe: CC2DRecipe) -> void:
 	_ensure_ready()
@@ -53,27 +57,35 @@ func set_current_recipe(recipe: CC2DRecipe) -> void:
 
 func save_current_recipe(path: String) -> bool:
 	_ensure_ready()
-	return _manager.save_recipe(_current_recipe, path)
+	var ok := _manager.save_recipe(_current_recipe, path)
+	_set_operation_report("save_recipe", ok, path, "" if ok else "Save failed")
+	return ok
 
 func load_recipe_from_path(path: String) -> bool:
 	_ensure_ready()
 	var recipe: CC2DRecipe = _manager.load_recipe(path)
 	if recipe == null:
+		_set_operation_report("load_recipe", false, path, "Load failed")
 		return false
 	set_current_recipe(recipe)
+	_set_operation_report("load_recipe", true, path)
 	return true
 
 func export_current_recipe_bundle(path: String, set_id := "first_slice_player") -> Dictionary:
 	_ensure_ready()
 	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
-	return _manager.export_recipe_bundle(_current_recipe, path, requested_set)
+	var report := _manager.export_recipe_bundle(_current_recipe, path, requested_set)
+	_set_operation_report("export_bundle", bool(report.get("ok", false)), path, _joined_errors(report))
+	return report
 
 func import_recipe_bundle_from_path(path: String) -> bool:
 	_ensure_ready()
 	var recipe: CC2DRecipe = _manager.import_recipe_bundle(path)
 	if recipe == null:
+		_set_operation_report("import_bundle", false, path, "Import failed")
 		return false
 	set_current_recipe(recipe)
+	_set_operation_report("import_bundle", true, path)
 	return true
 
 func save_current_outfit_set(outfit_id: String, label := "", tags := []) -> Dictionary:
@@ -143,22 +155,84 @@ func build_export_plan(set_id := "first_slice_player") -> Dictionary:
 func bake_current_export(output_root: String, set_id := "first_slice_player", max_frames_per_animation := 1) -> Dictionary:
 	_ensure_ready()
 	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
-	return _manager.bake_export_sheets(_current_recipe, output_root, requested_set, max_frames_per_animation)
+	var report := _manager.bake_export_sheets(_current_recipe, output_root, requested_set, max_frames_per_animation)
+	_set_operation_report("bake_export", bool(report.get("ok", false)), output_root, _joined_errors(report))
+	return report
 
 func bake_current_spriteframes(output_root: String, spriteframes_path: String, set_id := "first_slice_player", max_frames_per_animation := 1) -> Dictionary:
 	_ensure_ready()
 	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
-	return _manager.bake_export_spriteframes(_current_recipe, output_root, spriteframes_path, requested_set, max_frames_per_animation)
+	var report := _manager.bake_export_spriteframes(_current_recipe, output_root, spriteframes_path, requested_set, max_frames_per_animation)
+	_set_operation_report("bake_spriteframes", bool(report.get("ok", false)), spriteframes_path, _joined_errors(report))
+	return report
 
 func bake_current_contact_sheet(contact_sheet_path: String, set_id := "first_slice_player", max_frames_per_animation := 2) -> Dictionary:
 	_ensure_ready()
 	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
-	return _manager.bake_contact_sheet(_current_recipe, contact_sheet_path, requested_set, max_frames_per_animation)
+	var report := _manager.bake_contact_sheet(_current_recipe, contact_sheet_path, requested_set, max_frames_per_animation)
+	_set_operation_report("bake_contact_sheet", bool(report.get("ok", false)), contact_sheet_path, _joined_errors(report))
+	return report
+
+func compare_contact_sheets(left_path: String, right_path: String, frame_width := 512, frame_height := 512) -> Dictionary:
+	_ensure_ready()
+	var report := _manager.diff_contact_sheet_images(left_path, right_path, frame_width, frame_height)
+	var message := _joined_errors(report)
+	if message.is_empty():
+		message = "Contact sheets differ in %d frames" % int(report.get("changed_frame_count", 0)) if bool(report.get("different", false)) else "Contact sheets match"
+	_set_operation_report("compare_contact_sheets", bool(report.get("ok", false)), "%s -> %s" % [left_path, right_path], message)
+	return report
 
 func write_current_validation_report(report_path: String, set_id := "first_slice_player") -> Dictionary:
 	_ensure_ready()
 	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
-	return _manager.write_validation_report(_current_recipe, report_path, requested_set)
+	var report := _manager.write_validation_report(_current_recipe, report_path, requested_set)
+	_set_operation_report("write_validation_report", bool(report.get("ok", false)), report_path, _joined_errors(report))
+	return report
+
+func content_pack_report() -> Dictionary:
+	_ensure_ready()
+	var report := _manager.content_pack_report()
+	_set_operation_report("content_pack_report", true, str(report.get("pack_id", "")), "Content pack report ready")
+	return report
+
+func preview_equipment_for_socket(socket_id: String, tags := [], label := "Preview Equipment", animation_id := "idle") -> Dictionary:
+	_ensure_ready()
+	var candidate := {
+		"label": label,
+		"relative_path": "Equipment/%s.png" % str(label).replace(" ", "_"),
+		"tags": _string_array(tags),
+	}
+	var report := _manager.preview_equipment_for_socket(_current_recipe, socket_id, candidate, animation_id)
+	_set_operation_report("equipment_preview", bool(report.get("ok", false)), socket_id, _joined_errors(report))
+	return report
+
+func generate_faction_batch(faction_id: String, count: int, seed := 1, required_tags := [], palette_overrides := {}) -> Dictionary:
+	_ensure_ready()
+	var rules := {
+		"seed": seed,
+		"required_tags": _string_array(required_tags),
+		"palette_overrides": palette_overrides if palette_overrides is Dictionary else {},
+	}
+	var report := _manager.generate_faction_batch(faction_id, count, rules)
+	_set_operation_report("generate_faction_batch", bool(report.get("ok", false)), faction_id, _joined_errors(report))
+	return report
+
+func animation_coverage_heatmap(set_id := "first_slice_player") -> Dictionary:
+	_ensure_ready()
+	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
+	var report := _manager.animation_coverage_heatmap(_current_recipe, requested_set)
+	_set_operation_report("animation_coverage_heatmap", bool(report.get("ok", false)), requested_set, _joined_errors(report))
+	return report
+
+func accessibility_preview(set_id := "first_slice_player") -> Dictionary:
+	_ensure_ready()
+	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
+	return _manager.accessibility_preview(_current_recipe, requested_set)
+
+func performance_budget_report(set_id := "first_slice_player") -> Dictionary:
+	_ensure_ready()
+	var requested_set := _export_set_id if str(set_id) == "first_slice_player" else str(set_id)
+	return _manager.performance_budget_report(_current_recipe, requested_set)
 
 func validate_current_recipe(set_id := "first_slice_player") -> Dictionary:
 	_ensure_ready()
@@ -185,6 +259,7 @@ func select_part_option(slot_id: String, option_index: int) -> bool:
 func set_palette_color(palette_id: String, color_html: String) -> void:
 	_ensure_ready()
 	_current_recipe.palettes[palette_id] = color_html
+	refresh_preview()
 	_sync_summary()
 
 func set_morph_value(morph_id: String, value: float) -> void:
@@ -225,6 +300,7 @@ func get_preview_state() -> Dictionary:
 		"flipped": _preview_flipped,
 		"source_rect": _active_source_rect,
 		"pivot": _active_pivot,
+		"has_pivot_override": _has_pivot_override(_active_animation, _frame_index),
 		"curve_samples": _active_curve_samples.duplicate(true),
 	}
 
@@ -276,10 +352,10 @@ func frame_metadata_for_animation(animation_id: String) -> Dictionary:
 			var rect := sprite.get("rect", Rect2(Vector2(frame_size.x * float(frame), 0.0), frame_size)) as Rect2
 			var normalized_pivot := sprite.get("pivot", Vector2(0.5, 0.5)) as Vector2
 			frame_rects.append(rect)
-			pivots.append(Vector2(rect.size.x * normalized_pivot.x, rect.size.y * normalized_pivot.y))
+			pivots.append(_pivot_for_animation_frame(animation_id, frame, Vector2(rect.size.x * normalized_pivot.x, rect.size.y * normalized_pivot.y)))
 		else:
 			frame_rects.append(Rect2(Vector2(frame_size.x * float(frame), 0.0), frame_size))
-			pivots.append(Vector2(frame_size.x * 0.5, frame_size.y))
+			pivots.append(_pivot_for_animation_frame(animation_id, frame, Vector2(frame_size.x * 0.5, frame_size.y)))
 		frame_curve_samples.append(_sample_curve_bindings_for_frame(curve_bindings, frame, frame_count, float(clip_metadata.get("stop_time", 0.0))))
 	return {
 		"animation_id": animation_id,
@@ -386,7 +462,11 @@ func refresh_preview() -> void:
 		layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		layer.texture = texture
-		layer.modulate = _palette_modulate_for_slot(slot_id)
+		layer.modulate = _manager.palette_modulate_for_slot(_current_recipe, slot_id)
+		var transform := _manager.preview_transform_for_slot(_current_recipe, slot_id)
+		layer.recipe_offset = transform.get("offset", Vector2.ZERO) as Vector2
+		layer.recipe_scale = transform.get("scale", Vector2.ONE) as Vector2
+		layer.recipe_rotation_degrees = float(transform.get("rotation_degrees", 0.0))
 		preview.add_child(layer)
 		_rendered_part_paths.append(path)
 	_apply_preview_alignment()
@@ -424,6 +504,11 @@ func _wire_recipe_file_controls() -> void:
 	var randomize_button := get_node_or_null("%RandomizeButton") as Button
 	var bake_button := get_node_or_null("%BakeExportButton") as Button
 	var bake_spriteframes_button := get_node_or_null("%BakeSpriteFramesButton") as Button
+	var compare_contact_sheets_button := get_node_or_null("%CompareContactSheetsButton") as Button
+	var content_pack_report_button := get_node_or_null("%ContentPackReportButton") as Button
+	var equipment_preview_button := get_node_or_null("%EquipmentPreviewButton") as Button
+	var faction_batch_button := get_node_or_null("%FactionBatchButton") as Button
+	var animation_coverage_button := get_node_or_null("%AnimationCoverageButton") as Button
 	var apply_pivot_override_button := get_node_or_null("%ApplyPivotOverrideButton") as Button
 	if path_edit == null:
 		return
@@ -467,6 +552,26 @@ func _wire_recipe_file_controls() -> void:
 		var bake_spriteframes_callable := Callable(self, "_on_bake_spriteframes_button_pressed")
 		if not bake_spriteframes_button.pressed.is_connected(bake_spriteframes_callable):
 			bake_spriteframes_button.pressed.connect(bake_spriteframes_callable)
+	if compare_contact_sheets_button != null:
+		var compare_contact_sheets_callable := Callable(self, "_on_compare_contact_sheets_button_pressed")
+		if not compare_contact_sheets_button.pressed.is_connected(compare_contact_sheets_callable):
+			compare_contact_sheets_button.pressed.connect(compare_contact_sheets_callable)
+	if content_pack_report_button != null:
+		var content_pack_report_callable := Callable(self, "_on_content_pack_report_button_pressed")
+		if not content_pack_report_button.pressed.is_connected(content_pack_report_callable):
+			content_pack_report_button.pressed.connect(content_pack_report_callable)
+	if equipment_preview_button != null:
+		var equipment_preview_callable := Callable(self, "_on_equipment_preview_button_pressed")
+		if not equipment_preview_button.pressed.is_connected(equipment_preview_callable):
+			equipment_preview_button.pressed.connect(equipment_preview_callable)
+	if faction_batch_button != null:
+		var faction_batch_callable := Callable(self, "_on_faction_batch_button_pressed")
+		if not faction_batch_button.pressed.is_connected(faction_batch_callable):
+			faction_batch_button.pressed.connect(faction_batch_callable)
+	if animation_coverage_button != null:
+		var animation_coverage_callable := Callable(self, "_on_animation_coverage_button_pressed")
+		if not animation_coverage_button.pressed.is_connected(animation_coverage_callable):
+			animation_coverage_button.pressed.connect(animation_coverage_callable)
 	if apply_pivot_override_button != null:
 		var apply_pivot_callable := Callable(self, "_on_apply_pivot_override_button_pressed")
 		if not apply_pivot_override_button.pressed.is_connected(apply_pivot_callable):
@@ -630,10 +735,16 @@ func _sync_summary() -> void:
 	var summary := get_node_or_null("%RecipeSummary") as Label
 	var validation := get_node_or_null("%ValidationLabel") as Label
 	var preview := get_node_or_null("%PreviewLabel") as Label
+	var accessibility := get_node_or_null("%AccessibilityPreviewLabel") as Label
+	var budget_label := get_node_or_null("%PerformanceBudgetLabel") as Label
 	if _current_recipe == null:
 		return
 	var report := validate_current_recipe(_export_set_id)
 	var coverage := report.get("coverage", {}) as Dictionary
+	var accessibility_report := accessibility_preview(_export_set_id)
+	var accessibility_summary := accessibility_report.get("summary", {}) as Dictionary
+	var performance_report := performance_budget_report(_export_set_id)
+	var performance_summary := performance_report.get("summary", {}) as Dictionary
 	if summary != null:
 		summary.text = "%s | Parts %d | Animations %d/%d" % [
 			_current_recipe.display_name,
@@ -642,7 +753,10 @@ func _sync_summary() -> void:
 			int(coverage.get("total", 0)),
 		]
 	if validation != null:
-		validation.text = "Valid" if bool(report.get("valid", false)) else "Needs repair: %s" % ", ".join(report.get("errors", []) as Array)
+		if not _last_operation_report.is_empty() and not bool(_last_operation_report.get("ok", true)):
+			validation.text = str(_last_operation_report.get("message", "Operation failed"))
+		else:
+			validation.text = "Valid" if bool(report.get("valid", false)) else "Needs repair: %s" % ", ".join(report.get("errors", []) as Array)
 	if preview != null:
 		preview.text = "Preview %s | Frame %d/%d | %d parts | %s" % [
 			_active_animation,
@@ -650,6 +764,20 @@ func _sync_summary() -> void:
 			_frame_count,
 			_current_recipe.parts.size(),
 			_export_set_id,
+		]
+	if accessibility != null:
+		accessibility.text = "Accessibility %s | Contrast issues %d | Small-scale risks %d" % [
+			"OK" if bool(accessibility_report.get("ok", false)) else "Review",
+			int(accessibility_summary.get("failing_palette_pairs", 0)),
+			int(accessibility_summary.get("high_scale_risks", 0)),
+		]
+	if budget_label != null:
+		budget_label.text = "Budget %s | Frames %d | Memory %.2f MB | Risks %d/%d" % [
+			"OK" if bool(performance_report.get("ok", false)) else "Review",
+			int(performance_summary.get("estimated_frames", 0)),
+			float(performance_summary.get("estimated_bytes", 0)) / 1048576.0,
+			int(performance_summary.get("high_risks", 0)),
+			int(performance_summary.get("medium_risks", 0)),
 		]
 	_sync_frame_bounds_controls()
 
@@ -743,6 +871,27 @@ func _string_array(value: Variant) -> Array[String]:
 			result.append(str(item))
 	return result
 
+func _set_operation_report(operation: String, ok: bool, path := "", message := "") -> void:
+	var resolved_message := str(message)
+	if resolved_message.is_empty():
+		resolved_message = "%s complete" % operation.replace("_", " ").capitalize()
+	_last_operation_report = {
+		"operation": operation,
+		"ok": ok,
+		"path": path,
+		"message": resolved_message,
+	}
+	var validation := get_node_or_null("%ValidationLabel") as Label
+	if validation != null:
+		validation.text = resolved_message
+	_sync_summary()
+
+func _joined_errors(report: Dictionary) -> String:
+	var errors := report.get("errors", []) as Array
+	if errors.is_empty():
+		return ""
+	return ", ".join(errors)
+
 func _sync_palette_controls_to_recipe() -> void:
 	var container := get_node_or_null("%PaletteControls") as VBoxContainer
 	if container == null:
@@ -768,10 +917,21 @@ func _apply_preview_alignment() -> void:
 	if preview == null:
 		return
 	for child: Node in preview.get_children():
-			if child is TextureRect:
-				(child as TextureRect).position = _alignment_offset
-				(child as TextureRect).scale = Vector2(-_preview_scale if _preview_flipped else _preview_scale, _preview_scale)
-				(child as TextureRect).pivot_offset = _active_pivot
+		if child is TextureRect:
+			var recipe_offset := Vector2.ZERO
+			var recipe_scale := Vector2.ONE
+			var recipe_rotation_degrees := 0.0
+			if child is CC2DPreviewLayer:
+				recipe_offset = (child as CC2DPreviewLayer).recipe_offset
+				recipe_scale = (child as CC2DPreviewLayer).recipe_scale
+				recipe_rotation_degrees = (child as CC2DPreviewLayer).recipe_rotation_degrees
+			(child as TextureRect).position = _alignment_offset + recipe_offset
+			(child as TextureRect).scale = Vector2(
+				(-_preview_scale if _preview_flipped else _preview_scale) * recipe_scale.x,
+				_preview_scale * recipe_scale.y
+			)
+			(child as TextureRect).rotation_degrees = -recipe_rotation_degrees if _preview_flipped else recipe_rotation_degrees
+			(child as TextureRect).pivot_offset = _active_pivot
 			if child is CC2DPreviewLayer:
 				(child as CC2DPreviewLayer).region_rect = _active_source_rect
 
@@ -795,6 +955,34 @@ func _update_active_frame_metadata() -> void:
 	var frame_curve_samples := metadata.get("frame_curve_samples", []) as Array
 	_active_curve_samples = frame_curve_samples[_frame_index].duplicate(true) if _frame_index < frame_curve_samples.size() else []
 	_sync_frame_bounds_controls()
+
+func _pivot_for_animation_frame(animation_id: String, frame_index: int, fallback: Vector2) -> Vector2:
+	if _current_recipe == null:
+		return fallback
+	var animation_overrides := _current_recipe.pivot_overrides.get(animation_id, {}) as Dictionary
+	var stored: Variant = animation_overrides.get(str(frame_index), null)
+	if stored is Dictionary:
+		var data := stored as Dictionary
+		return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+	if stored is Vector2:
+		return stored as Vector2
+	return fallback
+
+func _has_pivot_override(animation_id: String, frame_index: int) -> bool:
+	if _current_recipe == null:
+		return false
+	var animation_overrides := _current_recipe.pivot_overrides.get(animation_id, {}) as Dictionary
+	return animation_overrides.has(str(frame_index))
+
+func _set_pivot_override(animation_id: String, frame_index: int, pivot: Vector2) -> void:
+	if _current_recipe == null:
+		return
+	var animation_overrides := _current_recipe.pivot_overrides.get(animation_id, {}) as Dictionary
+	animation_overrides[str(frame_index)] = {
+		"x": pivot.x,
+		"y": pivot.y,
+	}
+	_current_recipe.pivot_overrides[animation_id] = animation_overrides
 
 func _opaque_bounds_for_source_rect(source_rect: Rect2) -> Rect2:
 	var frame_width := int(maxf(0.0, source_rect.size.x))
@@ -912,24 +1100,6 @@ func _preview_slot_order() -> Array[String]:
 			ordered.append(slot_id)
 	return ordered
 
-func _palette_modulate_for_slot(slot_id: String) -> Color:
-	var palette_id := ""
-	if slot_id.contains("Hair"):
-		palette_id = "hair"
-	elif slot_id.contains("Body Skin"):
-		palette_id = "skin"
-	elif slot_id.contains("Armor") or slot_id.contains("Helmet"):
-		palette_id = "metal"
-	elif slot_id.contains("Shirt") or slot_id.contains("Pants") or slot_id.contains("Underwear"):
-		palette_id = "cloth_primary"
-	if palette_id.is_empty():
-		return Color.WHITE
-	var color_text := str(_current_recipe.palettes.get(palette_id, ""))
-	var color := Color.WHITE
-	if color_text.is_valid_html_color():
-		color = Color.html(color_text)
-	return color
-
 func _on_save_recipe_button_pressed() -> void:
 	var path_edit := get_node_or_null("%RecipePathEdit") as LineEdit
 	if path_edit == null:
@@ -1029,6 +1199,7 @@ func _on_apply_pivot_override_button_pressed() -> void:
 	if pivot_x_spin == null or pivot_y_spin == null:
 		return
 	_active_pivot = Vector2(pivot_x_spin.value, pivot_y_spin.value)
+	_set_pivot_override(_active_animation, _frame_index, _active_pivot)
 	_apply_preview_alignment()
 	_refresh_frame_bounds_label()
 	_sync_summary()
@@ -1037,12 +1208,53 @@ func _on_bake_contact_sheet_button_pressed() -> void:
 	var contact_sheet_edit := get_node_or_null("%ContactSheetPathEdit") as LineEdit
 	if contact_sheet_edit == null:
 		return
-	bake_current_contact_sheet(contact_sheet_edit.text, _export_set_id, 2)
+	bake_current_contact_sheet(contact_sheet_edit.text, _export_set_id, 1)
 	_sync_summary()
+
+func _on_compare_contact_sheets_button_pressed() -> void:
+	var left_edit := get_node_or_null("%ContactSheetLeftEdit") as LineEdit
+	var right_edit := get_node_or_null("%ContactSheetRightEdit") as LineEdit
+	if left_edit == null or right_edit == null:
+		return
+	compare_contact_sheets(left_edit.text, right_edit.text, 512, 512)
+	_sync_contact_sheet_diff_label()
+	_sync_summary()
+
+func _sync_contact_sheet_diff_label() -> void:
+	var label := get_node_or_null("%ContactSheetDiffLabel") as Label
+	if label == null:
+		return
+	if str(_last_operation_report.get("operation", "")) != "compare_contact_sheets":
+		return
+	label.text = str(_last_operation_report.get("message", "Contact sheet diff ready"))
 
 func _on_write_validation_report_button_pressed() -> void:
 	var report_edit := get_node_or_null("%ValidationReportPathEdit") as LineEdit
 	if report_edit == null:
 		return
 	write_current_validation_report(report_edit.text, _export_set_id)
+	_sync_summary()
+
+func _on_content_pack_report_button_pressed() -> void:
+	content_pack_report()
+	_sync_summary()
+
+func _on_equipment_preview_button_pressed() -> void:
+	var socket_edit := get_node_or_null("%EquipmentSocketEdit") as LineEdit
+	var tag_edit := get_node_or_null("%EquipmentTagEdit") as LineEdit
+	if socket_edit == null or tag_edit == null:
+		return
+	preview_equipment_for_socket(socket_edit.text, _tags_from_filter_edit(tag_edit), "Studio Preview Equipment", _active_animation)
+	_sync_summary()
+
+func _on_faction_batch_button_pressed() -> void:
+	var faction_edit := get_node_or_null("%FactionIdEdit") as LineEdit
+	var count_spin := get_node_or_null("%FactionCountSpin") as SpinBox
+	if faction_edit == null or count_spin == null:
+		return
+	generate_faction_batch(faction_edit.text, int(count_spin.value), 1001, ["starter_safe"], {"cloth_primary": "31384aff"})
+	_sync_summary()
+
+func _on_animation_coverage_button_pressed() -> void:
+	animation_coverage_heatmap(_export_set_id)
 	_sync_summary()

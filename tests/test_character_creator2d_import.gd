@@ -1,6 +1,7 @@
 extends SceneTree
 
 const CC2DManifest := preload("res://scripts/character_creator/cc2d_manifest.gd")
+const CC2DCreatorManager := preload("res://scripts/character_creator/cc2d_creator_manager.gd")
 const CC2DExportProfile := preload("res://scripts/character_creator/cc2d_export_profile.gd")
 const CC2DBulkExportSets := preload("res://scripts/character_creator/cc2d_bulk_export_sets.gd")
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
@@ -19,6 +20,8 @@ const REQUIRED_RAW_PATHS := [
 	"Data/Animations/Base/Run.anim",
 	"Creator UI/Scripts/UICreator/UICreator.cs",
 ]
+
+var _failed := false
 
 func _initialize() -> void:
 	if not FileAccess.file_exists(MANIFEST_PATH):
@@ -68,6 +71,45 @@ func _initialize() -> void:
 		return
 	if loader.first_sprite_path("Sprites/Base/Hair/00.png") != "res://SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Base/Hair/00.png":
 		_fail("CC2DManifest should resolve extracted sprite paths to res:// paths.")
+		return
+	if not loader.has_method("content_pack_report"):
+		_fail("CC2DManifest should expose content_pack_report().")
+		return
+	var pack_report := loader.call("content_pack_report") as Dictionary
+	if str(pack_report.get("pack_id", "")) != "base_fantasy":
+		_fail("Content pack report should default the Base Fantasy pack id.")
+		return
+	if str(pack_report.get("version", "")).is_empty():
+		_fail("Content pack report should include a version.")
+		return
+	if int((pack_report.get("asset_counts", {}) as Dictionary).get("copied", 0)) < 1200:
+		_fail("Content pack report should include copied asset counts.")
+		return
+	if int((pack_report.get("categories", {}) as Dictionary).get("Sprites", 0)) < 400:
+		_fail("Content pack report should include category counts.")
+		return
+	if int((pack_report.get("extensions", {}) as Dictionary).get(".png", 0)) < 500:
+		_fail("Content pack report should include extension counts.")
+		return
+	if not pack_report.get("dependencies", []) is Array or not pack_report.get("migration_ids", []) is Array:
+		_fail("Content pack report should include dependency and migration id arrays.")
+		return
+	if not pack_report.get("conflict_hints", []) is Array or not pack_report.get("missing_dependency_warnings", []) is Array:
+		_fail("Content pack report should include conflict hints and missing dependency warnings.")
+		return
+	_assert_synthetic_content_pack_report_handles_dependencies_and_conflicts()
+	if _failed:
+		return
+	var manager := CC2DCreatorManager.new()
+	if not manager.load_content():
+		_fail("CC2DCreatorManager should load content before reporting content packs.")
+		return
+	if not manager.has_method("content_pack_report"):
+		_fail("CC2DCreatorManager should expose content_pack_report().")
+		return
+	var manager_pack_report := manager.call("content_pack_report") as Dictionary
+	if str(manager_pack_report.get("pack_id", "")) != str(pack_report.get("pack_id", "")) or int((manager_pack_report.get("asset_counts", {}) as Dictionary).get("entries", 0)) != int((pack_report.get("asset_counts", {}) as Dictionary).get("entries", 0)):
+		_fail("Manager content pack report should forward manifest metadata.")
 		return
 	if not FileAccess.file_exists(EXPORT_PROFILE_PATH):
 		_fail("CharacterCreator2D export profile should be generated.")
@@ -148,8 +190,63 @@ func _initialize() -> void:
 	quit(0)
 
 func _fail(message: String) -> void:
+	_failed = true
 	push_error(message)
 	quit(1)
+
+func _assert_synthetic_content_pack_report_handles_dependencies_and_conflicts() -> void:
+	var path := "user://test_cc2d_content_pack_manifest.json"
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		_fail("Synthetic content pack manifest should be writable.")
+		return
+	file.store_string(JSON.stringify({
+		"pack_id": "test_pack",
+		"version": "2.0.0",
+		"dependencies": [{"pack_id": "base_core", "required": true}],
+		"migration_ids": ["legacy_test_pack"],
+		"entry_count": 2,
+		"copied_asset_count": 2,
+		"extension_counts": {".png": 2},
+		"category_counts": {"Sprites": 2},
+		"entries": [
+			{
+				"guid": "duplicate-guid",
+				"relative_path": "Sprites/Test/Dupe.png",
+				"godot_path": "SpriteVania Assets/test_pack/Sprites/Test/Dupe.png",
+				"extension": ".png",
+				"category": "Sprites",
+				"has_payload": true,
+			},
+			{
+				"guid": "duplicate-guid",
+				"relative_path": "Sprites/Test/Dupe.png",
+				"godot_path": "SpriteVania Assets/test_pack/Sprites/Test/Dupe.png",
+				"extension": ".png",
+				"category": "Sprites",
+				"has_payload": true,
+			},
+		],
+	}))
+	file = null
+	var manifest_loader := CC2DManifest.new()
+	if not manifest_loader.load_manifest(path):
+		_fail("Synthetic content pack manifest should load.")
+		return
+	var missing_report := manifest_loader.content_pack_report(["test_pack"])
+	if (missing_report.get("missing_dependency_warnings", []) as Array).is_empty():
+		_fail("Content pack report should warn about missing required dependencies.")
+		return
+	if (missing_report.get("conflict_hints", []) as Array).is_empty():
+		_fail("Content pack report should include duplicate/conflict hints.")
+		return
+	if not (missing_report.get("migration_ids", []) as Array).has("legacy_test_pack"):
+		_fail("Content pack report should preserve migration ids.")
+		return
+	var satisfied_report := manifest_loader.content_pack_report(["test_pack", "base_core"])
+	if not (satisfied_report.get("missing_dependency_warnings", []) as Array).is_empty():
+		_fail("Content pack report should clear dependency warnings for available packs.")
+		return
 
 func _has_raw_reference(manifest: Dictionary, relative_path: String) -> bool:
 	for entry: Dictionary in manifest.get("entries", []) as Array:

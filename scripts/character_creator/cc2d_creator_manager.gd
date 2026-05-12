@@ -12,6 +12,9 @@ const EXPORT_TARGET_SIZES := {
 	"avatar": Vector2i(128, 128),
 	"icon": Vector2i(64, 64),
 }
+const MAX_EXPORT_TEXTURE_SIZE := 4096
+const MAX_EXPORT_FRAMES := 128
+const MAX_EXPORT_BYTES := 64 * 1024 * 1024
 
 var _manifest := CC2DManifest.new()
 var _appearance := CC2DAppearance.new()
@@ -44,6 +47,10 @@ func content_version() -> String:
 	if not _manifest.is_loaded():
 		return ""
 	return "%s:%d" % [_manifest.manifest_path.get_file().get_basename(), _manifest.copied_asset_count()]
+
+func content_pack_report() -> Dictionary:
+	_ensure_loaded()
+	return _manifest.content_pack_report()
 
 func slot_ids() -> Array[String]:
 	_ensure_loaded()
@@ -212,6 +219,85 @@ func randomize_recipe(recipe: CC2DRecipe, locked_slots := [], required_tags := [
 		"required_tags": tags,
 	}
 
+func generate_faction_batch(faction_id: String, count: int, rules := {}) -> Dictionary:
+	_ensure_loaded()
+	var normalized_faction_id := _safe_recipe_id(faction_id)
+	var batch_count: int = max(0, int(count))
+	var rule_data := rules as Dictionary if rules is Dictionary else {}
+	var seed := int(rule_data.get("seed", 1))
+	var required_tags := _string_array(rule_data.get("required_tags", []))
+	var preferred_tags := _string_array(rule_data.get("preferred_tags", []))
+	var tag_rules := _string_array(rule_data.get("tag_rules", []))
+	var locked_slots := _string_array(rule_data.get("locked_slots", []))
+	var locked_parts := (rule_data.get("locked_parts", {}) as Dictionary).duplicate(true) if rule_data.get("locked_parts", {}) is Dictionary else {}
+	for locked_slot: String in locked_parts.keys():
+		if not locked_slots.has(locked_slot):
+			locked_slots.append(locked_slot)
+	locked_slots.sort()
+	var palette_overrides := (rule_data.get("palette_overrides", {}) as Dictionary).duplicate(true) if rule_data.get("palette_overrides", {}) is Dictionary else {}
+	var palette_constraints := (rule_data.get("palette_constraints", {}) as Dictionary).duplicate(true) if rule_data.get("palette_constraints", {}) is Dictionary else {}
+	var errors: Array[String] = []
+	if normalized_faction_id.is_empty():
+		errors.append("Faction id is required.")
+	if batch_count <= 0:
+		errors.append("Faction batch count must be greater than zero.")
+	if not errors.is_empty():
+		return {
+			"ok": false,
+			"errors": errors,
+			"recipes": [],
+			"provenance": {
+				"faction_id": normalized_faction_id,
+				"seed": seed,
+				"count": batch_count,
+				"required_tags": required_tags,
+				"preferred_tags": preferred_tags,
+				"tag_rules": tag_rules,
+				"locked_slots": locked_slots,
+				"palette_overrides": palette_overrides,
+				"palette_constraints": palette_constraints,
+			},
+		}
+	var recipes: Array[CC2DRecipe] = []
+	for index: int in batch_count:
+		var recipe_id := "%s_%02d" % [normalized_faction_id, index + 1]
+		var recipe := default_recipe(recipe_id)
+		recipe.display_name = "%s %02d" % [normalized_faction_id.replace("_", " ").capitalize(), index + 1]
+		for slot_id: String in locked_parts.keys():
+			recipe.parts[slot_id] = (locked_parts.get(slot_id, {}) as Dictionary).duplicate(true)
+		var recipe_seed := seed + (index * 7919)
+		randomize_recipe(recipe, locked_slots, required_tags, recipe_seed)
+		_apply_palette_constraints(recipe, palette_constraints, seed + (index * 104729))
+		_apply_palette_overrides(recipe, palette_overrides)
+		for tag: String in required_tags:
+			if not recipe.tags.has(tag):
+				recipe.tags.append(tag)
+		for tag: String in preferred_tags:
+			if not recipe.tags.has(tag):
+				recipe.tags.append(tag)
+		if not recipe.tags.has("faction:%s" % normalized_faction_id):
+			recipe.tags.append("faction:%s" % normalized_faction_id)
+		recipes.append(recipe)
+	return {
+		"ok": true,
+		"errors": [],
+		"recipes": recipes,
+		"provenance": {
+			"faction_id": normalized_faction_id,
+			"seed": seed,
+			"count": batch_count,
+			"required_tags": required_tags,
+			"preferred_tags": preferred_tags,
+			"tag_rules": tag_rules,
+			"locked_slots": locked_slots,
+			"palette_overrides": palette_overrides,
+			"palette_constraints": palette_constraints,
+			"recipe_ids": recipes.map(func(recipe: CC2DRecipe) -> String: return recipe.recipe_id),
+			"content_pack_id": "base_fantasy",
+			"content_version": content_version(),
+		},
+	}
+
 func set_part_favorite(recipe: CC2DRecipe, part: Dictionary, favorite: bool) -> bool:
 	if recipe == null:
 		return false
@@ -250,7 +336,7 @@ func load_recipe(path: String) -> CC2DRecipe:
 	if not parsed is Dictionary:
 		return null
 	var recipe: CC2DRecipe = CC2DRecipe.from_dictionary(parsed)
-	repair_recipe(recipe)
+	migrate_recipe(recipe, (parsed as Dictionary).get("content_versions", {}))
 	return recipe
 
 func export_recipe_bundle(recipe: CC2DRecipe, path: String, set_id := "first_slice_player") -> Dictionary:
@@ -475,6 +561,146 @@ func validate_recipe(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dict
 		},
 	}
 
+func accessibility_preview(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dictionary:
+	_ensure_loaded()
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	if recipe == null:
+		return {
+			"ok": false,
+			"errors": ["Recipe is required."],
+			"warnings": warnings,
+			"palette_pairs": [],
+			"small_scale_targets": [],
+			"summary": {},
+		}
+	var palette_pairs := _palette_contrast_pairs(recipe)
+	var lowest_contrast := 999.0
+	var failing_pairs := 0
+	for pair: Dictionary in palette_pairs:
+		var ratio := float(pair.get("contrast_ratio", 0.0))
+		lowest_contrast = minf(lowest_contrast, ratio)
+		if not bool(pair.get("passes_minimum", false)):
+			failing_pairs += 1
+			warnings.append("Low palette contrast between %s and %s." % [str(pair.get("left_id", "")), str(pair.get("right_id", ""))])
+	var checklist := _checklist_for_recipe_set(recipe, set_id)
+	var budget := _export_budget_for_checklist(checklist)
+	var small_scale_targets: Array[Dictionary] = []
+	var high_scale_risks := 0
+	for target_id: String in EXPORT_TARGET_SIZES.keys():
+		var size := EXPORT_TARGET_SIZES.get(target_id, Vector2i(64, 64)) as Vector2i
+		var min_size := mini(size.x, size.y)
+		var severity := "ok"
+		var message := "%s target keeps %d selected parts readable at %dx%d." % [target_id.capitalize(), recipe.parts.size(), size.x, size.y]
+		if min_size <= 64 and recipe.parts.size() > 6:
+			severity = "high"
+			high_scale_risks += 1
+			message = "%s target is dense: %d selected parts at %dx%d may lose small-scale readability." % [target_id.capitalize(), recipe.parts.size(), size.x, size.y]
+		elif min_size <= 128 and recipe.parts.size() > 8:
+			severity = "medium"
+			message = "%s target should be checked at small scale with %d selected parts." % [target_id.capitalize(), recipe.parts.size()]
+		small_scale_targets.append({
+			"target_id": target_id,
+			"width": size.x,
+			"height": size.y,
+			"part_count": recipe.parts.size(),
+			"severity": severity,
+			"message": message,
+		})
+	if checklist.is_empty():
+		errors.append("Export set is empty or unknown: %s" % set_id)
+	return {
+		"ok": errors.is_empty() and failing_pairs == 0 and high_scale_risks == 0,
+		"errors": errors,
+		"warnings": warnings,
+		"set_id": set_id,
+		"palette_pairs": palette_pairs,
+		"small_scale_targets": small_scale_targets,
+		"budget": budget,
+		"summary": {
+			"palette_pair_count": palette_pairs.size(),
+			"failing_palette_pairs": failing_pairs,
+			"lowest_contrast_ratio": 0.0 if palette_pairs.is_empty() else lowest_contrast,
+			"high_scale_risks": high_scale_risks,
+			"estimated_bytes": int(budget.get("estimated_bytes", 0)),
+		},
+	}
+
+func performance_budget_report(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dictionary:
+	_ensure_loaded()
+	var errors: Array[String] = []
+	if recipe == null:
+		return {
+			"ok": false,
+			"errors": ["Recipe is required."],
+			"set_id": set_id,
+			"targets": [],
+			"summary": {},
+		}
+	var checklist := _checklist_for_recipe_set(recipe, set_id)
+	if checklist.is_empty():
+		errors.append("Export set is empty or unknown: %s" % set_id)
+	var export_settings: Dictionary = _export_profile.default_export()
+	var frame_width := int(export_settings.get("width", 512))
+	var frame_height := int(export_settings.get("height", 512))
+	var columns := int(_export_profile.godot_sheet_target().get("columns", 8))
+	var total_frames := 0
+	var max_animation_frames := 1
+	var sheet_pixel_total := 0
+	var available_animations := 0
+	for item: Dictionary in checklist:
+		if not bool(item.get("available", false)):
+			continue
+		available_animations += 1
+		var clip_metadata: Dictionary = clip_metadata_for_animation(str(item.get("id", "")))
+		var animation_frames: int = max(1, int(clip_metadata.get("frame_count", 1)))
+		total_frames += animation_frames
+		max_animation_frames = max(max_animation_frames, animation_frames)
+		var animation_rows: int = int(ceil(float(animation_frames) / float(max(1, columns))))
+		sheet_pixel_total += frame_width * max(1, columns) * frame_height * max(1, animation_rows)
+	var targets: Array[Dictionary] = []
+	var rows := int(ceil(float(max(1, max_animation_frames)) / float(max(1, columns))))
+	var gameplay_target := _budget_target_entry(
+		"gameplay_sheet",
+		frame_width * max(1, columns),
+		frame_height * max(1, rows),
+		max(1, max_animation_frames),
+		"animation_sheet"
+	)
+	gameplay_target.total_frames = total_frames
+	gameplay_target.estimated_pixels = sheet_pixel_total
+	gameplay_target.estimated_bytes = sheet_pixel_total * 4
+	targets.append(gameplay_target)
+	for target_id: String in EXPORT_TARGET_SIZES.keys():
+		var size := EXPORT_TARGET_SIZES.get(target_id, Vector2i(64, 64)) as Vector2i
+		targets.append(_budget_target_entry(target_id, size.x, size.y, 1, "single_frame"))
+	var high_risks := 0
+	var medium_risks := 0
+	var estimated_bytes := 0
+	for target: Dictionary in targets:
+		estimated_bytes += int(target.get("estimated_bytes", 0))
+		match str(target.get("severity", "ok")):
+			"high":
+				high_risks += 1
+			"medium":
+				medium_risks += 1
+	return {
+		"ok": errors.is_empty() and high_risks == 0,
+		"errors": errors,
+		"set_id": set_id,
+		"targets": targets,
+		"summary": {
+			"available_animations": available_animations,
+			"estimated_frames": total_frames,
+			"estimated_bytes": estimated_bytes,
+			"high_risks": high_risks,
+			"medium_risks": medium_risks,
+			"max_texture_size": MAX_EXPORT_TEXTURE_SIZE,
+			"max_frames": MAX_EXPORT_FRAMES,
+			"max_bytes": MAX_EXPORT_BYTES,
+		},
+	}
+
 func compatibility_report(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dictionary:
 	_ensure_loaded()
 	var checklist := _checklist_for_recipe_set(recipe, set_id)
@@ -539,6 +765,82 @@ func compatibility_report(recipe: CC2DRecipe, set_id := "first_slice_player") ->
 	)
 	return report
 
+func animation_coverage_heatmap(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dictionary:
+	_ensure_loaded()
+	var checklist := _checklist_for_recipe_set(recipe, set_id)
+	var compatibility := compatibility_report(recipe, set_id)
+	var errors: Array[String] = []
+	var rows: Array[Dictionary] = []
+	var checked_count := 0
+	var available_count := 0
+	var missing_count := 0
+	if recipe == null:
+		errors.append("Recipe is required.")
+	if checklist.is_empty():
+		errors.append("Export set is empty or unknown: %s" % set_id)
+	for item: Dictionary in checklist:
+		var animation_id := str(item.get("id", ""))
+		var available := bool(item.get("available", false))
+		var checked := bool(item.get("checked", false))
+		if checked:
+			checked_count += 1
+		var clip := clip_metadata_for_animation(animation_id) if available else {}
+		var severity := "ok"
+		var messages: Array[String] = []
+		if not available:
+			severity = "high"
+			missing_count += 1
+			messages.append("Animation is not available in the export profile/content pack.")
+		else:
+			available_count += 1
+			var frame_count := int(clip.get("frame_count", 1))
+			var sample_rate := float(clip.get("sample_rate", 0.0))
+			if frame_count <= 1:
+				severity = _max_severity(severity, "low")
+				messages.append("Animation has a single exported frame in the source metadata.")
+			else:
+				messages.append("%d source frames available at %.1f fps." % [frame_count, sample_rate])
+		for category_id: String in COMPATIBILITY_CATEGORIES:
+			var category := compatibility.get(category_id, {}) as Dictionary
+			var category_severity := str(category.get("severity", "ok"))
+			if category_severity == "ok":
+				continue
+			severity = _max_severity(severity, category_severity)
+			var category_messages := _string_array(category.get("messages", []))
+			if not category_messages.is_empty():
+				messages.append("%s: %s" % [category_id, category_messages[0]])
+		rows.append({
+			"animation_id": animation_id,
+			"label": str(item.get("label", animation_id)),
+			"available": available,
+			"checked": checked,
+			"loop": bool(item.get("loop", false)),
+			"base": str(item.get("base", "")),
+			"aim": str(item.get("aim", "None")),
+			"frame_count": int(clip.get("frame_count", 0)) if available else 0,
+			"sample_rate": float(clip.get("sample_rate", 0.0)) if available else 0.0,
+			"stop_time": float(clip.get("stop_time", 0.0)) if available else 0.0,
+			"severity": severity,
+			"messages": messages,
+			"part_count": recipe.parts.size() if recipe != null else 0,
+			"socket_count": recipe.equipment_sockets.size() if recipe != null else 0,
+		})
+	if missing_count > 0:
+		errors.append("Missing animation coverage: %d of %d animations." % [missing_count, rows.size()])
+	return {
+		"ok": errors.is_empty(),
+		"errors": errors,
+		"set_id": set_id,
+		"coverage": {
+			"checked": checked_count,
+			"total": rows.size(),
+			"available": available_count,
+			"missing": missing_count,
+		},
+		"animations": rows,
+		"constraints": compatibility,
+	}
+
 func repair_recipe(recipe: CC2DRecipe) -> Dictionary:
 	_ensure_loaded()
 	var warnings: Array[String] = []
@@ -563,6 +865,50 @@ func repair_recipe(recipe: CC2DRecipe) -> Dictionary:
 	return {
 		"changed": not warnings.is_empty(),
 		"warnings": warnings,
+	}
+
+func migrate_recipe(recipe: CC2DRecipe, saved_content_versions := {}) -> Dictionary:
+	_ensure_loaded()
+	var warnings: Array[String] = []
+	var migrations: Array[String] = []
+	if recipe == null:
+		return {
+			"ok": false,
+			"changed": false,
+			"warnings": ["Recipe is null."],
+			"migrations": [],
+			"content_versions": {},
+		}
+	var versions := saved_content_versions as Dictionary if saved_content_versions is Dictionary else {}
+	var current_versions := {recipe.content_pack_id: content_version()}
+	var saved_version := str(versions.get(recipe.content_pack_id, ""))
+	if saved_version.is_empty():
+		warnings.append("Recipe has no saved content version for %s." % recipe.content_pack_id)
+		migrations.append("record_content_version")
+	elif saved_version != content_version():
+		warnings.append("Recipe content version changed from %s to %s." % [saved_version, content_version()])
+		migrations.append("content_version_changed")
+	var schema_changed := false
+	if recipe.schema_version < CC2DRecipe.SCHEMA_VERSION:
+		schema_changed = true
+		recipe.schema_version = CC2DRecipe.SCHEMA_VERSION
+		migrations.append("schema_version_upgraded")
+		warnings.append("Recipe schema upgraded to %d." % CC2DRecipe.SCHEMA_VERSION)
+	if recipe.content_pack_id.strip_edges().is_empty():
+		recipe.content_pack_id = "base_fantasy"
+		migrations.append("content_pack_defaulted")
+		warnings.append("Recipe content pack defaulted to base_fantasy.")
+	var repair_report := repair_recipe(recipe)
+	if bool(repair_report.get("changed", false)):
+		migrations.append("repair_recipe")
+		warnings.append_array(repair_report.get("warnings", []) as Array)
+	return {
+		"ok": true,
+		"changed": schema_changed or not migrations.is_empty() or bool(repair_report.get("changed", false)),
+		"warnings": warnings,
+		"migrations": migrations,
+		"content_versions": current_versions,
+		"recipe_id": recipe.recipe_id,
 	}
 
 func export_plan_for_recipe(recipe: CC2DRecipe, set_id := "first_slice_player") -> Dictionary:
@@ -615,6 +961,46 @@ func socket_report_for_recipe(recipe: CC2DRecipe, animation_id := "idle") -> Dic
 	return {
 		"animation_id": animation_id,
 		"sockets": socket_entries,
+	}
+
+func preview_equipment_for_socket(recipe: CC2DRecipe, socket_id: String, candidate: Dictionary, animation_id := "idle") -> Dictionary:
+	_ensure_loaded()
+	var errors: Array[String] = []
+	var normalized_socket_id := _safe_recipe_id(socket_id)
+	if recipe == null:
+		errors.append("Recipe is required.")
+	if normalized_socket_id.is_empty():
+		errors.append("Socket id is required.")
+	if candidate.is_empty():
+		errors.append("Equipment candidate is required.")
+	var socket_report := socket_report_for_recipe(recipe, animation_id)
+	var sockets := socket_report.get("sockets", {}) as Dictionary
+	var socket := sockets.get(normalized_socket_id, {}) as Dictionary
+	if socket.is_empty():
+		errors.append("Unknown equipment socket: %s" % normalized_socket_id)
+	var compatible_tags := _string_array(socket.get("compatible_tags", []))
+	var candidate_tags := _string_array(candidate.get("tags", []))
+	var compatible := _tags_intersect(compatible_tags, candidate_tags)
+	if not compatible:
+		errors.append("Equipment candidate does not match socket tags: %s." % ", ".join(compatible_tags))
+	var target_slot := _equipment_target_slot(recipe, normalized_socket_id, socket, candidate)
+	var preview_part := candidate.duplicate(true)
+	preview_part["socket_id"] = normalized_socket_id
+	preview_part["socket_anchor"] = str(socket.get("anchor", ""))
+	var current_part := {}
+	if recipe != null and not target_slot.is_empty():
+		current_part = (recipe.parts.get(target_slot, {}) as Dictionary).duplicate(true)
+	return {
+		"ok": errors.is_empty(),
+		"errors": errors,
+		"compatible": compatible,
+		"socket_id": normalized_socket_id,
+		"animation_id": animation_id,
+		"target_slot": target_slot,
+		"socket": socket.duplicate(true),
+		"candidate": candidate.duplicate(true),
+		"preview_part": preview_part,
+		"current_part": current_part,
 	}
 
 func write_validation_report(recipe: CC2DRecipe, report_path: String, set_id := "first_slice_player") -> Dictionary:
@@ -671,6 +1057,7 @@ func bake_export_sheets(recipe: CC2DRecipe, output_root: String, set_id := "firs
 		var clip_metadata := clip_metadata_for_animation(animation_id)
 		var clip_frame_count := int(clip_metadata.get("frame_count", 1))
 		var frame_count := clampi(clip_frame_count, 1, max(1, int(max_frames_per_animation)))
+		var frame_pivots := _frame_pivots_for_recipe_animation(recipe, animation_id, frame_count, frame_width, frame_height)
 		var sheet_path := "%s/%s_sheet.png" % [output_root.rstrip("/"), animation_id]
 		var baked := _bake_animation_sheet(recipe, sheet_path, frame_width, frame_height, frame_count, columns, clip_metadata)
 		if not bool(baked.get("ok", false)):
@@ -682,6 +1069,8 @@ func bake_export_sheets(recipe: CC2DRecipe, output_root: String, set_id := "firs
 			"frame_width": frame_width,
 			"frame_height": frame_height,
 			"frame_count": frame_count,
+			"frame_pivots": frame_pivots,
+			"pivot_override_count": _pivot_override_count_for_frames(recipe, animation_id, frame_count),
 			"columns": columns,
 			"loop": bool(item.get("loop", false)),
 			"fps": target_fps,
@@ -689,11 +1078,18 @@ func bake_export_sheets(recipe: CC2DRecipe, output_root: String, set_id := "firs
 			"rig_sample_count": int(baked.get("rig_sample_count", 0)),
 			"uses_pixel_rotation": bool(baked.get("uses_pixel_rotation", false)),
 			"pixel_rotation_count": int(baked.get("pixel_rotation_count", 0)),
+			"uses_morph_transforms": bool(baked.get("uses_morph_transforms", false)),
+			"morph_transform_count": int(baked.get("morph_transform_count", 0)),
 		})
 	var source_spec_path := "%s/source_spec.json" % output_root.rstrip("/")
 	var source_spec := {
 		"recipe_id": recipe.recipe_id,
 		"set_id": set_id,
+		"provenance": _export_provenance_for_recipe(recipe, set_id, export_settings),
+		"source_parts": _source_parts_for_recipe(recipe),
+		"palettes": recipe.palettes.duplicate(true),
+		"morphs": recipe.morphs.duplicate(true),
+		"export_settings": export_settings.duplicate(true),
 		"animations": animations,
 	}
 	var spec_file := FileAccess.open(source_spec_path, FileAccess.WRITE)
@@ -816,6 +1212,71 @@ func bake_contact_sheet(recipe: CC2DRecipe, contact_sheet_path: String, set_id :
 		"source_report": report,
 	}
 
+func contact_sheet_signature(path: String) -> Dictionary:
+	var image := Image.new()
+	if path.strip_edges().is_empty() or not FileAccess.file_exists(path):
+		return {
+			"ok": false,
+			"errors": ["Contact sheet does not exist: %s" % path],
+			"signature": "",
+		}
+	if image.load(path) != OK:
+		return {
+			"ok": false,
+			"errors": ["Could not load contact sheet: %s" % path],
+			"signature": "",
+		}
+	var signature := _image_signature(image)
+	signature.ok = true
+	signature.errors = []
+	signature.path = path
+	return signature
+
+func diff_contact_sheet_images(left_path: String, right_path: String, frame_width := 512, frame_height := 512) -> Dictionary:
+	var left_image := Image.new()
+	var right_image := Image.new()
+	var errors: Array[String] = []
+	if left_path.strip_edges().is_empty() or not FileAccess.file_exists(left_path):
+		errors.append("Left contact sheet does not exist: %s" % left_path)
+	if right_path.strip_edges().is_empty() or not FileAccess.file_exists(right_path):
+		errors.append("Right contact sheet does not exist: %s" % right_path)
+	if not errors.is_empty():
+		return {
+			"ok": false,
+			"errors": errors,
+			"different": false,
+			"changed_frame_count": 0,
+			"frame_differences": [],
+		}
+	if left_image.load(left_path) != OK:
+		errors.append("Could not load left contact sheet: %s" % left_path)
+	if right_image.load(right_path) != OK:
+		errors.append("Could not load right contact sheet: %s" % right_path)
+	if not errors.is_empty():
+		return {
+			"ok": false,
+			"errors": errors,
+			"different": false,
+			"changed_frame_count": 0,
+			"frame_differences": [],
+		}
+	var left_signature := _image_signature(left_image)
+	var right_signature := _image_signature(right_image)
+	var dimensions_match := left_image.get_size() == right_image.get_size()
+	var frame_differences := _contact_sheet_frame_differences(left_image, right_image, frame_width, frame_height)
+	return {
+		"ok": true,
+		"errors": [],
+		"left_path": left_path,
+		"right_path": right_path,
+		"dimensions_match": dimensions_match,
+		"different": str(left_signature.get("signature", "")) != str(right_signature.get("signature", "")),
+		"left_signature": left_signature,
+		"right_signature": right_signature,
+		"changed_frame_count": frame_differences.size(),
+		"frame_differences": frame_differences,
+	}
+
 func bake_export_target(recipe: CC2DRecipe, output_path: String, target_id := "portrait") -> Dictionary:
 	_ensure_loaded()
 	var normalized_target := str(target_id).strip_edges().to_lower()
@@ -869,6 +1330,55 @@ func bake_export_target(recipe: CC2DRecipe, output_path: String, target_id := "p
 		"height": target_size.y,
 	}
 
+func preview_transform_for_slot(recipe: CC2DRecipe, slot_id: String) -> Dictionary:
+	return _transform_for_recipe_slot(recipe, slot_id, {})
+
+func palette_modulate_for_slot(recipe: CC2DRecipe, slot_id: String) -> Color:
+	if recipe == null:
+		return Color.WHITE
+	var palette_id := _palette_id_for_slot(slot_id)
+	if palette_id.is_empty():
+		return Color.WHITE
+	var color_text := str(recipe.palettes.get(palette_id, ""))
+	if not color_text.is_valid_html_color():
+		return Color.WHITE
+	return Color.html(color_text)
+
+func _export_provenance_for_recipe(recipe: CC2DRecipe, set_id: String, export_settings: Dictionary) -> Dictionary:
+	if recipe == null:
+		return {}
+	return {
+		"recipe_id": recipe.recipe_id,
+		"display_name": recipe.display_name,
+		"content_pack_id": recipe.content_pack_id,
+		"content_versions": {recipe.content_pack_id: content_version()},
+		"content_version": content_version(),
+		"export_profile_id": recipe.export_profile_id,
+		"set_id": set_id,
+		"schema_version": recipe.schema_version,
+		"export_settings": export_settings.duplicate(true),
+		"pivot_overrides": recipe.pivot_overrides.duplicate(true),
+	}
+
+func _source_parts_for_recipe(recipe: CC2DRecipe) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if recipe == null:
+		return result
+	var slot_ids := recipe.parts.keys()
+	slot_ids.sort()
+	for slot_id: String in slot_ids:
+		var part := recipe.parts.get(slot_id, {}) as Dictionary
+		result.append({
+			"slot_id": slot_id,
+			"path": str(part.get("path", "")),
+			"relative_path": str(part.get("relative_path", "")),
+			"label": str(part.get("label", "")),
+			"category": str(part.get("category", "")),
+			"palette_id": _palette_id_for_slot(slot_id),
+			"tags": _string_array(part.get("tags", [])),
+		})
+	return result
+
 func _ensure_loaded() -> void:
 	if not _loaded:
 		load_content()
@@ -895,6 +1405,30 @@ func _default_morphs() -> Dictionary:
 		"head_size": 0.0,
 		"weapon_scale": 0.0,
 	}
+
+func _apply_palette_overrides(recipe: CC2DRecipe, palette_overrides: Dictionary) -> void:
+	if recipe == null:
+		return
+	for palette_id: String in palette_overrides.keys():
+		var color_text := str(palette_overrides.get(palette_id, "")).strip_edges()
+		if color_text.is_valid_html_color():
+			recipe.palettes[palette_id] = color_text
+
+func _apply_palette_constraints(recipe: CC2DRecipe, palette_constraints: Dictionary, seed: int) -> void:
+	if recipe == null:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var palette_ids := _dictionary_keys(palette_constraints)
+	for palette_id: String in palette_ids:
+		var options := _string_array(palette_constraints.get(palette_id, []))
+		var valid_options: Array[String] = []
+		for color_text: String in options:
+			if color_text.is_valid_html_color():
+				valid_options.append(color_text)
+		if valid_options.is_empty():
+			continue
+		recipe.palettes[palette_id] = valid_options[rng.randi_range(0, valid_options.size() - 1)]
 
 func _default_equipment_sockets() -> Dictionary:
 	return {
@@ -977,6 +1511,33 @@ func _socket_offset_dictionary(value: Vector2) -> Dictionary:
 		"x": value.x,
 		"y": value.y,
 	}
+
+func _tags_intersect(left: Array[String], right: Array[String]) -> bool:
+	if left.is_empty():
+		return true
+	for tag: String in right:
+		if left.has(tag):
+			return true
+	return false
+
+func _equipment_target_slot(recipe: CC2DRecipe, socket_id: String, socket: Dictionary, candidate: Dictionary) -> String:
+	var socket_slot := str(socket.get("slot", "")).strip_edges()
+	if recipe != null and recipe.parts.has(socket_slot):
+		return socket_slot
+	var candidate_slot := str(candidate.get("slot", "")).strip_edges()
+	if recipe != null and recipe.parts.has(candidate_slot):
+		return candidate_slot
+	match socket_id:
+		"main_hand", "off_hand":
+			return "Fantasy/Weapon"
+		"head":
+			return "Fantasy/Helmet"
+		"chest":
+			return "Fantasy/Armor"
+		"back":
+			return "Fantasy/Cape"
+		_:
+			return candidate_slot if not candidate_slot.is_empty() else socket_slot
 
 func _sampled_anchor_offset(anchor: String, part_transforms: Dictionary) -> Vector2:
 	var normalized_anchor := _normalize_curve_part_name(anchor.replace("_", " "))
@@ -1102,6 +1663,15 @@ func _constraint_entry(severity: String, messages: Array) -> Dictionary:
 		"messages": messages,
 	}
 
+func _max_severity(left: String, right: String) -> String:
+	var order := {
+		"ok": 0,
+		"low": 1,
+		"medium": 2,
+		"high": 3,
+	}
+	return right if int(order.get(right, 0)) > int(order.get(left, 0)) else left
+
 func _compatibility_part_summary(recipe: CC2DRecipe, frame_width: int, frame_height: int) -> Dictionary:
 	var summary := {
 		"clipping_risk_count": 0,
@@ -1149,8 +1719,16 @@ func _text_contains_any(text: String, needles: Array[String]) -> bool:
 
 func _palette_accessibility_warnings(recipe: CC2DRecipe) -> Array[String]:
 	var warnings: Array[String] = []
+	for pair: Dictionary in _palette_contrast_pairs(recipe):
+		if bool(pair.get("passes_minimum", true)):
+			continue
+		warnings.append("Low palette contrast between %s and %s." % [str(pair.get("left_id", "")), str(pair.get("right_id", ""))])
+	return warnings
+
+func _palette_contrast_pairs(recipe: CC2DRecipe) -> Array[Dictionary]:
+	var pairs: Array[Dictionary] = []
 	if recipe == null:
-		return warnings
+		return pairs
 	var palette_ids := recipe.palettes.keys()
 	for left_index: int in palette_ids.size():
 		for right_index: int in range(left_index + 1, palette_ids.size()):
@@ -1161,9 +1739,16 @@ func _palette_accessibility_warnings(recipe: CC2DRecipe) -> Array[String]:
 			if left_color == null or right_color == null:
 				continue
 			var contrast := _contrast_ratio(left_color as Color, right_color as Color)
-			if contrast < 1.25:
-				warnings.append("Low palette contrast between %s and %s." % [left_id, right_id])
-	return warnings
+			pairs.append({
+				"left_id": left_id,
+				"right_id": right_id,
+				"left_color": (left_color as Color).to_html(),
+				"right_color": (right_color as Color).to_html(),
+				"contrast_ratio": contrast,
+				"passes_minimum": contrast >= 1.25,
+				"severity": "ok" if contrast >= 1.25 else "high",
+			})
+	return pairs
 
 func _color_from_palette_value(value: Variant) -> Variant:
 	var text := str(value)
@@ -1204,18 +1789,93 @@ func _export_budget_for_checklist(checklist: Array) -> Dictionary:
 		"estimated_bytes": estimated_pixels * 4,
 	}
 
+func _frame_pivots_for_recipe_animation(recipe: CC2DRecipe, animation_id: String, frame_count: int, frame_width: int, frame_height: int) -> Array[Dictionary]:
+	var pivots: Array[Dictionary] = []
+	var animation_overrides := recipe.pivot_overrides.get(animation_id, {}) as Dictionary if recipe != null else {}
+	for frame_index: int in frame_count:
+		var fallback := Vector2(frame_width * 0.5, frame_height)
+		var pivot := fallback
+		var overridden := false
+		var stored: Variant = animation_overrides.get(str(frame_index), null)
+		if stored is Dictionary:
+			var data := stored as Dictionary
+			pivot = Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+			overridden = true
+		elif stored is Vector2:
+			pivot = stored as Vector2
+			overridden = true
+		pivots.append({
+			"frame_index": frame_index,
+			"x": pivot.x,
+			"y": pivot.y,
+			"overridden": overridden,
+		})
+	return pivots
+
+func _pivot_override_count_for_frames(recipe: CC2DRecipe, animation_id: String, frame_count: int) -> int:
+	if recipe == null:
+		return 0
+	var animation_overrides := recipe.pivot_overrides.get(animation_id, {}) as Dictionary
+	var count := 0
+	for frame_index: int in frame_count:
+		if animation_overrides.has(str(frame_index)):
+			count += 1
+	return count
+
+func _budget_target_entry(target_id: String, texture_width: int, texture_height: int, frame_count: int, target_type: String) -> Dictionary:
+	var estimated_pixels := texture_width * texture_height
+	var estimated_bytes := estimated_pixels * 4
+	var severity := "ok"
+	var messages: Array[String] = []
+	if texture_width > MAX_EXPORT_TEXTURE_SIZE or texture_height > MAX_EXPORT_TEXTURE_SIZE:
+		severity = "high"
+		messages.append("Texture size %dx%d exceeds max %d." % [texture_width, texture_height, MAX_EXPORT_TEXTURE_SIZE])
+	elif texture_width > int(float(MAX_EXPORT_TEXTURE_SIZE) * 0.75) or texture_height > int(float(MAX_EXPORT_TEXTURE_SIZE) * 0.75):
+		severity = _max_severity(severity, "medium")
+		messages.append("Texture size %dx%d is close to max %d." % [texture_width, texture_height, MAX_EXPORT_TEXTURE_SIZE])
+	if frame_count > MAX_EXPORT_FRAMES:
+		severity = "high"
+		messages.append("Frame count %d exceeds max %d." % [frame_count, MAX_EXPORT_FRAMES])
+	elif frame_count > int(float(MAX_EXPORT_FRAMES) * 0.75):
+		severity = _max_severity(severity, "medium")
+		messages.append("Frame count %d is close to max %d." % [frame_count, MAX_EXPORT_FRAMES])
+	if estimated_bytes > MAX_EXPORT_BYTES:
+		severity = "high"
+		messages.append("Estimated memory %.2f MB exceeds max %.2f MB." % [float(estimated_bytes) / 1048576.0, float(MAX_EXPORT_BYTES) / 1048576.0])
+	elif estimated_bytes > int(float(MAX_EXPORT_BYTES) * 0.75):
+		severity = _max_severity(severity, "medium")
+		messages.append("Estimated memory %.2f MB is close to max %.2f MB." % [float(estimated_bytes) / 1048576.0, float(MAX_EXPORT_BYTES) / 1048576.0])
+	if messages.is_empty():
+		messages.append("%s budget is within limits." % target_id.replace("_", " ").capitalize())
+	return {
+		"target_id": target_id,
+		"type": target_type,
+		"texture_width": texture_width,
+		"texture_height": texture_height,
+		"frame_count": frame_count,
+		"estimated_pixels": estimated_pixels,
+		"estimated_bytes": estimated_bytes,
+		"max_texture_size": MAX_EXPORT_TEXTURE_SIZE,
+		"max_frames": MAX_EXPORT_FRAMES,
+		"max_bytes": MAX_EXPORT_BYTES,
+		"severity": severity,
+		"messages": messages,
+	}
+
 func _bake_animation_sheet(recipe: CC2DRecipe, sheet_path: String, frame_width: int, frame_height: int, frame_count: int, columns: int, clip_metadata: Dictionary) -> Dictionary:
 	var rows := int(ceil(float(frame_count) / float(max(1, columns))))
 	var sheet := Image.create(frame_width * columns, frame_height * rows, false, Image.FORMAT_RGBA8)
 	sheet.fill(Color(0, 0, 0, 0))
 	var rig_sample_count := 0
 	var pixel_rotation_count := 0
+	var morph_transform_count := 0
 	for frame_index: int in frame_count:
 		var samples := _sample_curve_bindings_for_frame(clip_metadata.get("curve_bindings", []) as Array, frame_index, frame_count, float(clip_metadata.get("stop_time", 0.0)))
 		rig_sample_count += samples.size()
 		var composite_report := {}
 		var composite := _compose_recipe_frame(recipe, Vector2i(frame_width, frame_height), samples, composite_report)
 		pixel_rotation_count += int(composite_report.get("pixel_rotation_count", 0))
+		morph_transform_count += int(composite_report.get("morph_transform_count", 0))
 		if composite == null:
 			return {
 				"ok": false,
@@ -1239,6 +1899,8 @@ func _bake_animation_sheet(recipe: CC2DRecipe, sheet_path: String, frame_width: 
 		"rig_sample_count": rig_sample_count,
 		"uses_pixel_rotation": pixel_rotation_count > 0,
 		"pixel_rotation_count": pixel_rotation_count,
+		"uses_morph_transforms": morph_transform_count > 0,
+		"morph_transform_count": morph_transform_count,
 	}
 
 func _spriteframes_from_bake_report(report: Dictionary) -> SpriteFrames:
@@ -1277,15 +1939,19 @@ func _compose_recipe_frame(recipe: CC2DRecipe, frame_size: Vector2i, curve_sampl
 	frame.fill(Color(0, 0, 0, 0))
 	var part_transforms := _part_transforms_from_curve_samples(curve_samples)
 	var pixel_rotation_count := 0
+	var morph_transform_count := 0
 	for slot_id: String in _preview_slot_order_for_recipe(recipe):
 		var part := recipe.parts.get(slot_id, {}) as Dictionary
 		var source := _image_for_part_preview(part)
 		if source == null:
 			continue
-		var transform := _transform_for_slot(slot_id, part_transforms)
+		var transform := _transform_for_recipe_slot(recipe, slot_id, part_transforms)
 		if not bool(transform.get("visible", true)):
 			continue
+		if bool(transform.get("uses_morph", false)):
+			morph_transform_count += 1
 		var scaled := source.duplicate() as Image
+		_apply_palette_modulate(scaled, palette_modulate_for_slot(recipe, slot_id))
 		var max_width: int = max(1, int(float(frame_size.x) * 0.62))
 		var max_height: int = max(1, int(float(frame_size.y) * 0.62))
 		var base_scale: float = min(float(max_width) / float(max(1, scaled.get_width())), float(max_height) / float(max(1, scaled.get_height())))
@@ -1305,7 +1971,79 @@ func _compose_recipe_frame(recipe: CC2DRecipe, frame_size: Vector2i, curve_sampl
 		)
 		frame.blend_rect(scaled, Rect2i(Vector2i.ZERO, scaled.get_size()), destination)
 	report.pixel_rotation_count = pixel_rotation_count
+	report.morph_transform_count = morph_transform_count
 	return frame
+
+func _apply_palette_modulate(image: Image, color: Color) -> void:
+	if image == null or color == Color.WHITE:
+		return
+	for y: int in image.get_height():
+		for x: int in image.get_width():
+			var pixel := image.get_pixel(x, y)
+			if pixel.a <= 0.0:
+				continue
+			image.set_pixel(x, y, Color(pixel.r * color.r, pixel.g * color.g, pixel.b * color.b, pixel.a * color.a))
+
+func _image_signature(image: Image) -> Dictionary:
+	var width := image.get_width()
+	var height := image.get_height()
+	var opaque_count := 0
+	for y: int in height:
+		for x: int in width:
+			if image.get_pixel(x, y).a > 0.0:
+				opaque_count += 1
+	var sample_hash := 2166136261
+	for y: int in range(0, height, 17):
+		for x: int in range(0, width, 19):
+			sample_hash = _hash_color(sample_hash, image.get_pixel(x, y))
+	sample_hash = _hash_color(sample_hash, image.get_pixel(max(0, width / 2), max(0, height / 2)))
+	sample_hash = _hash_color(sample_hash, image.get_pixel(max(0, width - 1), max(0, height - 1)))
+	return {
+		"width": width,
+		"height": height,
+		"opaque_count": opaque_count,
+		"sample_hash": sample_hash,
+		"signature": "%dx%d:%d:%d" % [width, height, opaque_count, sample_hash],
+	}
+
+func _contact_sheet_frame_differences(left_image: Image, right_image: Image, frame_width: int, frame_height: int) -> Array[Dictionary]:
+	var differences: Array[Dictionary] = []
+	if left_image.get_size() != right_image.get_size():
+		return differences
+	var safe_frame_width: int = max(1, frame_width)
+	var safe_frame_height: int = max(1, frame_height)
+	var columns: int = max(1, int(left_image.get_width() / safe_frame_width))
+	var rows: int = max(1, int(left_image.get_height() / safe_frame_height))
+	for frame_index: int in columns * rows:
+		var column: int = frame_index % columns
+		var row: int = int(frame_index / columns)
+		var rect := Rect2i(Vector2i(column * safe_frame_width, row * safe_frame_height), Vector2i(safe_frame_width, safe_frame_height))
+		if rect.position.x + rect.size.x > left_image.get_width() or rect.position.y + rect.size.y > left_image.get_height():
+			continue
+		var left_frame := left_image.get_region(rect)
+		var right_frame := right_image.get_region(rect)
+		var left_signature := _image_signature(left_frame)
+		var right_signature := _image_signature(right_frame)
+		if str(left_signature.get("signature", "")) != str(right_signature.get("signature", "")):
+			differences.append({
+				"frame_index": frame_index,
+				"column": column,
+				"row": row,
+				"left_signature": left_signature,
+				"right_signature": right_signature,
+			})
+	return differences
+
+func _hash_color(hash_value: int, color: Color) -> int:
+	var channels := [
+		int(round(color.r * 255.0)),
+		int(round(color.g * 255.0)),
+		int(round(color.b * 255.0)),
+		int(round(color.a * 255.0)),
+	]
+	for channel: int in channels:
+		hash_value = int((hash_value ^ channel) * 16777619) & 0x7fffffff
+	return hash_value
 
 func _rotate_image_nearest(source: Image, degrees: float) -> Image:
 	if source == null:
@@ -1447,6 +2185,81 @@ func _transform_for_slot(slot_id: String, part_transforms: Dictionary) -> Dictio
 	if matched:
 		return combined
 	return combined
+
+func _transform_for_recipe_slot(recipe: CC2DRecipe, slot_id: String, part_transforms: Dictionary) -> Dictionary:
+	var combined := _transform_for_slot(slot_id, part_transforms)
+	var morph_transform := _morph_transform_for_slot(recipe, slot_id)
+	combined.offset = (combined.get("offset", Vector2.ZERO) as Vector2) + (morph_transform.get("offset", Vector2.ZERO) as Vector2)
+	combined.rotation_degrees = float(combined.get("rotation_degrees", 0.0)) + float(morph_transform.get("rotation_degrees", 0.0))
+	var combined_scale := combined.get("scale", Vector2.ONE) as Vector2
+	var morph_scale := morph_transform.get("scale", Vector2.ONE) as Vector2
+	combined.scale = Vector2(combined_scale.x * morph_scale.x, combined_scale.y * morph_scale.y)
+	combined.visible = bool(combined.get("visible", true)) and bool(morph_transform.get("visible", true))
+	combined.uses_morph = bool(morph_transform.get("uses_morph", false))
+	return combined
+
+func _morph_transform_for_slot(recipe: CC2DRecipe, slot_id: String) -> Dictionary:
+	var transform := {
+		"offset": Vector2.ZERO,
+		"rotation_degrees": 0.0,
+		"scale": Vector2.ONE,
+		"visible": true,
+		"uses_morph": false,
+	}
+	if recipe == null:
+		return transform
+	var morphs := recipe.morphs
+	if morphs.is_empty():
+		return transform
+	var scale := Vector2.ONE
+	var offset := Vector2.ZERO
+	var normalized_slot := slot_id.to_lower()
+	var body_height := clampf(float(morphs.get("body_height", 0.0)), -1.0, 1.0)
+	var body_width := clampf(float(morphs.get("body_width", 0.0)), -1.0, 1.0)
+	var head_size := clampf(float(morphs.get("head_size", 0.0)), -1.0, 1.0)
+	var weapon_scale := clampf(float(morphs.get("weapon_scale", 0.0)), -1.0, 1.0)
+	if not is_zero_approx(body_height) and _slot_uses_body_morph(normalized_slot):
+		scale.y *= maxf(0.35, 1.0 + body_height * 0.18)
+		offset.y -= body_height * 8.0
+	if not is_zero_approx(body_width) and _slot_uses_body_morph(normalized_slot):
+		scale.x *= maxf(0.35, 1.0 + body_width * 0.16)
+	if not is_zero_approx(head_size) and _slot_uses_head_morph(normalized_slot):
+		var head_factor := maxf(0.35, 1.0 + head_size * 0.22)
+		scale *= head_factor
+		offset.y -= head_size * 6.0
+	if not is_zero_approx(weapon_scale) and _slot_uses_weapon_morph(normalized_slot):
+		var weapon_factor := maxf(0.35, 1.0 + weapon_scale * 0.28)
+		scale *= weapon_factor
+		offset += Vector2(weapon_scale * 4.0, -weapon_scale * 2.0)
+	if scale != Vector2.ONE or offset != Vector2.ZERO:
+		transform.scale = scale
+		transform.offset = offset
+		transform.uses_morph = true
+	return transform
+
+func _slot_uses_body_morph(normalized_slot: String) -> bool:
+	return normalized_slot.contains("body") or normalized_slot.contains("armor") or normalized_slot.contains("pants") or normalized_slot.contains("skirt") or normalized_slot.contains("boot") or normalized_slot.contains("cape")
+
+func _slot_uses_head_morph(normalized_slot: String) -> bool:
+	return normalized_slot.contains("hair") or normalized_slot.contains("helmet") or normalized_slot.contains("ear") or normalized_slot.contains("eye") or normalized_slot.contains("eyebrow") or normalized_slot.contains("mouth") or normalized_slot.contains("nose") or normalized_slot.contains("facial hair")
+
+func _slot_uses_weapon_morph(normalized_slot: String) -> bool:
+	return normalized_slot.contains("weapon") or normalized_slot.contains("glove") or normalized_slot.contains("shield")
+
+func _palette_id_for_slot(slot_id: String) -> String:
+	if slot_id.contains("Hair") or slot_id.contains("Facial Hair") or slot_id.contains("Eyebrow"):
+		return "hair"
+	if slot_id.contains("Body Skin") or slot_id.contains("Ear") or slot_id.contains("Mouth") or slot_id.contains("Nose"):
+		return "skin"
+	if slot_id.contains("Eyes"):
+		return "eyes"
+	if slot_id.contains("Armor") or slot_id.contains("Helmet") or slot_id.contains("Weapon") or slot_id.contains("Gloves"):
+		return "metal"
+	if slot_id.contains("Shirt") or slot_id.contains("Pants") or slot_id.contains("Underwear") or slot_id.contains("Skirt"):
+		return "cloth_primary"
+	if slot_id.contains("Cape"):
+		return "cloth_secondary"
+	return ""
 
 func _curve_part_targets_for_slot(slot_id: String) -> Array[String]:
 	if slot_id.contains("Hair") or slot_id.contains("Helmet") or slot_id.contains("Ear") or slot_id.contains("Eye") or slot_id.contains("Eyebrow") or slot_id.contains("Mouth") or slot_id.contains("Nose") or slot_id.contains("Facial Hair"):

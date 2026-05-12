@@ -60,6 +60,16 @@ gameplay, portrait, icon, or review exports. Default recipes include main-hand,
 off-hand, head, chest, and back sockets with anchors, offsets, and compatible
 equipment tags.
 
+Morph production scope is intentionally limited to safe transforms for now:
+part scale, offset, rotation, pivot-style alignment, selected palette/tint
+changes, and small proportion edits that survive preview and baked export
+without warping the pixel art. Full lattice/mesh deformation is deferred as an
+advanced milestone, not a current port requirement. Only promote it if a later
+visual requirement cannot be satisfied through safe transforms, part swaps,
+palette/tint changes, overlays, or equipment sockets, and only after defining
+the target parts, animation coverage, authoring workflow, export cost budget,
+artifact tolerance, and visual regression tests.
+
 `CharacterSelect.tscn` now uses the shared creator manager for the in-game
 creator path. It maintains a live `CC2DRecipe`, exposes validation and preview
 state helpers, and renders the selected PNG parts as a nearest-filtered layered
@@ -83,6 +93,7 @@ and the separate Character Studio scene. It can:
 - save/apply named outfit sets on recipes,
 - save/list recipe-owned custom export sets and use them for validation, export plans, baking, and bundles,
 - report recipe equipment sockets for an animation, including sampled offsets for attachment consumers,
+- apply safe transform morphs in preview and baked exports while keeping lattice/mesh deformation out of the current baseline,
 - validate recipes against checklist export sets, including palette contrast warnings, estimated export memory/pixel budgets, and baseline compatibility constraints for clipping, weapon alignment, silhouette readability, frame bounds, camera zoom, and hitbox compatibility,
 - bake a first transparent PNG sheet set plus `source_spec.json` from a recipe,
 - create a loadable Godot `SpriteFrames` `.tres` from a baked sheet report,
