@@ -37,6 +37,7 @@ func _run() -> void:
 	_assert_title_background_parallax(screen)
 	_assert_moon_sky_and_weather_layers(screen)
 	_assert_title_polish_layers(screen)
+	_assert_world_break_variant_hook(screen)
 	_assert_left_gradient_title_and_menu(screen)
 	_assert_title_screen_signals(screen)
 
@@ -169,6 +170,32 @@ func _assert_title_polish_layers(screen: Control) -> void:
 	var moved_position := screen.call("get_title_polish_sample_position") as Vector2
 	if starting_position == moved_position:
 		_fail("Title polish particles should move over time.")
+		return
+
+func _assert_world_break_variant_hook(screen: Control) -> void:
+	if not screen.has_method("apply_world_state_variant"):
+		_fail("Title screen should expose apply_world_state_variant for World Break title variants.")
+		return
+	if not screen.has_method("get_title_variant"):
+		_fail("Title screen should expose get_title_variant for tests and menu orchestration.")
+		return
+	screen.call("apply_world_state_variant", {
+		"world_break_state": "post_break",
+		"title_variant": "world_break",
+	})
+	if str(screen.call("get_title_variant")) != "world_break":
+		_fail("Post-break saves should switch the title to the World Break variant.")
+		return
+	var weather_layer := screen.get_node_or_null("WeatherLayer") as Control
+	var polish_layer := screen.get_node_or_null("PolishLayer") as Control
+	if weather_layer == null or polish_layer == null:
+		_fail("World Break title variant needs weather and polish layers.")
+		return
+	if weather_layer.modulate.r <= weather_layer.modulate.b:
+		_fail("World Break title variant should tint weather toward ash and blood instead of plain blue rain.")
+		return
+	if polish_layer.modulate.r <= polish_layer.modulate.g:
+		_fail("World Break title variant should tint polish particles toward damaged hub petals.")
 		return
 
 func _assert_left_gradient_title_and_menu(screen: Control) -> void:

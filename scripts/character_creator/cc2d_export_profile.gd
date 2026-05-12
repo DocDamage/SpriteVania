@@ -27,6 +27,12 @@ func aim_layer_states() -> Array:
 func default_export() -> Dictionary:
 	return (_data.get("default_export", {}) as Dictionary).duplicate(true)
 
+func godot_sheet_target() -> Dictionary:
+	return (_data.get("godot_sheet_target", {}) as Dictionary).duplicate(true)
+
+func raw_source_dir() -> String:
+	return str((_data.get("source", {}) as Dictionary).get("raw_dir", ""))
+
 func game_animation_exports() -> Dictionary:
 	return (_data.get("game_animation_exports", {}) as Dictionary).duplicate(true)
 

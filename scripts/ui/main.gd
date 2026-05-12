@@ -10,6 +10,8 @@ const GameStateScript := preload("res://scripts/core/game_state.gd")
 const CharacterRegistry := preload("res://scripts/characters/character_registry.gd")
 const PartyManager := preload("res://scripts/core/party_manager.gd")
 const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
+const CC2DCreatorManager := preload("res://scripts/character_creator/cc2d_creator_manager.gd")
+const CC2DRecipe := preload("res://scripts/character_creator/cc2d_recipe.gd")
 const LOAD_SLOTS := [
 	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
 	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
@@ -43,6 +45,7 @@ func _replace_screen(scene_path: String) -> Node:
 func show_title() -> void:
 	var title := _replace_screen(TITLE_SCREEN_PATH)
 	_apply_persisted_settings_to_screen(title)
+	_apply_title_variant_to_screen(title)
 	if title.has_signal("new_game_requested"):
 		title.connect("new_game_requested", show_character_select)
 	if title.has_signal("continue_requested"):
@@ -123,7 +126,10 @@ func _start_new_game(starter_id: String, character_name: String) -> void:
 	var appearance := {}
 	if current_screen != null and current_screen.has_method("get_selected_appearance"):
 		appearance = current_screen.call("get_selected_appearance") as Dictionary
-	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance)
+	var selected_recipe: CC2DRecipe = null
+	if current_screen != null and current_screen.has_method("get_current_recipe"):
+		selected_recipe = current_screen.call("get_current_recipe") as CC2DRecipe
+	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance, selected_recipe)
 	var save_manager := _get_save_manager()
 	if save_manager != null and save_manager.has_method("save_game"):
 		save_manager.call("save_game", initial_state)
@@ -269,13 +275,27 @@ func _connect_world_navigation(world: Node) -> void:
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
 
-func _initial_state_for_starter(starter_id: String, character_name: String, character_appearance := {}) -> GameStateScript:
+func _initial_state_for_starter(starter_id: String, character_name: String, character_appearance := {}, selected_recipe: CC2DRecipe = null) -> GameStateScript:
 	var definition := CharacterRegistry.get_definition(starter_id)
 	var state := GameStateScript.new()
 	state.selected_starter_id = starter_id
 	state.player_name = character_name.strip_edges()
 	state.selected_class = str(definition.get("class_id")) if definition != null else "warden"
 	state.character_appearance = character_appearance if character_appearance is Dictionary else {}
+	var creator_manager := CC2DCreatorManager.new()
+	creator_manager.load_content()
+	var recipe := selected_recipe
+	if recipe == null:
+		recipe = creator_manager.recipe_from_appearance("%s_%s" % [starter_id, state.player_name.to_snake_case()], state.player_name, state.character_appearance)
+	else:
+		state.character_appearance = recipe.parts.duplicate(true)
+	state.character_recipe_id = recipe.recipe_id
+	state.character_recipe = recipe.to_dictionary()
+	state.character_creator_content_versions = {
+		"base_fantasy": creator_manager.content_version(),
+	}
+	if not recipe.generated_spriteframes_path.is_empty() and ResourceLoader.exists(recipe.generated_spriteframes_path):
+		state.character_spriteframes_path = recipe.generated_spriteframes_path
 	state.selected_sprite = ""
 	state.current_area = "swamp_outskirts"
 	state.current_room = "RoomStart"
@@ -305,6 +325,14 @@ func _apply_persisted_settings_to_screen(screen: Node) -> void:
 	_apply_runtime_settings(settings)
 	if screen != null and screen.has_method("apply_settings"):
 		screen.call("apply_settings", settings)
+
+
+func _apply_title_variant_to_screen(screen: Node) -> void:
+	var save_manager := _get_save_manager()
+	if screen == null or save_manager == null:
+		return
+	if screen.has_method("apply_world_state_variant") and save_manager.has_method("resolve_latest_title_variant"):
+		screen.call("apply_world_state_variant", save_manager.call("resolve_latest_title_variant"))
 
 
 func _on_settings_changed(settings: Dictionary) -> void:

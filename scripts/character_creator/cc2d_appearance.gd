@@ -24,6 +24,9 @@ func load_catalog() -> bool:
 			"label": _label_from_filename(parts[parts.size() - 1]),
 			"path": _manifest.project_path(str(entry.get("godot_path", ""))),
 			"relative_path": relative_path,
+			"slot_id": slot_id,
+			"category": parts[1],
+			"tags": _tags_for_option(slot_id, relative_path),
 		})
 		_slots[slot_id] = options
 	for slot_id: String in _slots.keys():
@@ -57,3 +60,13 @@ func default_appearance() -> Dictionary:
 func _label_from_filename(file_name: String) -> String:
 	var label := file_name.get_basename().replace("_", " ").strip_edges()
 	return label if not label.is_empty() else file_name
+
+func _tags_for_option(slot_id: String, relative_path: String) -> Array[String]:
+	var tags: Array[String] = ["starter_safe"]
+	var source := "%s/%s" % [slot_id, relative_path.get_file().get_basename()]
+	for token: String in source.replace("\\", "/").replace("_", " ").replace("-", " ").replace(".", " ").split("/", false):
+		for piece: String in token.split(" ", false):
+			var normalized := piece.strip_edges().to_lower()
+			if normalized.length() >= 2 and not tags.has(normalized):
+				tags.append(normalized)
+	return tags

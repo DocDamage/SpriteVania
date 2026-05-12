@@ -51,6 +51,14 @@ func _init() -> void:
 	state.active_party_ids = ["ronin", "black_witch"]
 	state.active_party_index = 1
 	state.momentum = 75
+	state.world_break_state = "post_break"
+	state.world_break_triggered = true
+	state.zone_states = {
+		"sakuramori_court": {
+			"variant": "damaged",
+			"safe_hub": true,
+		},
+	}
 	state.settings = {
 		"master_volume": 0.4,
 		"fullscreen": false,
@@ -143,6 +151,15 @@ func _init() -> void:
 		push_error("Active party index or Momentum did not persist")
 		quit(1)
 		return
+	if loaded.world_break_state != "post_break" or not loaded.world_break_triggered:
+		push_error("World Break state did not persist")
+		quit(1)
+		return
+	var sakuramori_state := loaded.zone_states.get("sakuramori_court", {}) as Dictionary
+	if str(sakuramori_state.get("variant", "")) != "damaged" or not bool(sakuramori_state.get("safe_hub", false)):
+		push_error("Zone state variants did not persist")
+		quit(1)
+		return
 	var loaded_witch := loaded.party_roster.get("black_witch", {}) as Dictionary
 	if str(loaded_witch.get("character_name", "")) != "Mira" or str(loaded_witch.get("class_id", "")) != "hexbinder":
 		push_error("Party roster state did not persist")
@@ -210,6 +227,10 @@ func _init() -> void:
 		push_error("Default save metadata should include summary fields")
 		quit(1)
 		return
+	if str(default_metadata.get("world_break_state", "")) != "post_break":
+		push_error("Save metadata should include the World Break state for title/menu variants")
+		quit(1)
+		return
 	if not bool(slot_a_metadata.get("valid", false)) or str(slot_a_metadata.get("selected_class", "")) != "gunslinger":
 		push_error("Slot metadata should include valid slot summary fields")
 		quit(1)
@@ -253,6 +274,21 @@ func _init() -> void:
 	var latest_loaded: GameState = manager.call("load_latest_valid_game", ["default", "slot_a", "slot_b", "slot_c"])
 	if latest_loaded == null or latest_loaded.selected_class != "hexbinder":
 		push_error("Latest valid save load should return the newest valid state")
+		quit(1)
+		return
+	latest_state.world_break_state = "breaking"
+	latest_state.world_break_triggered = true
+	if not manager.save_game_to_slot("slot_c", latest_state):
+		push_error("Latest World Break slot save failed")
+		quit(1)
+		return
+	if not manager.has_method("resolve_latest_title_variant"):
+		push_error("Save manager should expose resolve_latest_title_variant() for World Break title variants.")
+		quit(1)
+		return
+	var title_variant := manager.call("resolve_latest_title_variant", ["default", "slot_a", "slot_b", "slot_c"]) as Dictionary
+	if str(title_variant.get("world_break_state", "")) != "breaking" or str(title_variant.get("title_variant", "")) != "world_break":
+		push_error("Title variant resolver should use the latest valid World Break save state.")
 		quit(1)
 		return
 	var default_loaded := manager.load_game()

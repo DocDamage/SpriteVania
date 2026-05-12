@@ -38,6 +38,7 @@ var _petal_particles: Array[ColorRect] = []
 var _petal_base_positions: Array[Vector2] = []
 var _fog_particles: Array[ColorRect] = []
 var _fog_base_positions: Array[Vector2] = []
+var _title_variant := "normal"
 
 
 func _ready() -> void:
@@ -80,6 +81,10 @@ func get_title_polish_sample_position() -> Vector2:
 	return _petal_particles[0].position
 
 
+func get_title_variant() -> String:
+	return _title_variant
+
+
 func apply_settings(settings: Dictionary) -> void:
 	var reduced_motion := bool(settings.get("reduced_motion", false))
 	parallax_enabled = not reduced_motion
@@ -87,6 +92,19 @@ func apply_settings(settings: Dictionary) -> void:
 		weather_layer.visible = not reduced_motion
 	if polish_layer != null:
 		polish_layer.visible = not reduced_motion
+
+
+func apply_world_state_variant(variant: Dictionary) -> void:
+	var world_break_state := str(variant.get("world_break_state", "pre_break"))
+	_title_variant = str(variant.get("title_variant", "normal"))
+	if _title_variant.is_empty():
+		_title_variant = "world_break" if world_break_state != "pre_break" else "normal"
+
+	var is_world_break := _title_variant == "world_break"
+	if weather_layer != null:
+		weather_layer.modulate = Color(1.0, 0.48, 0.38, 1.0) if is_world_break else Color.WHITE
+	if polish_layer != null:
+		polish_layer.modulate = Color(1.0, 0.34, 0.28, 1.0) if is_world_break else Color.WHITE
 
 
 func refresh_continue_state() -> void:

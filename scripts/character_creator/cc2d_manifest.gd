@@ -42,6 +42,13 @@ func entries_by_extension(extension: String) -> Array[Dictionary]:
 			matches.append(entry)
 	return matches
 
+func entry_for_relative_path(relative_path: String) -> Dictionary:
+	var normalized := relative_path.replace("\\", "/")
+	for entry: Dictionary in entries():
+		if str(entry.get("relative_path", "")).replace("\\", "/") == normalized:
+			return entry.duplicate(true)
+	return {}
+
 func sprite_paths_containing(path_fragment: String) -> Array[String]:
 	var matches: Array[String] = []
 	for entry: Dictionary in entries_by_extension(".png"):

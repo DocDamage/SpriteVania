@@ -36,6 +36,7 @@ func read_save_slot_metadata(slot_id: String) -> Dictionary:
 		"current_area": "",
 		"current_room": "",
 		"level": 0,
+		"world_break_state": "pre_break",
 	}
 	if not bool(metadata.exists):
 		return metadata
@@ -52,6 +53,7 @@ func read_save_slot_metadata(slot_id: String) -> Dictionary:
 	metadata.current_area = state.current_area
 	metadata.current_room = state.current_room
 	metadata.level = state.level
+	metadata.world_break_state = state.world_break_state
 	return metadata
 
 func scan_save_slots(slot_ids := DEFAULT_SLOT_IDS) -> Array[Dictionary]:
@@ -82,6 +84,20 @@ func load_latest_valid_game(slot_ids := DEFAULT_SLOT_IDS) -> GameStateScript:
 	if slot_id == "default":
 		return load_game()
 	return load_game_from_slot(slot_id)
+
+func resolve_latest_title_variant(slot_ids := DEFAULT_SLOT_IDS) -> Dictionary:
+	var state := load_latest_valid_game(slot_ids)
+	if state == null:
+		return {
+			"world_break_state": "pre_break",
+			"title_variant": "normal",
+		}
+	var world_break_state := state.world_break_state
+	var title_variant := "world_break" if state.world_break_triggered or world_break_state != "pre_break" else "normal"
+	return {
+		"world_break_state": world_break_state,
+		"title_variant": title_variant,
+	}
 
 func delete_save() -> void:
 	if has_save():
