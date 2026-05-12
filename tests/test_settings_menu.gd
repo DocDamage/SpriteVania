@@ -368,6 +368,7 @@ func _assert_settings_menu_exposes_full_tab_set() -> void:
 		"VsyncButton",
 		"ScreenShakeSlider",
 		"TextSpeedSlider",
+		"ControllerPromptStyleButton",
 		"ResetAllBindingsButton",
 		"LargeTextButton",
 		"ColorblindModeButton",
@@ -403,6 +404,7 @@ func _assert_expanded_settings_persist_updates() -> void:
 	menu.call("set_vsync_enabled", true)
 	menu.call("set_screen_shake", 0.2)
 	menu.call("set_text_speed", 0.85)
+	menu.call("set_controller_prompt_style", "PlayStation")
 	menu.call("set_large_text_enabled", true)
 	menu.call("set_colorblind_mode", "Deuteranopia")
 
@@ -425,6 +427,9 @@ func _assert_expanded_settings_persist_updates() -> void:
 		return
 	if not is_equal_approx(float(settings.get("text_speed", -1.0)), 0.85):
 		_fail("Text speed setting should persist.")
+		return
+	if str(settings.get("controller_prompt_style", "")) != "PlayStation":
+		_fail("Controller prompt style should persist.")
 		return
 	if bool(settings.get("large_text", false)) != true:
 		_fail("Large text setting should persist.")
@@ -481,6 +486,7 @@ func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
 		"sfx_volume": 2.5,
 		"screen_shake": -1.0,
 		"text_speed": 4.0,
+		"controller_prompt_style": "Arcade",
 		"colorblind_mode": "Impossible",
 		"high_contrast": true,
 	}
@@ -510,6 +516,9 @@ func _assert_settings_menu_clamps_invalid_persisted_values() -> void:
 		return
 	if str(settings.colorblind_mode) != "Off":
 		_fail("Invalid persisted colorblind mode should fall back to Off.")
+		return
+	if str(settings.controller_prompt_style) != "Generic":
+		_fail("Invalid persisted controller prompt style should fall back to Generic.")
 		return
 	if not bool(settings.high_contrast):
 		_fail("Valid persisted booleans should still load.")
@@ -541,6 +550,7 @@ func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
 	menu.call("set_reduced_motion_enabled", true)
 	menu.call("set_high_contrast_enabled", true)
 	menu.call("set_large_text_enabled", true)
+	menu.call("set_controller_prompt_style", "Switch")
 	menu.call("set_colorblind_mode", "Tritanopia")
 	menu.call("reset_settings_to_defaults")
 
@@ -554,6 +564,9 @@ func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
 	if str(settings.colorblind_mode) != "Off":
 		_fail("Reset defaults should restore colorblind mode.")
 		return
+	if str(settings.controller_prompt_style) != "Generic":
+		_fail("Reset defaults should restore generic controller prompt style.")
+		return
 	var music_slider := menu.get_node("%MusicVolumeSlider") as HSlider
 	if not is_equal_approx(music_slider.value, 1.0):
 		_fail("Reset defaults should sync music slider.")
@@ -561,6 +574,10 @@ func _assert_settings_menu_resets_defaults_and_syncs_controls() -> void:
 	var colorblind_button := menu.get_node("%ColorblindModeButton") as OptionButton
 	if colorblind_button.get_item_text(colorblind_button.selected) != "Off":
 		_fail("Reset defaults should sync colorblind option.")
+		return
+	var prompt_style_button := menu.get_node("%ControllerPromptStyleButton") as OptionButton
+	if prompt_style_button.get_item_text(prompt_style_button.selected) != "Generic":
+		_fail("Reset defaults should sync controller prompt style option.")
 		return
 
 	menu.queue_free()

@@ -18,7 +18,7 @@ Blocking status:
 Known limitations:
 
 - Manual keyboard and controller playthroughs still need human playtest confirmation for feel, route timing, and combat readability.
-- Controller glyphs are currently covered by generic joypad bindings and fallback labels, not full platform-specific glyph art.
+- Controller prompts have selectable Generic, Xbox, PlayStation, and Switch text labels, but not final platform-specific glyph art.
 - Milestone room art remains prototype/blockout quality with derived backdrop art, not final tile-by-tile production art.
 - Derived character, enemy, and boss resources are prototype frame selections and do not yet represent final animation sets.
 - Masakiro phase escalation uses a prototype oni overlay instead of a full alternate boss sprite.

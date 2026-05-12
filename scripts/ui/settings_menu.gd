@@ -19,6 +19,7 @@ const REBINDABLE_ACTIONS := [
 	"pause",
 ]
 const COLORBLIND_MODES := GlobalSettingsScript.COLORBLIND_MODES
+const CONTROLLER_PROMPT_STYLES := GlobalSettingsScript.CONTROLLER_PROMPT_STYLES
 
 var _settings := GlobalSettingsScript.default_settings()
 var _save_manager: Node
@@ -36,6 +37,7 @@ func _ready() -> void:
 	%VsyncButton.toggled.connect(_on_vsync_toggled)
 	%ScreenShakeSlider.value_changed.connect(_on_screen_shake_changed)
 	%TextSpeedSlider.value_changed.connect(_on_text_speed_changed)
+	%ControllerPromptStyleButton.item_selected.connect(_on_controller_prompt_style_selected)
 	%ReducedMotionButton.toggled.connect(_on_reduced_motion_toggled)
 	%HighContrastButton.toggled.connect(_on_high_contrast_toggled)
 	%LargeTextButton.toggled.connect(_on_large_text_toggled)
@@ -97,6 +99,11 @@ func set_screen_shake(value: float) -> void:
 
 func set_text_speed(value: float) -> void:
 	_settings.text_speed = clampf(value, 0.25, 1.0)
+	_persist_settings()
+	settings_changed.emit(get_settings_state())
+
+func set_controller_prompt_style(style: String) -> void:
+	_settings.controller_prompt_style = style if CONTROLLER_PROMPT_STYLES.has(style) else "Generic"
 	_persist_settings()
 	settings_changed.emit(get_settings_state())
 
@@ -220,6 +227,10 @@ func _on_screen_shake_changed(value: float) -> void:
 func _on_text_speed_changed(value: float) -> void:
 	set_text_speed(value)
 
+func _on_controller_prompt_style_selected(index: int) -> void:
+	if index >= 0 and index < CONTROLLER_PROMPT_STYLES.size():
+		set_controller_prompt_style(CONTROLLER_PROMPT_STYLES[index])
+
 func _on_reduced_motion_toggled(toggled_on: bool) -> void:
 	set_reduced_motion_enabled(toggled_on)
 
@@ -289,6 +300,7 @@ func _sync_controls() -> void:
 	%VsyncButton.set_pressed_no_signal(bool(_settings.vsync))
 	%ScreenShakeSlider.set_value_no_signal(float(_settings.screen_shake))
 	%TextSpeedSlider.set_value_no_signal(float(_settings.text_speed))
+	%ControllerPromptStyleButton.select(CONTROLLER_PROMPT_STYLES.find(str(_settings.controller_prompt_style)))
 	%ReducedMotionButton.set_pressed_no_signal(bool(_settings.reduced_motion))
 	%HighContrastButton.set_pressed_no_signal(bool(_settings.high_contrast))
 	%LargeTextButton.set_pressed_no_signal(bool(_settings.large_text))
@@ -300,6 +312,10 @@ func _populate_colorblind_modes() -> void:
 	button.clear()
 	for mode: String in COLORBLIND_MODES:
 		button.add_item(mode)
+	var prompt_button := %ControllerPromptStyleButton as OptionButton
+	prompt_button.clear()
+	for style: String in CONTROLLER_PROMPT_STYLES:
+		prompt_button.add_item(style)
 
 func _sync_binding_labels() -> void:
 	if not is_node_ready():

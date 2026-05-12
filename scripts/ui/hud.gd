@@ -4,8 +4,13 @@ class_name HUD
 const MapRegistry := preload("res://scripts/world/map_registry.gd")
 const DEFAULT_CONTROLS_HINT_FONT_SIZE := 11
 const LARGE_CONTROLS_HINT_FONT_SIZE := 15
-const DEFAULT_CONTROLS_HINT_TEXT := "Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B"
-const ATTACK_PROMPT_TEXT := "Attack J / X  Tap for combo  Hold Down+Attack to dive"
+const DEFAULT_CONTROLLER_STYLE := "Xbox"
+const PROMPT_LABELS := {
+	"Generic": {"attack": "Face Left", "dash": "Face Right"},
+	"Xbox": {"attack": "X", "dash": "B"},
+	"PlayStation": {"attack": "Square", "dash": "Circle"},
+	"Switch": {"attack": "Y", "dash": "A"},
+}
 
 @onready var root_control: Control = $Root
 @onready var health_bar: ProgressBar = %HealthBar
@@ -25,16 +30,21 @@ const ATTACK_PROMPT_TEXT := "Attack J / X  Tap for combo  Hold Down+Attack to di
 @onready var upgrade_toast_timer: Timer = %UpgradeToastTimer
 
 var player: Player
+var _controller_prompt_style := DEFAULT_CONTROLLER_STYLE
+var _showing_attack_prompt := false
 
 func _ready() -> void:
 	upgrade_toast_timer.timeout.connect(_on_upgrade_toast_timer_timeout)
+	clear_controls_prompt()
 
 func apply_settings(settings: Dictionary) -> void:
 	var large_text := bool(settings.get("large_text", false))
 	var high_contrast := bool(settings.get("high_contrast", false))
+	_controller_prompt_style = _normalize_controller_style(str(settings.get("controller_prompt_style", _controller_prompt_style)))
 	var hint_size := LARGE_CONTROLS_HINT_FONT_SIZE if large_text else DEFAULT_CONTROLS_HINT_FONT_SIZE
 	%ControlsHintLabel.add_theme_font_size_override("font_size", hint_size)
 	root_control.modulate = Color(1.0, 1.0, 1.0, 1.0) if high_contrast else Color(1.0, 1.0, 1.0, 0.92)
+	_update_controls_prompt_text()
 
 func bind_player(next_player: Player) -> void:
 	if player != null and player.stats_changed.is_connected(_on_player_stats_changed):
@@ -52,10 +62,28 @@ func bind_player(next_player: Player) -> void:
 		set_familiar_status(familiar.call("get_status"))
 
 func show_attack_prompt() -> void:
-	%ControlsHintLabel.text = ATTACK_PROMPT_TEXT
+	_showing_attack_prompt = true
+	_update_controls_prompt_text()
 
 func clear_controls_prompt() -> void:
-	%ControlsHintLabel.text = DEFAULT_CONTROLS_HINT_TEXT
+	_showing_attack_prompt = false
+	_update_controls_prompt_text()
+
+func _update_controls_prompt_text() -> void:
+	if %ControlsHintLabel == null:
+		return
+	var labels := PROMPT_LABELS.get(_controller_prompt_style, PROMPT_LABELS[DEFAULT_CONTROLLER_STYLE]) as Dictionary
+	var attack_label := str(labels.get("attack", "X"))
+	var dash_label := str(labels.get("dash", "B"))
+	if _showing_attack_prompt:
+		%ControlsHintLabel.text = "Attack J / %s  Tap for combo  Hold Down+Attack to dive" % attack_label
+	else:
+		%ControlsHintLabel.text = "Attack J / %s  Combo taps  Dive S+J / Down+%s  Dash Shift / %s" % [attack_label, attack_label, dash_label]
+
+func _normalize_controller_style(style: String) -> String:
+	if PROMPT_LABELS.has(style):
+		return style
+	return DEFAULT_CONTROLLER_STYLE
 
 func _on_player_stats_changed(stats: Dictionary) -> void:
 	var health: int = int(stats.get("health", 0))

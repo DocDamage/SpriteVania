@@ -3,6 +3,7 @@ class_name GlobalSettings
 
 const DEFAULT_SETTINGS_PATH := "user://black_keep_settings.json"
 const COLORBLIND_MODES := ["Off", "Deuteranopia", "Protanopia", "Tritanopia"]
+const CONTROLLER_PROMPT_STYLES := ["Generic", "Xbox", "PlayStation", "Switch"]
 
 static func default_settings() -> Dictionary:
 	return {
@@ -17,6 +18,7 @@ static func default_settings() -> Dictionary:
 		"high_contrast": false,
 		"large_text": false,
 		"colorblind_mode": "Off",
+		"controller_prompt_style": "Generic",
 	}
 
 static func has_settings(path := DEFAULT_SETTINGS_PATH) -> bool:
@@ -56,6 +58,8 @@ static func normalize_settings(settings: Dictionary) -> Dictionary:
 				normalized[key] = clampf(float(value), 0.25, 1.0)
 			"colorblind_mode":
 				normalized[key] = str(value) if COLORBLIND_MODES.has(str(value)) else "Off"
+			"controller_prompt_style":
+				normalized[key] = str(value) if CONTROLLER_PROMPT_STYLES.has(str(value)) else "Generic"
 			_:
 				normalized[key] = _normalized_bool(value)
 	return normalized

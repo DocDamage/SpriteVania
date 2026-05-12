@@ -44,8 +44,12 @@ func _run() -> void:
 	_assert_equal("Attack J / X  Tap for combo  Hold Down+Attack to dive", hud.get_node("%ControlsHintLabel").text, "Attack prompt hook should surface melee combo and dive input.")
 	if _failed:
 		return
+	hud.call("apply_settings", {"controller_prompt_style": "PlayStation"})
+	_assert_equal("Attack J / Square  Tap for combo  Hold Down+Attack to dive", hud.get_node("%ControlsHintLabel").text, "HUD should support PlayStation controller prompt fallback text.")
+	if _failed:
+		return
 	hud.call("clear_controls_prompt")
-	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should restore its default controls prompt.")
+	_assert_equal("Attack J / Square  Combo taps  Dive S+J / Down+Square  Dash Shift / Circle", hud.get_node("%ControlsHintLabel").text, "HUD should restore its default controls prompt using the selected controller style.")
 	if _failed:
 		return
 	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")
@@ -98,6 +102,7 @@ func _run() -> void:
 	hud.call("apply_settings", {
 		"large_text": true,
 		"high_contrast": true,
+		"controller_prompt_style": "Generic",
 	})
 	if int(hud.get_node("%ControlsHintLabel").get_theme_font_size("font_size")) < 14:
 		_fail("HUD large text setting should increase hint label font size.")
@@ -109,9 +114,13 @@ func _run() -> void:
 	hud.call("apply_settings", {
 		"large_text": false,
 		"high_contrast": false,
+		"controller_prompt_style": "Xbox",
 	})
 	if int(hud.get_node("%ControlsHintLabel").get_theme_font_size("font_size")) != 11:
 		_fail("HUD should restore default hint label font size when large text is disabled.")
+		return
+	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should switch back to Xbox-style prompt labels.")
+	if _failed:
 		return
 
 	container.queue_free()
