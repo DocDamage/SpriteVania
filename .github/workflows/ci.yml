@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - temporary-full-assets
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Test suite to run"
+        required: true
+        default: creator
+        type: choice
+        options:
+          - fast
+          - creator-fast
+          - creator-heavy
+          - creator
+          - full
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  godot-tests:
+    name: Godot tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Godot
+        uses: chickensoft-games/setup-godot@v2.4.1
+        with:
+          version: 4.6.2
+          use-dotnet: false
+          include-templates: false
+
+      - name: Verify Godot
+        shell: pwsh
+        run: godot --version
+
+      - name: Check whitespace
+        shell: pwsh
+        run: git diff --check
+
+      - name: Run test suite
+        shell: pwsh
+        run: |
+          $suite = "${{ github.event.inputs.suite }}"
+          if ([string]::IsNullOrWhiteSpace($suite)) {
+            $suite = "creator"
+          }
+          ./tools/run_tests.ps1 -Suite $suite -Godot godot -KeepGoing
