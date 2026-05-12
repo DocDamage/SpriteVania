@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://pspbjw41gein"
+path="res://.godot/imported/dungeon_01.ogg-02c3ee7a3dc7f829f7b839610aa52498.oggvorbisstr"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_03_game_systems/music/dungeon_01.ogg"
+dest_files=["res://.godot/imported/dungeon_01.ogg-02c3ee7a3dc7f829f7b839610aa52498.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c8n08b2dhdqib"
+path="res://.godot/imported/forest_01.ogg-53d2d6964b2f96025abf759763a17ebc.oggvorbisstr"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_03_game_systems/music/forest_01.ogg"
+dest_files=["res://.godot/imported/forest_01.ogg-53d2d6964b2f96025abf759763a17ebc.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

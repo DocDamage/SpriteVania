@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://deb0lg7bch4yl"
+path="res://.godot/imported/player.ase-cb132045e5305aabd2e534185c645349.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Player/player.ase"
+dest_files=["res://.godot/imported/player.ase-cb132045e5305aabd2e534185c645349.res"]
+
+[params]
+

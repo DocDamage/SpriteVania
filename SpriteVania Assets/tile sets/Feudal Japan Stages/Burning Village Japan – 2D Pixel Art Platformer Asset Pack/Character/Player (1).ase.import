@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://x1a8vti404se"
+path="res://.godot/imported/Player (1).ase-74d2dfce1d88a616bcfc2084d5fb8a02.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Feudal Japan Stages/Burning Village Japan – 2D Pixel Art Platformer Asset Pack/Character/Player (1).ase"
+dest_files=["res://.godot/imported/Player (1).ase-74d2dfce1d88a616bcfc2084d5fb8a02.res"]
+
+[params]
+

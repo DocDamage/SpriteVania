@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character_definition.gd" id="1_character_definition"]
+
+[resource]
+script = ExtResource("1_character_definition")
+character_id = "shadow"
+display_name = "The Shadow"
+role_summary = "Required scout recruit built around rescue-route stealth, blind-angle attacks, pins, and phase utility."
+default_name = "Ren"
+combat_role = "scout"
+starter_selectable = false
+recruitable = true
+class_id = "gunslinger"
+preview_asset_path = "res://SpriteVania Assets/player/magic_cliffs_player"
+baseline_skills = Array[String](["silent_arrowfall", "shadow_step"])

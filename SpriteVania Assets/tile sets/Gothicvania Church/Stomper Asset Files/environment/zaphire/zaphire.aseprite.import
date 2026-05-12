@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://decdrr4qrvxd2"
+path="res://.godot/imported/zaphire.aseprite-d182ff8f4133ad6908e65427de7dde1d.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/environment/zaphire/zaphire.aseprite"
+dest_files=["res://.godot/imported/zaphire.aseprite-d182ff8f4133ad6908e65427de7dde1d.res"]
+
+[params]
+

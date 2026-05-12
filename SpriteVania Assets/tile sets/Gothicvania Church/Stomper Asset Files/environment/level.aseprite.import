@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://b3nuj7uah46we"
+path="res://.godot/imported/level.aseprite-9c17c080a62ab0471559b426814d2714.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/environment/level.aseprite"
+dest_files=["res://.godot/imported/level.aseprite-9c17c080a62ab0471559b426814d2714.res"]
+
+[params]
+

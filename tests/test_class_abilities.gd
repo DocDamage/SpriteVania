@@ -12,7 +12,7 @@ func _initialize() -> void:
 func _run() -> void:
 	await _assert_player_has_baseline_double_jump_and_dash()
 	await _assert_player_has_baseline_wall_hang_and_wall_jump()
-	await _assert_slide_attack_damages_enemy()
+	await _assert_dash_strike_replaces_slide_attack()
 	await _assert_locked_attack_skills_do_not_fire()
 	await _assert_warden_guard_counter_consumes_resource_and_cooldown()
 	await _assert_gunslinger_piercing_shot_hits_multiple_targets()
@@ -88,34 +88,40 @@ func _assert_player_has_baseline_wall_hang_and_wall_jump() -> void:
 		return
 	player.free()
 
-func _assert_slide_attack_damages_enemy() -> void:
+func _assert_dash_strike_replaces_slide_attack() -> void:
 	var player := _spawn_player(GUNSLINGER_DATA)
 	var enemy := CRAWLER_SCENE.instantiate() as Enemy
 	root.add_child(enemy)
 	enemy.global_position = player.global_position + Vector2(56, 0)
-	player.set_traversal_unlocks(["combat_slide"])
+	player.set_traversal_unlocks(["dash_strike"])
 	player.current_resource = 60
 	await physics_frame
 
 	var starting_health := enemy.current_health
 	var start_x := player.global_position.x
-	player.perform_slide()
-	if player.global_position.x != start_x:
-		_fail("Slide attack should start as a low moving burst, not an instant teleport.")
+	if player.has_method("perform_slide"):
+		_fail("Slide should no longer exist as a separate player mechanic.")
 		return
-	if not bool(player.get("is_sliding")):
-		_fail("Slide attack should expose an active slide state while it is moving.")
+	if not player.has_method("perform_dash_strike"):
+		_fail("Player should expose perform_dash_strike as the dash-merged slide replacement.")
+		return
+	player.perform_dash_strike()
+	if player.global_position.x != start_x:
+		_fail("Dash strike should start as a moving burst, not an instant teleport.")
+		return
+	if bool(player.get("is_dashing")) != true:
+		_fail("Dash strike should use the active dash state instead of a separate slide state.")
 		return
 	player._physics_process(1.0 / 60.0)
 	if player.global_position.x <= start_x:
-		_fail("Slide attack should move forward during active slide frames.")
+		_fail("Dash strike should move forward during active dash frames.")
 		return
 	await physics_frame
 	if enemy.current_health >= starting_health:
-		_fail("Slide attack should damage an enemy in the slide path.")
+		_fail("Dash strike should damage an enemy in the dash path.")
 		return
 	if player.current_resource != 54:
-		_fail("Slide attack should consume the combat slide resource cost.")
+		_fail("Dash strike should consume the merged dash-strike resource cost.")
 		return
 	player.free()
 	enemy.free()
@@ -136,6 +142,7 @@ func _assert_locked_attack_skills_do_not_fire() -> void:
 func _assert_warden_guard_counter_consumes_resource_and_cooldown() -> void:
 	var player := _spawn_player(WARDEN_DATA)
 	var enemy := CRAWLER_SCENE.instantiate() as Enemy
+	enemy.max_health = 60
 	root.add_child(enemy)
 	enemy.global_position = player.global_position + Vector2(26, 0)
 	player.set_learned_attack_skills(["guard_counter"])

@@ -1,0 +1,133 @@
+{
+  "default_set": "first_slice_player",
+  "sets": {
+    "first_slice_player": {
+      "label": "First Slice Player",
+      "description": "Core movement and combat animations needed for the playable first slice.",
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "dash",
+        "jump",
+        "fall",
+        "hurt",
+        "death",
+        "melee_1",
+        "melee_2",
+        "melee_3",
+        "cast",
+        "shoot"
+      ]
+    },
+    "movement": {
+      "label": "Movement",
+      "description": "Traversal-focused sheet exports.",
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "dash",
+        "jump",
+        "fall",
+        "climb_up",
+        "climb_down",
+        "crouch"
+      ]
+    },
+    "combat": {
+      "label": "Combat",
+      "description": "Melee, casting, guard, and projectile sheet exports.",
+      "animations": [
+        "melee_1",
+        "melee_2",
+        "melee_3",
+        "heavy",
+        "cast",
+        "guard",
+        "shoot",
+        "rifle_shoot"
+      ]
+    },
+    "all_base": {
+      "label": "All Base Animations",
+      "description": "Every CC2D base-layer animation exposed by the package.",
+      "animations": [
+        "base:default",
+        "base:idle",
+        "base:walk",
+        "base:run",
+        "base:sprint",
+        "base:jump",
+        "base:fall",
+        "base:hit",
+        "base:die",
+        "base:attack_main_hand_1",
+        "base:attack_main_hand_2",
+        "base:attack_main_hand_3",
+        "base:attack_off_hand_1",
+        "base:attack_off_hand_2",
+        "base:attack_off_hand_3",
+        "base:attack_both_hand_1",
+        "base:attack_both_hand_2",
+        "base:attack_both_hand_3",
+        "base:attack_two_handed_1",
+        "base:attack_two_handed_2",
+        "base:attack_two_handed_3",
+        "base:cast_1",
+        "base:cast_2",
+        "base:shield_ready",
+        "base:shield_block",
+        "base:attack_punch_1",
+        "base:attack_punch_2",
+        "base:attack_punch_3",
+        "base:attack_kick_1",
+        "base:attack_kick_2",
+        "base:give",
+        "base:receive",
+        "base:push",
+        "base:pull",
+        "base:talk_1",
+        "base:talk_2",
+        "base:talk_3",
+        "base:crouch",
+        "base:walk_back",
+        "base:run_back",
+        "base:climb_up",
+        "base:climb_down",
+        "base:swim",
+        "base:idle_swim",
+        "base:idle_holding_rifle",
+        "base:walk_holding_rifle",
+        "base:run_holding_rifle",
+        "base:crouch_holding_rifle",
+        "base:interact",
+        "base:crouch_interact",
+        "base:idle_wide",
+        "base:idle_narrow",
+        "base:idle_straight",
+        "base:idle_relaxed"
+      ]
+    },
+    "all_aim": {
+      "label": "All Aim Animations",
+      "description": "Every CC2D aim-layer animation exposed by the package.",
+      "animations": [
+        "aim:aim_main_hand",
+        "aim:shot_main_hand",
+        "aim:rapid_shot_main_hand",
+        "aim:aim_off_hand",
+        "aim:shot_off_hand",
+        "aim:rapid_shot_off_hand",
+        "aim:aim_both_hand",
+        "aim:shot_both_hand",
+        "aim:rapid_shot_both_hand",
+        "aim:aim_rifle",
+        "aim:shot_rifle",
+        "aim:rapid_shot_rifle",
+        "aim:aim_bow",
+        "aim:shot_bow"
+      ]
+    }
+  }
+}

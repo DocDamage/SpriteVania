@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cdeooi4ck3reo"
+path="res://.godot/imported/break_wood.wav-e82114ee450521a5cda370f2003a4586.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_04_player_abilities/audio/break_wood.wav"
+dest_files=["res://.godot/imported/break_wood.wav-e82114ee450521a5cda370f2003a4586.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

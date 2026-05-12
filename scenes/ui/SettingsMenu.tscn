@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -30,7 +30,49 @@ theme_override_font_sizes/font_size = 36
 text = "Settings"
 horizontal_alignment = 1
 
-[node name="VolumeSlider" type="HSlider" parent="CenterContainer/VBoxContainer"]
+[node name="SettingsTabs" type="TabContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 410)
+layout_mode = 2
+
+[node name="General" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="GeneralSummary" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+layout_mode = 2
+text = "Common game-wide preferences"
+
+[node name="WindowModeButton" type="CheckButton" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="VsyncButton" type="CheckButton" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "VSync"
+
+[node name="ReducedMotionButton" type="CheckButton" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reduce title and screen motion"
+
+[node name="ResetDefaultsButton" type="Button" parent="CenterContainer/VBoxContainer/SettingsTabs/General"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 38)
+layout_mode = 2
+text = "Reset Settings Defaults"
+
+[node name="Audio" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="VolumeLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
+layout_mode = 2
+text = "Master Volume"
+
+[node name="VolumeSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 0.0
@@ -38,45 +80,150 @@ max_value = 1.0
 step = 0.05
 value = 1.0
 
-[node name="WindowModeButton" type="CheckButton" parent="CenterContainer/VBoxContainer"]
+[node name="MusicVolumeLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
+layout_mode = 2
+text = "Music Volume"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Fullscreen"
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
 
-[node name="JumpBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="SfxVolumeLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
+layout_mode = 2
+text = "SFX Volume"
+
+[node name="SfxVolumeSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SettingsTabs/Audio"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Video" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="VideoSummary" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Video"]
+layout_mode = 2
+text = "Display and camera presentation"
+
+[node name="ScreenShakeLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Video"]
+layout_mode = 2
+text = "Screen Shake"
+
+[node name="ScreenShakeSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SettingsTabs/Video"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Gameplay" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="GameplaySummary" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Gameplay"]
+layout_mode = 2
+text = "Input feel and readability"
+
+[node name="TextSpeedLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Gameplay"]
+layout_mode = 2
+text = "Text Speed"
+
+[node name="TextSpeedSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SettingsTabs/Gameplay"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.25
+max_value = 1.0
+step = 0.05
+value = 0.65
+
+[node name="Controls" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MoveLeftBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Move Left: A, D-Pad Left"
+
+[node name="MoveRightBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Move Right: D, D-Pad Right"
+
+[node name="JumpBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Jump: Space"
 
-[node name="DashBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="DashBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Dash: Shift, B"
 
-[node name="AttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="AttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Attack: J, X"
 
-[node name="SpecialAttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="SpecialAttackBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Special Attack: K, Y"
 
-[node name="ClassActionBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="ClassActionBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Class Action: L, RB"
 
-[node name="InteractBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="InteractBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Interact: E, LB"
 
-[node name="PauseBindingLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="PauseBindingLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Pause: Esc, Menu"
+
+[node name="ResetAllBindingsButton" type="Button" parent="CenterContainer/VBoxContainer/SettingsTabs/Controls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 38)
+layout_mode = 2
+text = "Reset All Bindings"
+
+[node name="Accessibility" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SettingsTabs"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AccessibilitySummary" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Accessibility"]
+layout_mode = 2
+text = "Visual and motion assists"
+
+[node name="HighContrastButton" type="CheckButton" parent="CenterContainer/VBoxContainer/SettingsTabs/Accessibility"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "High contrast UI"
+
+[node name="LargeTextButton" type="CheckButton" parent="CenterContainer/VBoxContainer/SettingsTabs/Accessibility"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Large text"
+
+[node name="ColorblindModeLabel" type="Label" parent="CenterContainer/VBoxContainer/SettingsTabs/Accessibility"]
+layout_mode = 2
+text = "Colorblind Mode"
+
+[node name="ColorblindModeButton" type="OptionButton" parent="CenterContainer/VBoxContainer/SettingsTabs/Accessibility"]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

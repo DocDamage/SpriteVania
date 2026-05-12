@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/milestone_room_blockout.gd" id="1_blockout"]
+
+[node name="SakuramoriCourt_TrainingYard" type="Node2D"]
+script = ExtResource("1_blockout")
+room_id = "SakuramoriCourt_TrainingYard"
+next_rooms = {
+"left": "SakuramoriCourt_Entrance"
+}
+zone_theme = "sakuramori_court"

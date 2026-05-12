@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://wdb4jx2hgyns"
+path="res://.godot/imported/fireball.ase-e9b8fd47e4cc08f878982c410d916115.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/SPRITES/fx/fireball/fireball.ase"
+dest_files=["res://.godot/imported/fireball.ase-e9b8fd47e4cc08f878982c410d916115.res"]
+
+[params]
+

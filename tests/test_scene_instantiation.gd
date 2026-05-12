@@ -2,6 +2,7 @@ extends SceneTree
 
 const SCENE_PATHS := [
 	"res://scenes/Main.tscn",
+	"res://scenes/enemies/Masakiro.tscn",
 	"res://scenes/enemies/SwampCrawler.tscn",
 	"res://scenes/enemies/SwampMiniBoss.tscn",
 	"res://scenes/player/PlayerFamiliar.tscn",
@@ -17,6 +18,11 @@ const SCENE_PATHS := [
 	"res://scenes/world/UpgradePickup.tscn",
 	"res://scenes/world/castle_gate/CastleGateStart.tscn",
 	"res://scenes/world/castle_gate/CastleBattlements.tscn",
+	"res://scenes/world/sakuramori_court/SakuramoriCourt_Entrance.tscn",
+	"res://scenes/world/sakuramori_court/SakuramoriCourt_MoonpetalPassage.tscn",
+	"res://scenes/world/sakuramori_court/SakuramoriCourt_PartyShrine.tscn",
+	"res://scenes/world/sakuramori_court/SakuramoriCourt_SaveShrine.tscn",
+	"res://scenes/world/sakuramori_court/SakuramoriCourt_TrainingYard.tscn",
 	"res://scenes/world/swamp_outskirts/RoomCheckpoint.tscn",
 	"res://scenes/world/swamp_outskirts/RoomEnemy.tscn",
 	"res://scenes/world/swamp_outskirts/RoomHazard.tscn",

@@ -1,0 +1,37 @@
+{
+  "set_id": "first_slice_player",
+  "spriteframes": "resources/character_creator_2d/test_bulk_export_frames.tres",
+  "animation_count": 3,
+  "animations": [
+    {
+      "id": "idle",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Base/Body Skin/Bodyset Male.png",
+      "frame_width": 1024,
+      "frame_height": 1024,
+      "frame_count": 1,
+      "columns": 1,
+      "loop": true,
+      "fps": 12.0
+    },
+    {
+      "id": "run",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Base/Hair/00.png",
+      "frame_width": 256,
+      "frame_height": 256,
+      "frame_count": 1,
+      "columns": 1,
+      "loop": true,
+      "fps": 12.0
+    },
+    {
+      "id": "jump",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Fantasy/Armor/Fantasy 00 Male.png",
+      "frame_width": 512,
+      "frame_height": 512,
+      "frame_count": 1,
+      "columns": 1,
+      "loop": false,
+      "fps": 12.0
+    }
+  ]
+}

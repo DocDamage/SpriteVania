@@ -1,0 +1,856 @@
+{
+  "source": {
+    "raw_dir": "SpriteVania Assets/character_creator_2d/base_fantasy_raw",
+    "animation_lists": [
+      "Creator UI/Animation List/Base Layer.asset",
+      "Creator UI/Animation List/Aim Layer.asset",
+      "Creator UI/Animation List/Export PNG.asset"
+    ]
+  },
+  "capabilities": {
+    "port_target": "godot_native",
+    "export_modes": [
+      "SingleImage",
+      "PNGSequence",
+      "SpriteSheet"
+    ],
+    "backgrounds": [
+      "Transparent",
+      "Black",
+      "White",
+      "Gray",
+      "Magenta",
+      "Green"
+    ],
+    "scale_modes": [
+      "Automatic",
+      "ActualPixelSize"
+    ],
+    "supports_base_layer": true,
+    "supports_aim_layer": true,
+    "supports_atlas_export": true,
+    "supports_emotes": true,
+    "supports_color_palettes": true
+  },
+  "default_export": {
+    "target_fps": 12,
+    "width": 512,
+    "height": 512,
+    "background": "Transparent",
+    "export_mode": "PNGSequence",
+    "scale_mode": "Automatic",
+    "super_sampling": 2
+  },
+  "godot_sheet_target": {
+    "columns": 8,
+    "frame_anchor": "bottom_center",
+    "transparent_background": true,
+    "trim_empty_margin": false
+  },
+  "base_layer_states": [
+    "Default",
+    "Idle",
+    "Walk",
+    "Run",
+    "Sprint",
+    "Jump",
+    "Fall",
+    "Hit",
+    "Die",
+    "Attack Main Hand 1",
+    "Attack Main Hand 2",
+    "Attack Main Hand 3",
+    "Attack Off Hand 1",
+    "Attack Off Hand 2",
+    "Attack Off Hand 3",
+    "Attack Both Hand 1",
+    "Attack Both Hand 2",
+    "Attack Both Hand 3",
+    "Attack Two Handed 1",
+    "Attack Two Handed 2",
+    "Attack Two Handed 3",
+    "Cast 1",
+    "Cast 2",
+    "Shield Ready",
+    "Shield Block",
+    "Attack Punch 1",
+    "Attack Punch 2",
+    "Attack Punch 3",
+    "Attack Kick 1",
+    "Attack Kick 2",
+    "Give",
+    "Receive",
+    "Push",
+    "Pull",
+    "Talk 1",
+    "Talk 2",
+    "Talk 3",
+    "Crouch",
+    "Walk Back",
+    "Run Back",
+    "Climb Up",
+    "Climb Down",
+    "Swim",
+    "Idle Swim",
+    "Idle Holding Rifle",
+    "Walk Holding Rifle",
+    "Run Holding Rifle",
+    "Crouch Holding Rifle",
+    "Interact",
+    "Crouch Interact",
+    "Idle Wide",
+    "Idle Narrow",
+    "Idle Straight",
+    "Idle Relaxed"
+  ],
+  "aim_layer_states": [
+    "None",
+    "Aim Main Hand",
+    "Shot Main Hand",
+    "Rapid Shot Main Hand",
+    "Aim Off Hand",
+    "Shot Off Hand",
+    "Rapid Shot Off Hand",
+    "Aim Both Hand",
+    "Shot Both Hand",
+    "Rapid Shot Both Hand",
+    "Aim Rifle",
+    "Shot Rifle",
+    "Rapid Shot Rifle",
+    "Aim Bow",
+    "Shot Bow"
+  ],
+  "export_states": [
+    "Atlas"
+  ],
+  "all_animation_exports": {
+    "base:default": {
+      "id": "base:default",
+      "layer": "base",
+      "base": "Default",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Default.anim"
+    },
+    "base:idle": {
+      "id": "base:idle",
+      "layer": "base",
+      "base": "Idle",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle.anim"
+    },
+    "base:walk": {
+      "id": "base:walk",
+      "layer": "base",
+      "base": "Walk",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Walk.anim"
+    },
+    "base:run": {
+      "id": "base:run",
+      "layer": "base",
+      "base": "Run",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Run.anim"
+    },
+    "base:sprint": {
+      "id": "base:sprint",
+      "layer": "base",
+      "base": "Sprint",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Sprint.anim"
+    },
+    "base:jump": {
+      "id": "base:jump",
+      "layer": "base",
+      "base": "Jump",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Jump.anim"
+    },
+    "base:fall": {
+      "id": "base:fall",
+      "layer": "base",
+      "base": "Fall",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Fall.anim"
+    },
+    "base:hit": {
+      "id": "base:hit",
+      "layer": "base",
+      "base": "Hit",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Hit.anim"
+    },
+    "base:die": {
+      "id": "base:die",
+      "layer": "base",
+      "base": "Die",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Die.anim"
+    },
+    "base:attack_main_hand_1": {
+      "id": "base:attack_main_hand_1",
+      "layer": "base",
+      "base": "Attack Main Hand 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Main Hand 1.anim"
+    },
+    "base:attack_main_hand_2": {
+      "id": "base:attack_main_hand_2",
+      "layer": "base",
+      "base": "Attack Main Hand 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Main Hand 2.anim"
+    },
+    "base:attack_main_hand_3": {
+      "id": "base:attack_main_hand_3",
+      "layer": "base",
+      "base": "Attack Main Hand 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Main Hand 3.anim"
+    },
+    "base:attack_off_hand_1": {
+      "id": "base:attack_off_hand_1",
+      "layer": "base",
+      "base": "Attack Off Hand 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Off Hand 1.anim"
+    },
+    "base:attack_off_hand_2": {
+      "id": "base:attack_off_hand_2",
+      "layer": "base",
+      "base": "Attack Off Hand 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Off Hand 2.anim"
+    },
+    "base:attack_off_hand_3": {
+      "id": "base:attack_off_hand_3",
+      "layer": "base",
+      "base": "Attack Off Hand 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Off Hand 3.anim"
+    },
+    "base:attack_both_hand_1": {
+      "id": "base:attack_both_hand_1",
+      "layer": "base",
+      "base": "Attack Both Hand 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Both Hand 1.anim"
+    },
+    "base:attack_both_hand_2": {
+      "id": "base:attack_both_hand_2",
+      "layer": "base",
+      "base": "Attack Both Hand 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Both Hand 2.anim"
+    },
+    "base:attack_both_hand_3": {
+      "id": "base:attack_both_hand_3",
+      "layer": "base",
+      "base": "Attack Both Hand 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Both Hand 3.anim"
+    },
+    "base:attack_two_handed_1": {
+      "id": "base:attack_two_handed_1",
+      "layer": "base",
+      "base": "Attack Two Handed 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Two Handed 1.anim"
+    },
+    "base:attack_two_handed_2": {
+      "id": "base:attack_two_handed_2",
+      "layer": "base",
+      "base": "Attack Two Handed 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Two Handed 2.anim"
+    },
+    "base:attack_two_handed_3": {
+      "id": "base:attack_two_handed_3",
+      "layer": "base",
+      "base": "Attack Two Handed 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Two Handed 3.anim"
+    },
+    "base:cast_1": {
+      "id": "base:cast_1",
+      "layer": "base",
+      "base": "Cast 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Cast 1.anim"
+    },
+    "base:cast_2": {
+      "id": "base:cast_2",
+      "layer": "base",
+      "base": "Cast 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Cast 2.anim"
+    },
+    "base:shield_ready": {
+      "id": "base:shield_ready",
+      "layer": "base",
+      "base": "Shield Ready",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Shield Ready.anim"
+    },
+    "base:shield_block": {
+      "id": "base:shield_block",
+      "layer": "base",
+      "base": "Shield Block",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Shield Block.anim"
+    },
+    "base:attack_punch_1": {
+      "id": "base:attack_punch_1",
+      "layer": "base",
+      "base": "Attack Punch 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Punch 1.anim"
+    },
+    "base:attack_punch_2": {
+      "id": "base:attack_punch_2",
+      "layer": "base",
+      "base": "Attack Punch 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Punch 2.anim"
+    },
+    "base:attack_punch_3": {
+      "id": "base:attack_punch_3",
+      "layer": "base",
+      "base": "Attack Punch 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Punch 3.anim"
+    },
+    "base:attack_kick_1": {
+      "id": "base:attack_kick_1",
+      "layer": "base",
+      "base": "Attack Kick 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Kick 1.anim"
+    },
+    "base:attack_kick_2": {
+      "id": "base:attack_kick_2",
+      "layer": "base",
+      "base": "Attack Kick 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Attack Kick 2.anim"
+    },
+    "base:give": {
+      "id": "base:give",
+      "layer": "base",
+      "base": "Give",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Give.anim"
+    },
+    "base:receive": {
+      "id": "base:receive",
+      "layer": "base",
+      "base": "Receive",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Receive.anim"
+    },
+    "base:push": {
+      "id": "base:push",
+      "layer": "base",
+      "base": "Push",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Push.anim"
+    },
+    "base:pull": {
+      "id": "base:pull",
+      "layer": "base",
+      "base": "Pull",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Pull.anim"
+    },
+    "base:talk_1": {
+      "id": "base:talk_1",
+      "layer": "base",
+      "base": "Talk 1",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Talk 1.anim"
+    },
+    "base:talk_2": {
+      "id": "base:talk_2",
+      "layer": "base",
+      "base": "Talk 2",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Talk 2.anim"
+    },
+    "base:talk_3": {
+      "id": "base:talk_3",
+      "layer": "base",
+      "base": "Talk 3",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Talk 3.anim"
+    },
+    "base:crouch": {
+      "id": "base:crouch",
+      "layer": "base",
+      "base": "Crouch",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Crouch.anim"
+    },
+    "base:walk_back": {
+      "id": "base:walk_back",
+      "layer": "base",
+      "base": "Walk Back",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Walk Back.anim"
+    },
+    "base:run_back": {
+      "id": "base:run_back",
+      "layer": "base",
+      "base": "Run Back",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Run Back.anim"
+    },
+    "base:climb_up": {
+      "id": "base:climb_up",
+      "layer": "base",
+      "base": "Climb Up",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Climb Up.anim"
+    },
+    "base:climb_down": {
+      "id": "base:climb_down",
+      "layer": "base",
+      "base": "Climb Down",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Climb Down.anim"
+    },
+    "base:swim": {
+      "id": "base:swim",
+      "layer": "base",
+      "base": "Swim",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Swim.anim"
+    },
+    "base:idle_swim": {
+      "id": "base:idle_swim",
+      "layer": "base",
+      "base": "Idle Swim",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Swim.anim"
+    },
+    "base:idle_holding_rifle": {
+      "id": "base:idle_holding_rifle",
+      "layer": "base",
+      "base": "Idle Holding Rifle",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Holding Rifle.anim"
+    },
+    "base:walk_holding_rifle": {
+      "id": "base:walk_holding_rifle",
+      "layer": "base",
+      "base": "Walk Holding Rifle",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Walk Holding Rifle.anim"
+    },
+    "base:run_holding_rifle": {
+      "id": "base:run_holding_rifle",
+      "layer": "base",
+      "base": "Run Holding Rifle",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Run Holding Rifle.anim"
+    },
+    "base:crouch_holding_rifle": {
+      "id": "base:crouch_holding_rifle",
+      "layer": "base",
+      "base": "Crouch Holding Rifle",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Crouch Holding Rifle.anim"
+    },
+    "base:interact": {
+      "id": "base:interact",
+      "layer": "base",
+      "base": "Interact",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Interact.anim"
+    },
+    "base:crouch_interact": {
+      "id": "base:crouch_interact",
+      "layer": "base",
+      "base": "Crouch Interact",
+      "aim": "None",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Base/Crouch Interact.anim"
+    },
+    "base:idle_wide": {
+      "id": "base:idle_wide",
+      "layer": "base",
+      "base": "Idle Wide",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Wide.anim"
+    },
+    "base:idle_narrow": {
+      "id": "base:idle_narrow",
+      "layer": "base",
+      "base": "Idle Narrow",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Narrow.anim"
+    },
+    "base:idle_straight": {
+      "id": "base:idle_straight",
+      "layer": "base",
+      "base": "Idle Straight",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Straight.anim"
+    },
+    "base:idle_relaxed": {
+      "id": "base:idle_relaxed",
+      "layer": "base",
+      "base": "Idle Relaxed",
+      "aim": "None",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Base/Idle Relaxed.anim"
+    },
+    "aim:aim_main_hand": {
+      "id": "aim:aim_main_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Aim Main Hand",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Aim Main Hand.anim"
+    },
+    "aim:shot_main_hand": {
+      "id": "aim:shot_main_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Shot Main Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Shot Main Hand.anim"
+    },
+    "aim:rapid_shot_main_hand": {
+      "id": "aim:rapid_shot_main_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Rapid Shot Main Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Rapid Shot Main Hand.anim"
+    },
+    "aim:aim_off_hand": {
+      "id": "aim:aim_off_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Aim Off Hand",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Aim Off Hand.anim"
+    },
+    "aim:shot_off_hand": {
+      "id": "aim:shot_off_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Shot Off Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Shot Off Hand.anim"
+    },
+    "aim:rapid_shot_off_hand": {
+      "id": "aim:rapid_shot_off_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Rapid Shot Off Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Rapid Shot Off Hand.anim"
+    },
+    "aim:aim_both_hand": {
+      "id": "aim:aim_both_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Aim Both Hand",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Aim Both Hand.anim"
+    },
+    "aim:shot_both_hand": {
+      "id": "aim:shot_both_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Shot Both Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Shot Both Hand.anim"
+    },
+    "aim:rapid_shot_both_hand": {
+      "id": "aim:rapid_shot_both_hand",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Rapid Shot Both Hand",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Rapid Shot Both Hand.anim"
+    },
+    "aim:aim_rifle": {
+      "id": "aim:aim_rifle",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Aim Rifle",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Aim Rifle.anim"
+    },
+    "aim:shot_rifle": {
+      "id": "aim:shot_rifle",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Shot Rifle",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Shot Rifle.anim"
+    },
+    "aim:rapid_shot_rifle": {
+      "id": "aim:rapid_shot_rifle",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Rapid Shot Rifle",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Rapid Shot Rifle.anim"
+    },
+    "aim:aim_bow": {
+      "id": "aim:aim_bow",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Aim Bow",
+      "loop": true,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Aim Bow.anim"
+    },
+    "aim:shot_bow": {
+      "id": "aim:shot_bow",
+      "layer": "aim",
+      "base": "Idle",
+      "aim": "Shot Bow",
+      "loop": false,
+      "available": true,
+      "source_path": "Data/Animations/Aim/Shot Bow.anim"
+    }
+  },
+  "game_animation_exports": {
+    "idle": {
+      "base": "Idle",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "walk": {
+      "base": "Walk",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "run": {
+      "base": "Run",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "dash": {
+      "base": "Sprint",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "jump": {
+      "base": "Jump",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "fall": {
+      "base": "Fall",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "climb_up": {
+      "base": "Climb Up",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "climb_down": {
+      "base": "Climb Down",
+      "aim": "None",
+      "loop": true,
+      "available": true
+    },
+    "crouch": {
+      "base": "Crouch",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "hurt": {
+      "base": "Hit",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "death": {
+      "base": "Die",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "melee_1": {
+      "base": "Attack Main Hand 1",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "melee_2": {
+      "base": "Attack Main Hand 2",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "melee_3": {
+      "base": "Attack Main Hand 3",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "heavy": {
+      "base": "Attack Two Handed 1",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "cast": {
+      "base": "Cast 1",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "guard": {
+      "base": "Shield Block",
+      "aim": "None",
+      "loop": false,
+      "available": true
+    },
+    "shoot": {
+      "base": "Idle",
+      "aim": "Shot Main Hand",
+      "loop": false,
+      "available": true
+    },
+    "rifle_shoot": {
+      "base": "Idle Holding Rifle",
+      "aim": "Shot Rifle",
+      "loop": false,
+      "available": true
+    }
+  }
+}

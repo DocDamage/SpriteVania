@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/milestone_room_blockout.gd" id="1_blockout"]
+
+[node name="SamuraiCastle_MasakiroArena" type="Node2D"]
+script = ExtResource("1_blockout")
+room_id = "SamuraiCastle_MasakiroArena"
+next_rooms = {
+"right": "SamuraiCastle_RisingToriiSeal"
+}
+zone_theme = "samurai_castle"

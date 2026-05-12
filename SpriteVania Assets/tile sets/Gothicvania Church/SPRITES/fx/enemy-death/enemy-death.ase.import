@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://obs3wf2at2st"
+path="res://.godot/imported/enemy-death.ase-d8bde4cd53b76c9acb96afc5e33e5cd3.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/SPRITES/fx/enemy-death/enemy-death.ase"
+dest_files=["res://.godot/imported/enemy-death.ase-d8bde4cd53b76c9acb96afc5e33e5cd3.res"]
+
+[params]
+

@@ -53,6 +53,18 @@ func _assert_gunslinger_hookshot_unlock() -> void:
 		_fail("Gunslinger hookshot should pull forward and upward after unlock.")
 	player.free()
 
+	var dash_player := _spawn_player(GUNSLINGER_DATA)
+	var dash_start_x := dash_player.global_position.x
+	dash_player.set_traversal_unlocks(["dash_strike"])
+	dash_player.class_controller.call("handle_class_action")
+	if dash_player.global_position.x != dash_start_x:
+		_fail("Gunslinger dash strike should begin as a moving dash burst, not a teleport.")
+		return
+	if not bool(dash_player.get("is_dashing")):
+		_fail("Gunslinger dash strike should reuse dash state after unlock.")
+		return
+	dash_player.free()
+
 func _assert_hexbinder_blink_unlock() -> void:
 	var player := _spawn_player(HEXBINDER_DATA)
 	var start_x := player.global_position.x

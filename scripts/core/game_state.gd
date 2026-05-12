@@ -4,8 +4,20 @@ class_name GameState
 const SAVE_VERSION := 1
 
 var version: int = SAVE_VERSION
+var selected_starter_id: String = ""
+var player_name: String = ""
+var player_character_names: Dictionary = {}
 var selected_class: String = ""
 var selected_sprite: String = ""
+var character_definitions_version: String = ""
+var character_creation_flags: Dictionary = {}
+var character_appearance: Dictionary = {}
+var character_recipe_id: String = ""
+var character_recipe: Dictionary = {}
+var character_creator_content_versions: Dictionary = {}
+var character_spriteframes_path: String = ""
+var created_timestamp: int = 0
+var last_saved_timestamp: int = 0
 var current_area: String = ""
 var current_room: String = ""
 var checkpoint_id: String = ""
@@ -24,13 +36,36 @@ var collected_pickups: Array[String] = []
 var completed_areas: Array[String] = []
 var discovered_rooms: Array[String] = []
 var familiar_state: Dictionary = {}
+var party_roster: Dictionary = {}
+var unlocked_character_ids: Array[String] = []
+var active_party_ids: Array[String] = []
+var reserve_character_ids: Array[String] = []
+var active_party_index: int = 0
+var current_visible_character_id: String = ""
+var party_order_version: int = 0
+var momentum: int = 100
+var world_break_state: String = "pre_break"
+var world_break_triggered: bool = false
+var zone_states: Dictionary = {}
 var settings: Dictionary = {}
 
 func to_dictionary() -> Dictionary:
 	return {
 		"version": version,
+		"selected_starter_id": selected_starter_id,
+		"player_name": player_name,
+		"player_character_names": player_character_names,
 		"selected_class": selected_class,
 		"selected_sprite": selected_sprite,
+		"character_definitions_version": character_definitions_version,
+		"character_creation_flags": character_creation_flags,
+		"character_appearance": character_appearance,
+		"character_recipe_id": character_recipe_id,
+		"character_recipe": character_recipe,
+		"character_creator_content_versions": character_creator_content_versions,
+		"character_spriteframes_path": character_spriteframes_path,
+		"created_timestamp": created_timestamp,
+		"last_saved_timestamp": last_saved_timestamp,
 		"current_area": current_area,
 		"current_room": current_room,
 		"checkpoint_id": checkpoint_id,
@@ -52,14 +87,42 @@ func to_dictionary() -> Dictionary:
 		"completed_areas": completed_areas,
 		"discovered_rooms": discovered_rooms,
 		"familiar_state": familiar_state,
+		"party_roster": party_roster,
+		"unlocked_character_ids": unlocked_character_ids,
+		"active_party_ids": active_party_ids,
+		"reserve_character_ids": reserve_character_ids,
+		"active_party_index": active_party_index,
+		"current_visible_character_id": current_visible_character_id,
+		"party_order_version": party_order_version,
+		"momentum": momentum,
+		"world_break_state": world_break_state,
+		"world_break_triggered": world_break_triggered,
+		"zone_states": zone_states,
 		"settings": settings,
 	}
 
 static func from_dictionary(data: Dictionary):
 	var state = (load("res://scripts/core/game_state.gd") as GDScript).new()
 	state.version = int(data.get("version", SAVE_VERSION))
+	state.selected_starter_id = str(data.get("selected_starter_id", ""))
+	state.player_name = str(data.get("player_name", ""))
+	var loaded_player_character_names: Variant = data.get("player_character_names", {})
+	state.player_character_names = loaded_player_character_names if loaded_player_character_names is Dictionary else {}
 	state.selected_class = str(data.get("selected_class", ""))
 	state.selected_sprite = str(data.get("selected_sprite", ""))
+	state.character_definitions_version = str(data.get("character_definitions_version", ""))
+	var loaded_creation_flags: Variant = data.get("character_creation_flags", {})
+	state.character_creation_flags = loaded_creation_flags if loaded_creation_flags is Dictionary else {}
+	var loaded_character_appearance: Variant = data.get("character_appearance", {})
+	state.character_appearance = loaded_character_appearance if loaded_character_appearance is Dictionary else {}
+	state.character_recipe_id = str(data.get("character_recipe_id", ""))
+	var loaded_character_recipe: Variant = data.get("character_recipe", {})
+	state.character_recipe = loaded_character_recipe if loaded_character_recipe is Dictionary else {}
+	var loaded_creator_versions: Variant = data.get("character_creator_content_versions", {})
+	state.character_creator_content_versions = loaded_creator_versions if loaded_creator_versions is Dictionary else {}
+	state.character_spriteframes_path = str(data.get("character_spriteframes_path", ""))
+	state.created_timestamp = int(data.get("created_timestamp", 0))
+	state.last_saved_timestamp = int(data.get("last_saved_timestamp", 0))
 	state.current_area = str(data.get("current_area", ""))
 	state.current_room = str(data.get("current_room", ""))
 	state.checkpoint_id = str(data.get("checkpoint_id", ""))
@@ -79,6 +142,19 @@ static func from_dictionary(data: Dictionary):
 	state.discovered_rooms = _string_array(data.get("discovered_rooms", []))
 	var loaded_familiar_state: Variant = data.get("familiar_state", {})
 	state.familiar_state = loaded_familiar_state if loaded_familiar_state is Dictionary else {}
+	var loaded_party_roster: Variant = data.get("party_roster", {})
+	state.party_roster = loaded_party_roster if loaded_party_roster is Dictionary else {}
+	state.unlocked_character_ids = _string_array(data.get("unlocked_character_ids", []))
+	state.active_party_ids = _string_array(data.get("active_party_ids", []))
+	state.reserve_character_ids = _string_array(data.get("reserve_character_ids", []))
+	state.active_party_index = int(data.get("active_party_index", 0))
+	state.current_visible_character_id = str(data.get("current_visible_character_id", ""))
+	state.party_order_version = int(data.get("party_order_version", 0))
+	state.momentum = int(data.get("momentum", 100))
+	state.world_break_state = _normalize_world_break_state(data.get("world_break_state", "pre_break"))
+	state.world_break_triggered = bool(data.get("world_break_triggered", state.world_break_state != "pre_break"))
+	var loaded_zone_states: Variant = data.get("zone_states", {})
+	state.zone_states = loaded_zone_states if loaded_zone_states is Dictionary else {}
 	var loaded_settings: Variant = data.get("settings", {})
 	state.settings = loaded_settings if loaded_settings is Dictionary else {}
 	return state
@@ -99,3 +175,9 @@ static func _string_array(value: Variant) -> Array[String]:
 		for item: Variant in value:
 			result.append(str(item))
 	return result
+
+static func _normalize_world_break_state(value: Variant) -> String:
+	var state := str(value)
+	if ["pre_break", "breaking", "post_break", "restoration"].has(state):
+		return state
+	return "pre_break"

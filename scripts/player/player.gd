@@ -20,11 +20,10 @@ const PIERCING_PROJECTILE_SPEED := 520.0
 const BASE_DASH_DISTANCE := 92.0
 const ARMORED_DASH_DISTANCE := 86.0
 const DASH_DURATION := 0.14
-const SLIDE_DURATION := 0.18
 const WALL_JUMP_HORIZONTAL_SPEED := 210.0
 const WALL_HANG_FALL_SPEED := 28.0
-const SLIDE_ATTACK_RANGE := Vector2(190, 34)
-const SLIDE_ATTACK_OFFSET := Vector2(-43, -4)
+const DASH_STRIKE_RANGE := Vector2(190, 38)
+const DASH_STRIKE_OFFSET := Vector2(-43, -4)
 const DIVE_BOMB_RANGE := Vector2(54, 76)
 const DIVE_BOMB_OFFSET := Vector2(0, 36)
 const DIVE_BOMB_BOUNCE_VELOCITY := -320.0
@@ -35,7 +34,7 @@ const COMBO_MULTIPLIERS := [1.0, 1.35, 1.75]
 const ATTACK_FLASH_DURATION := 0.12
 const SKILL_COSTS := {
 	"armored_dash": 8,
-	"combat_slide": 6,
+	"dash_strike": 6,
 	"hookshot": 8,
 	"recoil_jump": 8,
 	"blink": 8,
@@ -47,7 +46,7 @@ const SKILL_COSTS := {
 }
 const SKILL_COOLDOWNS := {
 	"armored_dash": 0.45,
-	"combat_slide": 0.35,
+	"dash_strike": 0.35,
 	"hookshot": 0.55,
 	"recoil_jump": 0.45,
 	"blink": 0.55,
@@ -62,6 +61,7 @@ const SKILL_COOLDOWNS := {
 @export var hit_flash_duration := 0.12
 @export var knockback_strength := 220.0
 @export var max_air_jumps := 1
+@export var max_air_dashes := 1
 @export var dash_cooldown := 0.28
 
 @onready var sprite: Sprite2D = get_node_or_null("%Sprite2D") as Sprite2D
@@ -71,6 +71,7 @@ const SKILL_COOLDOWNS := {
 
 var class_data: ClassData
 var class_controller: Node
+var character_appearance: Dictionary = {}
 var xp_curve: XPCurve = XPCurve.new()
 var current_health := 100
 var current_resource := 50
@@ -83,20 +84,17 @@ var is_invulnerable := false
 var is_hit_flashing := false
 var is_wall_hanging := false
 var is_dashing := false
-var is_sliding := false
 
 var _invulnerability_time_remaining := 0.0
 var _hit_flash_time_remaining := 0.0
 var _attack_flash_time_remaining := 0.0
 var _skill_cooldowns: Dictionary = {}
 var _air_jumps_remaining := 1
+var _air_dashes_remaining := 1
 var _dash_cooldown_remaining := 0.0
 var _dash_time_remaining := 0.0
 var _dash_direction := 1.0
 var _dash_speed := 0.0
-var _slide_time_remaining := 0.0
-var _slide_direction := 1.0
-var _slide_speed := 0.0
 var _combo_step := 0
 var _combo_time_remaining := 0.0
 var _wall_direction := 0.0
@@ -141,25 +139,19 @@ func _physics_process(delta: float) -> void:
 			is_dashing = false
 			_update_dash_trail()
 			velocity.x = direction * _move_speed()
-	elif is_sliding:
-		_slide_time_remaining = maxf(0.0, _slide_time_remaining - delta)
-		velocity.x = _slide_direction * _slide_speed
-		velocity.y = 0.0
-		if _slide_time_remaining <= 0.0:
-			is_sliding = false
-			velocity.x = direction * _move_speed()
 	elif not is_wall_hanging:
 		velocity.x = direction * _move_speed()
 	if is_on_floor():
 		_air_jumps_remaining = max_air_jumps
+		_air_dashes_remaining = max_air_dashes
 		_stop_wall_hang()
-	elif not is_dashing and not is_sliding and _should_wall_hang(direction):
+	elif not is_dashing and _should_wall_hang(direction):
 		start_wall_hang(signf(direction))
 
 	if is_wall_hanging:
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y, WALL_HANG_FALL_SPEED)
-	elif not is_on_floor() and not is_dashing and not is_sliding:
+	elif not is_on_floor() and not is_dashing:
 		velocity.y += GRAVITY * delta
 	if Input.is_action_just_pressed("jump"):
 		perform_jump()
@@ -245,6 +237,10 @@ func perform_jump() -> void:
 func perform_dash() -> void:
 	if _dash_cooldown_remaining > 0.0:
 		return
+	if not is_on_floor():
+		if _air_dashes_remaining <= 0:
+			return
+		_air_dashes_remaining -= 1
 	_start_dash(BASE_DASH_DISTANCE, dash_cooldown)
 
 func set_traversal_unlocks(unlocks: Array[String]) -> void:
@@ -255,6 +251,25 @@ func has_traversal_unlock(unlock_id: String) -> bool:
 
 func set_learned_attack_skills(skills: Array[String]) -> void:
 	learned_attack_skills = skills.duplicate()
+
+func apply_character_appearance(appearance: Dictionary) -> void:
+	character_appearance = appearance.duplicate(true)
+
+func get_character_appearance() -> Dictionary:
+	return character_appearance.duplicate(true)
+
+func apply_spriteframes_path(spriteframes_path: String) -> bool:
+	if animated_sprite == null:
+		animated_sprite = get_node_or_null("%AnimatedSprite2D") as AnimatedSprite2D
+	if spriteframes_path.is_empty() or animated_sprite == null or not ResourceLoader.exists(spriteframes_path):
+		return false
+	var frames := load(spriteframes_path) as SpriteFrames
+	if frames == null:
+		return false
+	animated_sprite.sprite_frames = frames
+	if frames.has_animation("idle"):
+		animated_sprite.play("idle")
+	return true
 
 func has_attack_skill(skill_id: String) -> bool:
 	return learned_attack_skills.has(skill_id)
@@ -324,17 +339,17 @@ func fire_piercing_shot(damage: int) -> void:
 		return
 	_spawn_projectile(damage, PIERCING_PROJECTILE_SPEED, PROJECTILE_LIFETIME * 1.25, Color(0.95, 0.55, 0.22, 1.0), true)
 
-func perform_slide() -> void:
-	if not has_traversal_unlock("combat_slide"):
+func perform_dash_strike() -> void:
+	if not _has_dash_strike_unlock():
 		return
-	if not _try_use_unlocked_skill("combat_slide"):
+	if not _try_use_unlocked_skill("dash_strike"):
 		return
-	_start_slide(ARMORED_DASH_DISTANCE)
+	_start_dash(ARMORED_DASH_DISTANCE, float(SKILL_COOLDOWNS.get("dash_strike", dash_cooldown)))
 	_play_action_animation("run")
 	var damage := class_data.base_attack if class_data != null else 10
-	var targets := _query_attack_targets(SLIDE_ATTACK_RANGE, SLIDE_ATTACK_OFFSET)
+	var targets := _query_attack_targets(DASH_STRIKE_RANGE, DASH_STRIKE_OFFSET)
 	if not targets.is_empty():
-		_show_attack_flash(68.0, SLIDE_ATTACK_RANGE.y)
+		_show_attack_flash(68.0, DASH_STRIKE_RANGE.y)
 	for target: Node in targets:
 		target.call("take_damage", damage)
 
@@ -472,6 +487,8 @@ func _update_animation() -> void:
 	elif absf(velocity.x) > 1.0:
 		next_animation = "run"
 
+	if animated_sprite.sprite_frames != null and not animated_sprite.sprite_frames.has_animation(next_animation):
+		return
 	if animated_sprite.animation != next_animation:
 		animated_sprite.play(next_animation)
 	elif not animated_sprite.is_playing():
@@ -520,17 +537,6 @@ func _update_dash_trail() -> void:
 		Vector2(12.0 * _dash_direction, 0.0),
 	])
 
-func _start_slide(distance: float) -> void:
-	_slide_direction = signf(facing_direction)
-	if is_zero_approx(_slide_direction):
-		_slide_direction = 1.0
-	_slide_speed = distance / SLIDE_DURATION
-	_slide_time_remaining = SLIDE_DURATION
-	is_sliding = true
-	is_wall_hanging = false
-	velocity.x = _slide_direction * _slide_speed
-	velocity.y = 0.0
-
 func _show_attack_flash(forward_offset: float, height: float) -> void:
 	if attack_flash == null:
 		return
@@ -552,6 +558,8 @@ func _tick_attack_flash(delta: float) -> void:
 		attack_flash.visible = false
 
 func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
+	if not is_inside_tree():
+		return []
 	var shape := RectangleShape2D.new()
 	shape.size = size
 	var parameters := PhysicsShapeQueryParameters2D.new()
@@ -573,6 +581,8 @@ func _query_attack_targets(size: Vector2, offset: Vector2) -> Array[Node]:
 
 func _spawn_projectile(damage: int, speed: float, lifetime: float, color: Color, piercing := false) -> void:
 	if damage <= 0:
+		return
+	if not is_inside_tree():
 		return
 	_play_action_animation("shoot")
 	var projectile := PlayerProjectile.new()
@@ -598,6 +608,9 @@ func _spawn_projectile(damage: int, speed: float, lifetime: float, color: Color,
 	var projectile_parent := get_tree().current_scene
 	if projectile_parent == null:
 		projectile_parent = get_parent()
+	if projectile_parent == null or not is_instance_valid(projectile_parent):
+		projectile.queue_free()
+		return
 	projectile_parent.add_child(projectile)
 
 func _move_speed() -> float:
@@ -665,6 +678,8 @@ func _try_use_attack_skill(skill_id: String) -> bool:
 	return _try_use_unlocked_skill(skill_id)
 
 func _try_use_unlocked_skill(skill_id: String) -> bool:
+	if skill_id == "dash_strike" and not _has_dash_strike_unlock():
+		return false
 	if float(_skill_cooldowns.get(skill_id, 0.0)) > 0.0:
 		return false
 	var cost := int(SKILL_COSTS.get(skill_id, 0))
@@ -685,3 +700,6 @@ func _tick_skill_cooldowns(delta: float) -> void:
 			_skill_cooldowns[skill_id] = remaining
 	for skill_id: String in expired:
 		_skill_cooldowns.erase(skill_id)
+
+func _has_dash_strike_unlock() -> bool:
+	return has_traversal_unlock("dash_strike") or has_traversal_unlock("combat_slide")

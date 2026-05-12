@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://ck8c7wv64p3el"
+path="res://.godot/imported/title.ase-2d88fbe7463add302679d344bcc5c79f.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/misc/title.ase"
+dest_files=["res://.godot/imported/title.ase-2d88fbe7463add302679d344bcc5c79f.res"]
+
+[params]
+

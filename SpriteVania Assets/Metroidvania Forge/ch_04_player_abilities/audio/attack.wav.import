@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://skji4ypoi3kc"
+path="res://.godot/imported/attack.wav-3ee74e0b60e480510dac27eed1c8fe37.sample"
+
+[deps]
+
+source_file="res://SpriteVania Assets/Metroidvania Forge/ch_04_player_abilities/audio/attack.wav"
+dest_files=["res://.godot/imported/attack.wav-3ee74e0b60e480510dac27eed1c8fe37.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

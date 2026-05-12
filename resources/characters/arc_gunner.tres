@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character_definition.gd" id="1_character_definition"]
+
+[resource]
+script = ExtResource("1_character_definition")
+character_id = "arc_gunner"
+display_name = "The Arc-Gunner"
+role_summary = "Ranged mobility starter built around charged shots, spacing control, and arc-powered traversal."
+default_name = "Vale"
+combat_role = "ranged"
+starter_selectable = true
+recruitable = false
+class_id = "gunslinger"
+preview_asset_path = "res://SpriteVania Assets/craft pix characters/SWAT_1"
+baseline_skills = Array[String](["arc_shot", "recoil_step"])

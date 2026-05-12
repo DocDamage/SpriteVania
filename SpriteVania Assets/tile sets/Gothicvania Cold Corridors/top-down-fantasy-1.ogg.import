@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bxs81lrutdecr"
+path="res://.godot/imported/top-down-fantasy-1.ogg-6c4406a9081f5994a0ab5abf73f5f5ca.oggvorbisstr"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Cold Corridors/top-down-fantasy-1.ogg"
+dest_files=["res://.godot/imported/top-down-fantasy-1.ogg-6c4406a9081f5994a0ab5abf73f5f5ca.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -5,11 +5,32 @@ const TITLE_SCREEN_PATH := "res://scenes/ui/TitleScreen.tscn"
 const CHARACTER_SELECT_PATH := "res://scenes/ui/CharacterSelect.tscn"
 const SETTINGS_MENU_PATH := "res://scenes/ui/SettingsMenu.tscn"
 const GAME_WORLD_PATH := "res://scenes/world/GameWorld.tscn"
+const MIN_VOLUME_LINEAR := 0.0001
+const GameStateScript := preload("res://scripts/core/game_state.gd")
+const CharacterRegistry := preload("res://scripts/characters/character_registry.gd")
+const PartyManager := preload("res://scripts/core/party_manager.gd")
+const GlobalSettingsScript := preload("res://scripts/core/global_settings.gd")
+const CC2DCreatorManager := preload("res://scripts/character_creator/cc2d_creator_manager.gd")
+const CC2DRecipe := preload("res://scripts/character_creator/cc2d_recipe.gd")
+const CLASS_DATA_PATHS := {
+	"warden": "res://data/classes/warden.tres",
+	"gunslinger": "res://data/classes/gunslinger.tres",
+	"hexbinder": "res://data/classes/hexbinder.tres",
+}
+const LOAD_SLOTS := [
+	{"id": "default", "label": "Continue", "button": "DefaultSlotButton"},
+	{"id": "slot_a", "label": "Slot A", "button": "SlotAButton"},
+	{"id": "slot_b", "label": "Slot B", "button": "SlotBButton"},
+	{"id": "slot_c", "label": "Slot C", "button": "SlotCButton"},
+]
 
 var current_screen: Node
+var _last_new_game_error := ""
+var _pending_new_game_overwrite := false
 
 
 func _ready() -> void:
+	_apply_runtime_settings(_get_persisted_settings())
 	show_title()
 
 
@@ -30,35 +51,126 @@ func _replace_screen(scene_path: String) -> Node:
 
 func show_title() -> void:
 	var title := _replace_screen(TITLE_SCREEN_PATH)
+	_apply_persisted_settings_to_screen(title)
+	_apply_title_variant_to_screen(title)
 	if title.has_signal("new_game_requested"):
 		title.connect("new_game_requested", show_character_select)
 	if title.has_signal("continue_requested"):
 		title.connect("continue_requested", _continue_game)
+	if title.has_signal("load_game_requested"):
+		title.connect("load_game_requested", show_load_game)
 	if title.has_signal("settings_requested"):
 		title.connect("settings_requested", show_settings)
+	if title.has_signal("accessibility_requested"):
+		title.connect("accessibility_requested", show_accessibility)
+	if title.has_signal("extras_requested"):
+		title.connect("extras_requested", show_extras)
+	if title.has_signal("credits_requested"):
+		title.connect("credits_requested", show_credits)
+	if title.has_signal("quit_requested"):
+		title.connect("quit_requested", _quit_game)
 
 
 func show_character_select() -> void:
+	_last_new_game_error = ""
+	_pending_new_game_overwrite = false
 	var select := _replace_screen(CHARACTER_SELECT_PATH)
+	_apply_persisted_settings_to_screen(select)
 	if select.has_signal("cancel_requested"):
 		select.connect("cancel_requested", show_title)
 	if select.has_signal("character_confirmed"):
 		select.connect("character_confirmed", _start_new_game)
 
 
-func show_settings() -> void:
+func show_settings(tab_name := "General") -> void:
 	var settings := _replace_screen(SETTINGS_MENU_PATH)
 	if settings.has_method("set_save_manager"):
 		settings.call("set_save_manager", _get_save_manager())
+	if settings.has_method("select_settings_tab"):
+		settings.call("select_settings_tab", tab_name)
+	if settings.has_signal("settings_changed"):
+		settings.connect("settings_changed", _on_settings_changed)
 	if settings.has_signal("closed"):
 		settings.connect("closed", show_title)
 
 
-func _start_new_game(class_id: String, sprite_id: String) -> void:
+func show_load_game() -> void:
+	var screen := _create_panel_screen("LoadGameScreen", "Load Game")
+	var stack := screen.get_node("Panel/MarginContainer/VBoxContainer") as VBoxContainer
+	var save_manager := _get_save_manager()
+	var slot_metadata := _save_slot_metadata(save_manager)
+	for slot_data: Dictionary in LOAD_SLOTS:
+		var slot_id := str(slot_data.id)
+		var metadata := slot_metadata.get(slot_id, {}) as Dictionary
+		var button := Button.new()
+		button.name = str(slot_data.button)
+		button.unique_name_in_owner = true
+		button.custom_minimum_size = Vector2(260, 40)
+		button.text = "%s - %s" % [slot_data.label, _slot_status_text(metadata)]
+		button.disabled = not bool(metadata.get("valid", false))
+		button.pressed.connect(func() -> void: _load_game_from_slot(slot_id))
+		stack.add_child(button)
+		stack.move_child(button, max(1, stack.get_child_count() - 2))
+	var back_button := Button.new()
+	back_button.name = "BackButton"
+	back_button.text = "Back"
+	back_button.custom_minimum_size = Vector2(180, 40)
+	back_button.pressed.connect(show_title)
+	stack.add_child(back_button)
+
+
+func show_accessibility() -> void:
+	show_settings("Accessibility")
+
+
+func show_extras() -> void:
+	_show_info_menu("ExtrasScreen", "Extras", "Unlocked modes, lore, music, and art will live here as the game grows.")
+
+
+func show_credits() -> void:
+	_show_info_menu("CreditsScreen", "Credits", "SpriteVania is built from the project asset library, Godot, and custom game code.")
+
+
+func _start_new_game(starter_id: String, character_name: String) -> void:
+	_last_new_game_error = ""
+	var appearance := {}
+	if current_screen != null and current_screen.has_method("get_selected_appearance"):
+		appearance = current_screen.call("get_selected_appearance") as Dictionary
+	var selected_recipe: CC2DRecipe = null
+	if current_screen != null and current_screen.has_method("get_current_recipe"):
+		selected_recipe = current_screen.call("get_current_recipe") as CC2DRecipe
+	var initial_state := _initial_state_for_starter(starter_id, character_name, appearance, selected_recipe)
+	var save_manager := _get_save_manager()
+	if save_manager != null and save_manager.has_method("save_game"):
+		if not _pending_new_game_overwrite and _default_save_exists(save_manager):
+			_pending_new_game_overwrite = true
+			_last_new_game_error = "overwrite_required"
+			if current_screen != null and current_screen.has_method("set_creator_error"):
+				current_screen.call("set_creator_error", _last_new_game_error)
+			return
+		if not bool(save_manager.call("save_game", initial_state)):
+			_last_new_game_error = "save_failed"
+			if current_screen != null and current_screen.has_method("set_creator_error"):
+				current_screen.call("set_creator_error", _last_new_game_error)
+			return
+	_pending_new_game_overwrite = false
+
 	var world := _replace_screen(GAME_WORLD_PATH)
 	_connect_world_navigation(world)
-	if world.has_method("start_new_game"):
-		world.start_new_game(class_id, sprite_id)
+	if world.has_method("continue_game"):
+		world.continue_game()
+
+func get_last_new_game_error() -> String:
+	return _last_new_game_error
+
+func _default_save_exists(save_manager: Node) -> bool:
+	if save_manager == null:
+		return false
+	if save_manager.has_method("read_save_slot_metadata"):
+		return bool((save_manager.call("read_save_slot_metadata", "default") as Dictionary).get("valid", false))
+	if save_manager.has_method("has_save"):
+		return bool(save_manager.call("has_save"))
+	return false
 
 
 func _continue_game() -> void:
@@ -67,7 +179,127 @@ func _continue_game() -> void:
 	if world.has_method("continue_game"):
 		world.continue_game()
 
+func _load_game_from_slot(slot_id: String) -> void:
+	var world := _replace_screen(GAME_WORLD_PATH)
+	_connect_world_navigation(world)
+	if world.has_method("continue_game_from_slot"):
+		world.continue_game_from_slot(slot_id)
+	elif slot_id == "default" and world.has_method("continue_game"):
+		world.continue_game()
+
+func _show_info_menu(screen_name: String, title_text: String, body_text: String) -> void:
+	var screen := _create_panel_screen(screen_name, title_text, body_text)
+	var stack := screen.get_node("Panel/MarginContainer/VBoxContainer") as VBoxContainer
+	var back_button := Button.new()
+	back_button.name = "BackButton"
+	back_button.text = "Back"
+	back_button.custom_minimum_size = Vector2(180, 40)
+	back_button.pressed.connect(show_title)
+	stack.add_child(back_button)
+
+func _create_panel_screen(screen_name: String, title_text: String, body_text := "") -> Control:
+	if current_screen:
+		current_screen.queue_free()
+
+	var screen := Control.new()
+	screen.name = screen_name
+	screen.layout_mode = 3
+	screen.anchors_preset = Control.PRESET_FULL_RECT
+	screen.anchor_right = 1.0
+	screen.anchor_bottom = 1.0
+	screen.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	screen.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+	var panel := Panel.new()
+	panel.name = "Panel"
+	panel.custom_minimum_size = Vector2(360, 220)
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -180.0
+	panel.offset_top = -110.0
+	panel.offset_right = 180.0
+	panel.offset_bottom = 110.0
+	screen.add_child(panel)
+
+	var margins := MarginContainer.new()
+	margins.name = "MarginContainer"
+	margins.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margins.add_theme_constant_override("margin_left", 24)
+	margins.add_theme_constant_override("margin_top", 24)
+	margins.add_theme_constant_override("margin_right", 24)
+	margins.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margins)
+
+	var stack := VBoxContainer.new()
+	stack.name = "VBoxContainer"
+	stack.add_theme_constant_override("separation", 18)
+	margins.add_child(stack)
+
+	var title := Label.new()
+	title.name = "TitleLabel"
+	title.text = title_text
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	stack.add_child(title)
+
+	var body := Label.new()
+	body.name = "BodyLabel"
+	body.text = body_text
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stack.add_child(body)
+
+	current_screen = screen
+	add_child(current_screen)
+	return screen
+
+func _has_slot_save(save_manager: Node, slot_id: String) -> bool:
+	if save_manager == null:
+		return false
+	if save_manager.has_method("read_save_slot_metadata"):
+		return bool((save_manager.call("read_save_slot_metadata", slot_id) as Dictionary).get("valid", false))
+	if slot_id == "default" and save_manager.has_method("has_save"):
+		return bool(save_manager.call("has_save"))
+	if save_manager.has_method("has_save_in_slot"):
+		return bool(save_manager.call("has_save_in_slot", slot_id))
+	return false
+
+func _save_slot_metadata(save_manager: Node) -> Dictionary:
+	var metadata_by_slot := {}
+	if save_manager != null and save_manager.has_method("scan_save_slots"):
+		var slot_ids: Array[String] = []
+		for slot_data: Dictionary in LOAD_SLOTS:
+			slot_ids.append(str(slot_data.id))
+		for metadata: Dictionary in save_manager.call("scan_save_slots", slot_ids):
+			metadata_by_slot[str(metadata.get("slot_id", ""))] = metadata
+		return metadata_by_slot
+	for slot_data: Dictionary in LOAD_SLOTS:
+		var slot_id := str(slot_data.id)
+		metadata_by_slot[slot_id] = {
+			"slot_id": slot_id,
+			"valid": _has_slot_save(save_manager, slot_id),
+			"status": "Saved" if _has_slot_save(save_manager, slot_id) else "Empty",
+		}
+	return metadata_by_slot
+
+func _slot_status_text(metadata: Dictionary) -> String:
+	if not bool(metadata.get("exists", false)):
+		return "Empty"
+	if not bool(metadata.get("valid", false)):
+		return str(metadata.get("status", "Corrupt"))
+	var summary: Array[String] = []
+	var selected_class := str(metadata.get("selected_class", ""))
+	var current_room := str(metadata.get("current_room", ""))
+	var level := int(metadata.get("level", 0))
+	if not selected_class.is_empty():
+		summary.append(selected_class)
+	if level > 0:
+		summary.append("Lv %d" % level)
+	if not current_room.is_empty():
+		summary.append(current_room)
+	return "Saved" if summary.is_empty() else "Saved: " + " / ".join(summary)
+
 func _connect_world_navigation(world: Node) -> void:
+	_apply_persisted_settings_to_screen(world)
 	if world.has_signal("settings_requested"):
 		world.connect("settings_requested", show_settings)
 	if world.has_signal("quit_to_title_requested"):
@@ -75,3 +307,128 @@ func _connect_world_navigation(world: Node) -> void:
 
 func _get_save_manager() -> Node:
 	return get_tree().root.get_node_or_null("SaveManager")
+
+func _initial_state_for_starter(starter_id: String, character_name: String, character_appearance := {}, selected_recipe: CC2DRecipe = null) -> GameStateScript:
+	var definition := CharacterRegistry.get_definition(starter_id)
+	var state := GameStateScript.new()
+	state.selected_starter_id = starter_id
+	state.player_name = character_name.strip_edges()
+	state.player_character_names = {starter_id: state.player_name}
+	state.selected_class = str(definition.get("class_id")) if definition != null else "warden"
+	state.character_definitions_version = "black_keep_playable_v1"
+	state.character_creation_flags = {
+		"starter_selected": true,
+		"starter_named": true,
+		"new_game_committed": true,
+	}
+	state.character_appearance = character_appearance if character_appearance is Dictionary else {}
+	var creator_manager := CC2DCreatorManager.new()
+	creator_manager.load_content()
+	var recipe := selected_recipe
+	if recipe == null:
+		recipe = creator_manager.recipe_from_appearance("%s_%s" % [starter_id, state.player_name.to_snake_case()], state.player_name, state.character_appearance)
+	else:
+		state.character_appearance = recipe.parts.duplicate(true)
+	state.character_recipe_id = recipe.recipe_id
+	state.character_recipe = recipe.to_dictionary()
+	state.character_creator_content_versions = {
+		"base_fantasy": creator_manager.content_version(),
+	}
+	if not recipe.generated_spriteframes_path.is_empty() and ResourceLoader.exists(recipe.generated_spriteframes_path):
+		state.character_spriteframes_path = recipe.generated_spriteframes_path
+	state.selected_sprite = ""
+	state.created_timestamp = int(Time.get_unix_time_from_system())
+	state.current_area = "swamp_outskirts"
+	state.current_room = "RoomStart"
+	state.checkpoint_id = "checkpoint_modern_start"
+	state.checkpoint_room = state.current_room
+	state.checkpoint_position = Vector2(96, 464)
+	state.level = 1
+	state.learned_attack_skills = _string_array(definition.get("baseline_skills")) if definition != null else []
+	state.mark_room_discovered(state.current_room)
+	var party_manager := PartyManager.new()
+	party_manager.initialize_starter(state, starter_id, state.player_name)
+	var class_data := _class_data_for_id(state.selected_class)
+	if class_data != null:
+		state.current_health = int(class_data.get("max_health"))
+		state.current_resource = int(class_data.get("max_resource"))
+		party_manager.store_active_runtime(state, state.current_health, state.current_resource, state.level, state.xp)
+	return state
+
+func _class_data_for_id(class_id: String) -> Resource:
+	var path := str(CLASS_DATA_PATHS.get(class_id, ""))
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	return load(path) as Resource
+
+
+func _get_persisted_settings() -> Dictionary:
+	if GlobalSettingsScript.has_settings():
+		return GlobalSettingsScript.load_settings()
+	var save_manager := _get_save_manager()
+	if save_manager == null or not save_manager.has_method("load_game"):
+		return GlobalSettingsScript.default_settings()
+	var state: Variant = save_manager.call("load_game")
+	if state == null:
+		return GlobalSettingsScript.default_settings()
+	var settings: Variant = state.get("settings")
+	return GlobalSettingsScript.normalize_settings(settings) if settings is Dictionary else GlobalSettingsScript.default_settings()
+
+
+func _apply_persisted_settings_to_screen(screen: Node) -> void:
+	var settings := _get_persisted_settings()
+	_apply_runtime_settings(settings)
+	if screen != null and screen.has_method("apply_settings"):
+		screen.call("apply_settings", settings)
+
+
+func _apply_title_variant_to_screen(screen: Node) -> void:
+	var save_manager := _get_save_manager()
+	if screen == null or save_manager == null:
+		return
+	if screen.has_method("apply_world_state_variant") and save_manager.has_method("resolve_latest_title_variant"):
+		screen.call("apply_world_state_variant", save_manager.call("resolve_latest_title_variant"))
+
+
+func _on_settings_changed(settings: Dictionary) -> void:
+	_apply_runtime_settings(settings)
+	if current_screen != null and current_screen.has_method("apply_settings"):
+		current_screen.call("apply_settings", settings)
+
+func _apply_runtime_settings(settings: Dictionary) -> void:
+	if settings.has("master_volume"):
+		_apply_bus_volume("Master", clampf(float(settings.master_volume), 0.0, 1.0))
+	if settings.has("music_volume"):
+		_apply_bus_volume("Music", clampf(float(settings.music_volume), 0.0, 1.0))
+	if settings.has("sfx_volume"):
+		_apply_bus_volume("SFX", clampf(float(settings.sfx_volume), 0.0, 1.0))
+	if settings.has("fullscreen"):
+		_apply_fullscreen_enabled(bool(settings.fullscreen))
+	if settings.has("vsync"):
+		_apply_vsync_enabled(bool(settings.vsync))
+
+func _apply_bus_volume(bus_name: String, value: float) -> void:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index < 0:
+		return
+	var volume_db := -80.0 if value <= 0.0 else linear_to_db(maxf(value, MIN_VOLUME_LINEAR))
+	AudioServer.set_bus_volume_db(bus_index, volume_db)
+
+func _apply_fullscreen_enabled(enabled: bool) -> void:
+	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED
+	DisplayServer.window_set_mode(mode)
+
+func _apply_vsync_enabled(enabled: bool) -> void:
+	var mode := DisplayServer.VSYNC_ENABLED if enabled else DisplayServer.VSYNC_DISABLED
+	DisplayServer.window_set_vsync_mode(mode)
+
+
+func _quit_game() -> void:
+	get_tree().quit()
+
+func _string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if value is Array:
+		for item: Variant in value:
+			result.append(str(item))
+	return result

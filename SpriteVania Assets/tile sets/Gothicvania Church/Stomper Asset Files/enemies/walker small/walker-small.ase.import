@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://d3jiwxte2337l"
+path="res://.godot/imported/walker-small.ase-a513c126da0fa163732df903ce0de81f.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/enemies/walker small/walker-small.ase"
+dest_files=["res://.godot/imported/walker-small.ase-a513c126da0fa163732df903ce0de81f.res"]
+
+[params]
+

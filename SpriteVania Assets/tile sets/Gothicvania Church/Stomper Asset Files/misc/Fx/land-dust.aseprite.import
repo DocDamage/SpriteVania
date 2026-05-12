@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://b0v271asie0a6"
+path="res://.godot/imported/land-dust.aseprite-da23d19799c66af4bdd07c9ee99d4a97.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/misc/Fx/land-dust.aseprite"
+dest_files=["res://.godot/imported/land-dust.aseprite-da23d19799c66af4bdd07c9ee99d4a97.res"]
+
+[params]
+

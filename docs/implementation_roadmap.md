@@ -1,5 +1,11 @@
 # SpriteVania Implementation Roadmap
 
+## Current Creative Direction
+
+The current implementation foundation remains the SpriteVania vertical slice: it is the playable systems base for movement, combat, saves, rooms, UI, progression, and tests. The target game direction is now **The Black Keep**, a larger castle-and-portal action RPG / Metroidvania built on that foundation.
+
+See the full creative and systems direction in [The Black Keep Master Plan](BLACK_KEEP_MASTER_PLAN.md).
+
 ## Current Vertical Slice
 
 - Title, continue, settings, and character selection flow.
@@ -14,6 +20,7 @@
 - Familiar progression includes leveling, evolution, upgradable abilities, enemy attacks, guard mitigation, and evolution-based attack reach.
 - Combat reliability includes one-shot death handling and knockback from enemy contact and crawler attacks.
 - Full-game expansion groundwork has begun with a two-room Castle Gate route that loads after Swamp completion.
+- CharacterCreator2D source data has been imported for a Godot-native creator/tooling port. The project direction is an in-game creator plus a separate Godot Character Studio app, with Unity used only as source/reference data.
 
 ## Remaining Full-Game Priorities
 
@@ -24,6 +31,7 @@
 5. Finish asset/audio pass: more cut sprite sheets, VFX, UI art/fonts, room transitions, music, and sound effects.
 6. Replace the prototype map display with a full minimap screen, icons, and room-state markers.
 7. Harden production: export smoke tests, controller support playtests, performance pass, save migrations, and release checklist.
+8. Build the Godot-native CharacterCreator2D port: recipe data, layered rig preview, morph controls, checklist-driven bulk export, `SpriteFrames` baking, validation reports, and the separate Character Studio app shell.
 
 ## Vertical Slice Definition
 
@@ -33,4 +41,5 @@ The first complete slice includes:
 - At least one class-specific traversal identity and one attack-skill reward per class.
 - A complete death loop: damage feedback, respawn at checkpoint, room reset, and saved restored state.
 - HUD feedback for health, resource, XP, level, upgrades, discovered rooms, and area completion.
+- Character creator pipeline proof: a saved recipe can resolve into a generated or imported `SpriteFrames` resource without requiring Unity.
 - Clean headless tests for every system above.

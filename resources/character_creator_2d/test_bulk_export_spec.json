@@ -1,0 +1,25 @@
+{
+  "animations": [
+    {
+      "id": "idle",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Base/Body Skin/Bodyset Male.png",
+      "loop": true,
+      "frame_count": 1,
+      "columns": 1
+    },
+    {
+      "id": "run",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Base/Hair/00.png",
+      "loop": true,
+      "frame_count": 1,
+      "columns": 1
+    },
+    {
+      "id": "jump",
+      "sheet": "SpriteVania Assets/character_creator_2d/base_fantasy_runtime/Sprites/Fantasy/Armor/Fantasy 00 Male.png",
+      "loop": false,
+      "frame_count": 1,
+      "columns": 1
+    }
+  ]
+}

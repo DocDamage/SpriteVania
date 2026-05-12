@@ -27,7 +27,7 @@ theme_override_constants/separation = 12
 [node name="HeaderLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "Choose Character"
+text = "Choose Starter"
 horizontal_alignment = 1
 
 [node name="ClassOption" type="OptionButton" parent="CenterContainer/VBoxContainer"]
@@ -44,11 +44,124 @@ custom_minimum_size = Vector2(420, 96)
 layout_mode = 2
 autowrap_mode = 3
 
+[node name="PreviewLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Preview"
+horizontal_alignment = 1
+
+[node name="AccessibilityPreviewLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Accessibility"
+horizontal_alignment = 1
+
+[node name="PerformanceBudgetLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Budget"
+horizontal_alignment = 1
+
+[node name="LayeredPreview" type="Control" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 160)
+layout_mode = 2
+clip_contents = true
+
+[node name="PaletteLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Palette"
+
+[node name="PaletteControls" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MorphLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Morphs"
+
+[node name="MorphControls" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RandomizerRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RandomTagEdit" type="LineEdit" parent="CenterContainer/VBoxContainer/RandomizerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Required tags"
+text = "starter_safe"
+
+[node name="RandomLockEdit" type="LineEdit" parent="CenterContainer/VBoxContainer/RandomizerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Locked slots"
+
+[node name="RandomizeButton" type="Button" parent="CenterContainer/VBoxContainer/RandomizerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "Randomize"
+
+[node name="PartFilterRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PartSearchEdit" type="LineEdit" parent="CenterContainer/VBoxContainer/PartFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search parts"
+
+[node name="PartTagFilterEdit" type="LineEdit" parent="CenterContainer/VBoxContainer/PartFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Required tags"
+
+[node name="FavoriteOnlyCheck" type="CheckBox" parent="CenterContainer/VBoxContainer/PartFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Favorites"
+
+[node name="AppearanceScroll" type="ScrollContainer" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(420, 220)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="AppearanceOptions" type="VBoxContainer" parent="CenterContainer/VBoxContainer/AppearanceScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Name"
+max_length = 24
+
+[node name="OnScreenKeyboard" type="GridContainer" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 10
+
+[node name="ResetNameButton" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 36)
+layout_mode = 2
+text = "Reset Name"
+
 [node name="ConfirmButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
-text = "Begin"
+text = "Confirm"
 
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true

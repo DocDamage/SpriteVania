@@ -37,6 +37,17 @@ func _run() -> void:
 	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should make attack, combo, dive, and dash controls visible during play.")
 	if _failed:
 		return
+	if not hud.has_method("show_attack_prompt"):
+		_fail("HUD should expose show_attack_prompt so rooms can trigger an attack tutorial hook.")
+		return
+	hud.call("show_attack_prompt")
+	_assert_equal("Attack J / X  Tap for combo  Hold Down+Attack to dive", hud.get_node("%ControlsHintLabel").text, "Attack prompt hook should surface melee combo and dive input.")
+	if _failed:
+		return
+	hud.call("clear_controls_prompt")
+	_assert_equal("Attack J / X  Combo taps  Dive S+J / Down+X  Dash Shift / B", hud.get_node("%ControlsHintLabel").text, "HUD should restore its default controls prompt.")
+	if _failed:
+		return
 	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")
 	if _failed:
 		return
@@ -84,6 +95,25 @@ func _run() -> void:
 	if _failed:
 		return
 
+	hud.call("apply_settings", {
+		"large_text": true,
+		"high_contrast": true,
+	})
+	if int(hud.get_node("%ControlsHintLabel").get_theme_font_size("font_size")) < 14:
+		_fail("HUD large text setting should increase hint label font size.")
+		return
+	if hud.get_node("Root").modulate != Color(1.0, 1.0, 1.0, 1.0):
+		_fail("HUD high contrast should force full opacity.")
+		return
+
+	hud.call("apply_settings", {
+		"large_text": false,
+		"high_contrast": false,
+	})
+	if int(hud.get_node("%ControlsHintLabel").get_theme_font_size("font_size")) != 11:
+		_fail("HUD should restore default hint label font size when large text is disabled.")
+		return
+
 	container.queue_free()
 	await process_frame
 	print("PASS: hud")
@@ -93,6 +123,9 @@ func _assert_equal(expected: Variant, actual: Variant, message: String) -> void:
 	if expected == actual:
 		return
 
+	_fail("%s Expected: %s Actual: %s" % [message, str(expected), str(actual)])
+
+func _fail(message: String) -> void:
 	_failed = true
-	push_error("%s Expected: %s Actual: %s" % [message, str(expected), str(actual)])
+	push_error(message)
 	quit(1)

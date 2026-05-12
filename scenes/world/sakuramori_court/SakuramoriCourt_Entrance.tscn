@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/milestone_room_blockout.gd" id="1_blockout"]
+
+[node name="SakuramoriCourt_Entrance" type="Node2D"]
+script = ExtResource("1_blockout")
+room_id = "SakuramoriCourt_Entrance"
+next_rooms = {
+"left": "SamuraiCastle_AscentTest",
+"right": "SakuramoriCourt_SaveShrine",
+"interior": "SakuramoriCourt_PartyShrine",
+"top": "SakuramoriCourt_TrainingYard",
+"bottom": "SakuramoriCourt_MoonpetalPassage"
+}
+zone_theme = "sakuramori_court"

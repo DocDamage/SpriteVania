@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://bvu7u1mj0pcqc"
+path="res://.godot/imported/slime-block.ase-dd173d4660ab8c3622080bf2a5de1b07.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Church/Stomper Asset Files/environment/slime-block/slime-block.ase"
+dest_files=["res://.godot/imported/slime-block.ase-dd173d4660ab8c3622080bf2a5de1b07.res"]
+
+[params]
+

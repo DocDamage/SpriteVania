@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://tihip85fxxcg"
+path="res://.godot/imported/thing.ase-449b971839cc6ce7464f80f690449b54.res"
+
+[deps]
+
+source_file="res://SpriteVania Assets/tile sets/Gothicvania Swamp files/Sprites/Thing/thing.ase"
+dest_files=["res://.godot/imported/thing.ase-449b971839cc6ce7464f80f690449b54.res"]
+
+[params]
+

@@ -14,6 +14,7 @@ func _run() -> void:
 	await _assert_melee_combo_steps_increase_damage()
 	await _assert_dive_bomb_damages_enemy_and_bounces()
 	await _assert_projectile_attack_damages_enemy()
+	await _assert_projectile_spawn_without_scene_parent_is_safe()
 	await _assert_enemy_death_signal_grants_xp()
 	await _assert_restore_resource_caps_at_max_and_emits_stats()
 	print("PASS: player combat")
@@ -80,14 +81,28 @@ func _assert_melee_combo_steps_increase_damage() -> void:
 	await process_frame
 	await physics_frame
 	var starting_health := enemy.current_health
-	player.perform_melee_attack(8)
+	player.perform_melee_attack(4)
 	await physics_frame
 	var first_hit_damage := starting_health - enemy.current_health
-	player.perform_melee_attack(8)
+	player.perform_melee_attack(4)
 	await physics_frame
 	var second_hit_damage := starting_health - first_hit_damage - enemy.current_health
 	if second_hit_damage <= first_hit_damage:
 		push_error("Melee combo should make follow-up hits stronger than the opener.")
+		quit(1)
+	player.perform_melee_attack(4)
+	await physics_frame
+	var third_hit_damage := starting_health - first_hit_damage - second_hit_damage - enemy.current_health
+	if third_hit_damage <= second_hit_damage:
+		push_error("Melee combo should make the third hit stronger than the second hit.")
+		quit(1)
+	var health_after_combo := enemy.current_health
+	player._process(float(player.get("COMBO_WINDOW")) + 0.01)
+	player.perform_melee_attack(4)
+	await physics_frame
+	var reset_hit_damage := health_after_combo - enemy.current_health
+	if reset_hit_damage != first_hit_damage:
+		push_error("Melee combo should reset to opener damage after the combo window expires.")
 		quit(1)
 	player.free()
 	enemy.free()
@@ -142,6 +157,13 @@ func _assert_projectile_attack_damages_enemy() -> void:
 		quit(1)
 	player.free()
 	enemy.free()
+
+func _assert_projectile_spawn_without_scene_parent_is_safe() -> void:
+	var player := PLAYER_SCENE.instantiate() as Player
+	player.setup(GUNSLINGER_DATA, "")
+	player.global_position = Vector2(100, 100)
+	player.fire_projectile(10)
+	player.free()
 
 func _assert_enemy_death_signal_grants_xp() -> void:
 	var player := PLAYER_SCENE.instantiate() as Player
