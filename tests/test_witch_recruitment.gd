@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameState := preload("res://scripts/core/game_state.gd")
+const EnemyScript := preload("res://scripts/enemies/enemy.gd")
 const GAME_WORLD_SCENE := preload("res://scenes/world/GameWorld.tscn")
 
 var _failed := false
@@ -85,6 +86,15 @@ func _assert_game_world_recruits_and_swaps_witch() -> void:
 		return
 	var player_before := world.get("player") as Player
 	var swap_position := player_before.global_position
+	var target := EnemyScript.new()
+	target.max_health = 40
+	target.global_position = swap_position + Vector2(36, 0)
+	(world.get("current_room") as Node).add_child(target)
+	await process_frame
+	player_before = world.get("player") as Player
+	swap_position = player_before.global_position
+	target.global_position = swap_position + Vector2(36, 0)
+	var target_health_before := int(target.get("current_health"))
 	if not world.has_method("swap_active_party_slot"):
 		_fail("GameWorld should expose swap_active_party_slot().")
 		return
@@ -98,6 +108,9 @@ func _assert_game_world_recruits_and_swaps_witch() -> void:
 	var swapped_player := world.get("player") as Player
 	if swapped_player == null or swapped_player.global_position.distance_to(swap_position) > 12.0:
 		_fail("Party swap should keep the player in place. Expected %s, got %s." % [str(swap_position), str(swapped_player.global_position if swapped_player != null else Vector2.INF)])
+		return
+	if int(target.get("current_health")) >= target_health_before:
+		_fail("Witch tag entry should damage a nearby enemy with Ashen Hexburst.")
 		return
 	if int(state.get("momentum")) >= 100:
 		_fail("Party swap should spend Momentum.")

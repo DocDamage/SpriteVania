@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GameState := preload("res://scripts/core/game_state.gd")
+const EnemyScript := preload("res://scripts/enemies/enemy.gd")
 const GAME_WORLD_SCENE := preload("res://scenes/world/GameWorld.tscn")
 
 var _failed := false
@@ -68,12 +69,26 @@ func _assert_world_recruits_shadow_and_swaps_three_characters() -> void:
 	if state.active_party_ids != ["warden", "black_witch", "shadow"]:
 		_fail("Shadow should occupy active party slot 3.")
 		return
+	var player_before := world.get("player") as Player
+	var swap_position := player_before.global_position
+	var target := EnemyScript.new()
+	target.max_health = 40
+	target.global_position = swap_position + Vector2(48, 0)
+	(world.get("current_room") as Node).add_child(target)
+	await process_frame
+	player_before = world.get("player") as Player
+	swap_position = player_before.global_position
+	target.global_position = swap_position + Vector2(48, 0)
+	var target_health_before := int(target.get("current_health"))
 	if not bool(world.call("swap_active_party_slot", 2)):
 		_fail("Player should be able to swap to Shadow in active slot 3.")
 		return
 	await process_frame
 	if state.selected_class != "gunslinger" or state.selected_starter_id != "shadow":
 		_fail("Swapping to Shadow should update active class identity.")
+		return
+	if int(target.get("current_health")) >= target_health_before:
+		_fail("Shadow tag entry should damage a nearby enemy with Silent Arrowfall.")
 		return
 	state.momentum = 100
 	if not bool(world.call("swap_active_party_slot", 0)):

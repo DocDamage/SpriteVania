@@ -23,6 +23,20 @@ const HAZARD_DAMAGE := {
 	"spikes": 14,
 }
 const HAZARD_COOLDOWN := 0.6
+const TAG_ENTRY_ATTACKS := {
+	"black_witch": {
+		"skill_id": "ashen_hexburst",
+		"label": "Ashen Hexburst",
+		"damage": 12,
+		"radius": 96.0,
+	},
+	"shadow": {
+		"skill_id": "silent_arrowfall",
+		"label": "Silent Arrowfall",
+		"damage": 10,
+		"radius": 112.0,
+	},
+}
 const DEFAULT_CLASS_ID := "warden"
 const DEFAULT_AREA_ID := "swamp_outskirts"
 const DEFAULT_ROOM_ID := "RoomStart"
@@ -236,10 +250,12 @@ func swap_active_party_slot(slot_index: int) -> bool:
 	_store_player_state()
 	if not party_manager.swap_to(state, slot_index):
 		return false
+	var incoming_character_id := party_manager.active_character_id(state)
 	_ensure_valid_selected_class()
 	_spawn_player(swap_position)
 	if player != null:
 		player.velocity = Vector2.ZERO
+	_trigger_tag_entry_attack(incoming_character_id, swap_position)
 	_apply_room_constraints()
 	_update_party_hud()
 	_save_game_state()
@@ -691,6 +707,33 @@ func _on_familiar_stats_changed(status: Dictionary) -> void:
 	if state != null:
 		state.familiar_state = status.duplicate()
 	_update_hud_familiar_status()
+
+func _trigger_tag_entry_attack(character_id: String, origin: Vector2) -> void:
+	if character_id.is_empty() or not TAG_ENTRY_ATTACKS.has(character_id):
+		return
+	var config := TAG_ENTRY_ATTACKS[character_id] as Dictionary
+	var skill_id := str(config.get("skill_id", ""))
+	var runtime := state.party_roster.get(character_id, {}) as Dictionary if state != null else {}
+	var learned_skills: Array = runtime.get("learned_attack_skills", []) as Array
+	if skill_id.is_empty() or not learned_skills.has(skill_id):
+		return
+	var radius := float(config.get("radius", 0.0))
+	var damage := int(config.get("damage", 0))
+	if radius <= 0.0 or damage <= 0:
+		return
+	var hit_count := 0
+	for enemy: Node in get_tree().get_nodes_in_group("enemies"):
+		var enemy_2d := enemy as Node2D
+		if enemy_2d == null or not enemy_2d.has_method("take_damage"):
+			continue
+		if current_room != null and not current_room.is_ancestor_of(enemy_2d):
+			continue
+		if enemy_2d.global_position.distance_to(origin) > radius:
+			continue
+		enemy_2d.call("take_damage", damage)
+		hit_count += 1
+	if hit_count > 0:
+		_show_upgrade_feedback("Tag attack", str(config.get("label", skill_id)))
 
 func _update_hud_map_context() -> void:
 	_ensure_hud()
