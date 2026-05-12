@@ -326,7 +326,14 @@ func _assert_character_creation_save_failure_stays_in_creator() -> void:
 	var save_manager := root.get_node("SaveManager")
 	var previous_path := str(save_manager.get("save_path"))
 	var previous_report_save_errors := bool(save_manager.get("report_save_errors"))
-	save_manager.set("save_path", "user://bad<character>creation.json")
+	var blocker_path := "user://character_creation_save_blocker"
+	var blocker := FileAccess.open(blocker_path, FileAccess.WRITE)
+	if blocker == null:
+		_fail("Character creation save failure test could not create blocker file.")
+		return
+	blocker.store_string("not a directory")
+	blocker = null
+	save_manager.set("save_path", "%s/character_creation.json" % blocker_path)
 	save_manager.set("report_save_errors", false)
 	var main := MAIN_SCENE.instantiate() as Main
 	root.add_child(main)
@@ -354,6 +361,7 @@ func _assert_character_creation_save_failure_stays_in_creator() -> void:
 	main.queue_free()
 	save_manager.set("save_path", previous_path)
 	save_manager.set("report_save_errors", previous_report_save_errors)
+	DirAccess.remove_absolute(blocker_path)
 	await process_frame
 
 func _assert_character_creation_requires_overwrite_confirmation() -> void:
