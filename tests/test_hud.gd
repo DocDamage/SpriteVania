@@ -55,6 +55,17 @@ func _run() -> void:
 	_assert_equal("Familiar Lv 1 - Spark", hud.get_node("%FamiliarLabel").text, "HUD should display the familiar starting level and evolution.")
 	if _failed:
 		return
+	hud.call("set_party_status", {
+		"active_party_ids": ["ronin", "black_witch", "shadow"],
+		"active_party_index": 1,
+		"momentum": 75,
+		"party_roster": {
+			"black_witch": {"is_ko": true},
+		},
+	})
+	_assert_equal("Party Ronin / *Black Witch KO / Shadow  Momentum 75", hud.get_node("%PartyLabel").text, "HUD should show active slot, Momentum, and KO state in party status.")
+	if _failed:
+		return
 
 	var discovered_rooms: Array[String] = ["RoomStart", "RoomCheckpoint"]
 	hud.call("set_map_context", "swamp_outskirts", "RoomCheckpoint", discovered_rooms)

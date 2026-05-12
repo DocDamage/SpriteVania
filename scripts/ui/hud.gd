@@ -116,10 +116,13 @@ func set_party_status(status: Dictionary) -> void:
 	var active_ids: Array = status.get("active_party_ids", []) as Array
 	var active_index := int(status.get("active_party_index", 0))
 	var momentum := int(status.get("momentum", 0))
+	var roster := status.get("party_roster", {}) as Dictionary
 	var labels: Array[String] = []
 	for index: int in active_ids.size():
+		var character_id := str(active_ids[index])
 		var marker := "*" if index == active_index else ""
-		labels.append("%s%s" % [marker, str(active_ids[index]).replace("_", " ").capitalize()])
+		var ko_marker := " KO" if bool((roster.get(character_id, {}) as Dictionary).get("is_ko", false)) else ""
+		labels.append("%s%s%s" % [marker, character_id.replace("_", " ").capitalize(), ko_marker])
 	party_label.text = "Party %s  Momentum %d" % [" / ".join(labels), momentum]
 
 func show_upgrade_feedback(title: String, detail: String) -> void:
