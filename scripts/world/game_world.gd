@@ -488,6 +488,9 @@ func _on_player_died() -> void:
 		_ensure_valid_selected_class()
 		_ensure_valid_world_position()
 
+	if auto_switch_on_ko():
+		return
+
 	var respawn_room_id := _respawn_room_id()
 	var respawn_position := state.checkpoint_position if state != null else Vector2.ZERO
 	if respawn_position == Vector2.ZERO:

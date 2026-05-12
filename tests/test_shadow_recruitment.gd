@@ -22,6 +22,9 @@ func _run() -> void:
 	await _assert_ko_auto_switch_selects_living_character()
 	if _failed:
 		return
+	await _assert_player_death_auto_switches_before_checkpoint_respawn()
+	if _failed:
+		return
 	print("PASS: shadow recruitment")
 	quit(0)
 
@@ -151,6 +154,31 @@ func _assert_ko_auto_switch_selects_living_character() -> void:
 		return
 	if state.active_party_index == 1:
 		_fail("KO auto-switch should leave the KO'd active slot.")
+		return
+	world.queue_free()
+	await process_frame
+
+func _assert_player_death_auto_switches_before_checkpoint_respawn() -> void:
+	var world := GAME_WORLD_SCENE.instantiate()
+	root.add_child(world)
+	world.call("start_new_game", "warden", "")
+	await process_frame
+	world.call("recruit_witch", "Mira")
+	world.call("recruit_shadow", "Ren")
+	var state := world.get("state") as GameState
+	state.momentum = 100
+	if not bool(world.call("swap_active_party_slot", 1)):
+		_fail("Test setup should swap to Witch before lethal damage.")
+		return
+	var witch_player := world.get("player") as Player
+	witch_player.set("current_health", 1)
+	witch_player.call("take_damage", 999)
+	await process_frame
+	if state.active_party_index == 1:
+		_fail("Lethal damage should auto-switch away from the KO'd active party slot when another party member is alive.")
+		return
+	if bool((state.party_roster.get("black_witch", {}) as Dictionary).get("is_ko", false)) != true:
+		_fail("Lethal damage should mark the defeated active party member as KO.")
 		return
 	world.queue_free()
 	await process_frame
